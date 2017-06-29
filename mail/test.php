@@ -24,7 +24,7 @@ try {
 	$mail->Port       = 465;                    
 	$mail->Host       = "smtp.exmail.qq.com"; 
 	$mail->Username   = "chenquan@headas.com";    
-	$mail->Password   = "cC3253220";            
+	$mail->Password   = "123456";            
 	//$mail->IsSendmail(); //如果没有sendmail组件就注释掉，否则出现“Could  not execute: /var/qmail/bin/sendmail ”的错误提示
 	$mail->AddReplyTo("chenquan@headas.com","mckee");//回复地址
 	$mail->From       = "chenquan@headas.com";
