@@ -1,0 +1,12 @@
+
+hyTestRoute.service("plug", function() {
+  var plug = {};
+
+  plug.in = function(callback, param) {
+    var data = {};
+    console.log('1111');
+    callback(data);
+  };
+
+  return plug;
+});

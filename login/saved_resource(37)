@@ -1,0 +1,319 @@
+customerRoute.service('customerCardCharge', function ($rootScope, _, membershipCardRechargeList, getCustomerType, getRechargeApplyInfo, Pagination) {
+  /**
+   * [PaginationEnhance description]
+   * @param {[Array]} origin   [数据源]
+   * @param {[Number]} pageSize [每页显示数]
+   */
+  function PaginationEnhance(origin, pageSize){
+    this.origin = origin;
+    this.pageSize = pageSize;
+    this.page = 1;
+    this.data = origin.slice(0, pageSize);
+    this.pagination = new Pagination(origin.length, 1, pageSize);
+    
+    var self = this;
+    this.action =  function(page){
+      if (!page) page = 1;
+
+      var start = (page - 1) * self.pageSize;
+      self.data = self.origin.slice(start, start + pageSize);
+      self.pagination = new Pagination(origin.length, page, self.pageSize);
+    };
+  }
+
+  var charge = {};
+
+  charge.list = function(callback, param){
+    var data = {};
+
+    data.search = angular.extend({
+      SearchInfo: "",
+      STime: "",
+      ETime: "",
+      PayState: "",
+      FinanceCardInStatus: "",
+      CustomerType: "",
+      EmployeeDepartmentId: "",
+      iPageSize: pageLimit,
+      iPageIndex: 1
+    }, param);
+
+    membershipCardRechargeList(data.search, function(response){
+      data.list = response.list.map(function(item){
+        item.showUrl = "customer/customerCardCharge/detail?ID="+item._id;
+        return item;
+      });
+      callback(data);
+    });
+  };
+
+  charge.detail = function(callback, param){
+    var data = {};
+    getRechargeApplyInfo({
+      FcpId: param.ID
+    }, function(response){
+      data = response;
+
+      data.ApplyDetail.forEach(function(item){
+        item.records = new PaginationEnhance(item.ThisApplyDetailRecords, 2);
+      });
+
+      data.rechargeItems = data.ApplyDetail.map(function(item){
+        return angular.extend({
+          name: '数量：' + item.RechargeNum + ' 单张充值金额：' + item.SingerRechargeMoney + ' 折扣：' + item.RechargeDiscount + '%',
+        }, item);
+      });
+      data.editUrl = 'customer/customerCardCharge/edit?ID=' + data._id;
+      data.rechargeItem = data.rechargeItems[0];
+      callback(data);
+    });
+  };
+
+  charge.add = function(callback, param){
+    var data = {
+      data: {
+        CustomerType:{
+          ID: 1,
+          Name: ''
+        }
+      },
+      applyDetails: [{
+        RechargeNum: 0,
+        SingerRechargeMoney: 0,
+        RechargeDiscount: 100
+      }]
+    };
+    getCustomerType(function(response){
+      data.CustomerTypes = response;
+      callback(data);
+    });
+  };
+
+  charge.edit = function(callback, param){
+    var data = {};
+    getRechargeApplyInfo({
+      FcpId: param.ID
+    }, function(response){
+      data.data = {
+        CustomerCompanyName: response.CustomerCompanyName,
+        CustomerName: response.CustomerName,
+        CustomerTel: response.CustomerTel,
+        CustomerType: response.CustomerType,
+        Notes: response.Notes,
+        RealRechargeMoney: response.RealRechargeMoney,
+        RechangeMoney: response.RechangeMoney,
+        FinanceCardInStatus: response.FinanceCardInStatus,
+        _id: response._id
+      };
+
+      data.applyDetails = response.ApplyDetail;
+      data.isEditMode = true;
+      getCustomerType(function(response){
+        data.CustomerTypes = response;
+        callback(data);
+      });
+    });
+  };
+
+  return charge;
+});
+customerRoute.service('rechargeRecievables', function(getRechargeList, getRechargeDetial) {
+	return {
+		list: function(callback, param) {
+			var search = {
+				PayType: 1,
+				iPageIndex: 1,
+				iPageSize: pageLimit,
+				SearchInfo: '',
+				PayStatus: '',
+				CustomerType: ''
+			};
+
+			angular.extend(search, param);
+
+			getRechargeList(search,'rechargeRecievables',function(response) {
+				var data = {
+					list: response.list,
+					search: search
+				};
+				callback(data);
+			});
+		},
+
+		detail: function(callback, param){
+			getRechargeDetial({
+				_id: param.ID
+			}, function(response){
+				callback(response);
+			});
+		}
+	};
+});
+
+customerRoute.service('rechargeRefund', function(getRechargeList, getRechargeDetial) {
+	return {
+		list: function(callback, param) {
+			var search = {
+				PayType: 2,
+				iPageIndex: 1,
+				iPageSize: pageLimit,
+				SearchInfo: '',
+				PayStatus: '',
+				CustomerType: ''
+			};
+
+			angular.extend(search, param);
+
+			getRechargeList(search,'rechargeRefund',function(response) {
+				var data = {
+					list: response.list,
+					search: search
+				};
+				callback(data);
+			});
+		},
+
+		detail: function(callback, param){
+			getRechargeDetial({
+				_id: param.ID
+			}, function(response){
+				callback(response);
+			});
+		}
+	};
+});
+customerRoute.service('membershipCard', function(getMembershipCardList, getMembershipCardDetail) {
+
+  var membershipCardRoute = {};
+
+  membershipCardRoute.list = list;
+  membershipCardRoute.add = add;
+  membershipCardRoute.detail = detail;
+
+  return membershipCardRoute;
+
+  function list(callback, param) {
+    var data = {};
+    
+    data.search = {
+      iPageSize: pageLimit,
+      iPageIndex: 1
+    };
+
+    if (param) data.search = _.extend(data.search, param);
+
+    getMembershipCardList(data.search, function(response) {
+      response.list.forEach(function(item) {
+        item.detailUrl = 'customer/membershipCard/detail?id=' + item._id;
+      });
+      data.list = response.list;
+      callback(data);
+    });
+  }
+
+  function add(callback, param) {
+
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    data.tabName = 'in';
+    getMembershipCardDetail(param.id,function(response){
+      data.detail = response;
+      callback(data);
+    });
+
+  }
+});
+customerRoute.service('customers', function($rootScope, _, getCustomerList, getListBasicData, getCustomerDetail, getCertificatesTypes,
+  getCustomerLevels, getEnumeration) {
+  var customerRoute = {};
+
+  customerRoute.list = function(callback, param) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getCustomerList(data.search, function(response) {
+      response.list.forEach(function(item) {
+        item.showUrl = 'customer/customers/detail?id=' + item._id.$id;
+        item.editUrl = 'customer/customers/edit?id=' + item._id.$id;
+      });
+      data.searchType = 1;
+      data.list = response.list;
+      getCustomerLevels(function(customerLevels) {
+        data.customerLevels = customerLevels;
+        getEnumeration("EStatus", function(customerStatus) {
+          data.customerStatus = customerStatus;
+          callback(data);
+        });
+      });
+    });
+  };
+
+  customerRoute.add = function(callback, param) {
+    var data = {
+      editCustomerInfo: {
+        Enlarge: {},
+        CustomerLocations: []
+      }
+    };
+    data.fromAddUrl = true;
+    getCertificatesTypes(function(certificates) {
+      data.editCustomerInfo.CertificatesType = certificates;
+      data.editCustomerInfo.certificates = _.find(certificates, function(certificate) {
+        return certificate.CertificatesTypeName === "身份证";
+      });
+      getCustomerLevels(function(customerLevels) {
+        data.editCustomerInfo.customerLevels = customerLevels;
+        data.editCustomerInfo.CustomerLevel = customerLevels[0];
+        data.editCustomerInfo.IsExistTouristBlacklist = false;
+        data.editCustomerInfo.CompanyCustomer = false;
+        data.editCustomerInfo.Enlarge = {
+          GenderTypeID: 1
+        };
+        callback(data);
+      });
+    });
+  };
+
+  customerRoute.detail = function(callback, param) {
+    var data = {};
+    getCustomerDetail(param.id, function(response) {
+      data = response;
+      if(data.Enlarge.CustomerBirth) data.Enlarge.CustomerBirth = new Date(data.Enlarge.CustomerBirth.sec * 1000);
+      getCustomerLevels(function(customerLevels) {
+        data.customerLevels = customerLevels;
+        var level = _.find(customerLevels, function(item) {
+          return item._id.$id === data.Enlarge.CustomerLevelID.$id;
+        });
+        if (undefined !== level) {
+          data.CustomerLevelName = level.CustomerLevelName;
+        }
+        callback(data);
+      });
+    });
+  };
+
+  customerRoute.edit = function(callback, param) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getCustomerDetail(param.id, function(response) {
+      data = response;
+      console.log(data);
+      callback(data);
+    });
+  };
+
+  return customerRoute;
+});

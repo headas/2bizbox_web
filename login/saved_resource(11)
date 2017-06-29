@@ -1,0 +1,875 @@
+angular.module("HY").filter("fromNowDate", fromNowDate);
+
+function fromNowDate() {
+  return func;
+
+  function func(item) {
+    var time = moment(item).fromNow();
+    return time;
+  }
+}
+angular.module("HY").filter("ICIsHandledFilter", ICIsHandledFilter);
+
+function ICIsHandledFilter() {
+  return func;
+
+  function func(item, sender) {
+    var receiver = "";
+    if (global.userinfo.FullName == sender) {
+      receiver = "对方";
+    }
+    if (item) {
+      return receiver + "已处理";
+    } else {
+      return receiver + "未处理";
+    }
+  }
+}
+angular.module("HY").filter("ICTypeFilter", ICTypeFilter);
+
+function ICTypeFilter() {
+  return func;
+
+  function func(item) {
+    var subTypes = [];
+
+    subTypes = _.flatten(_.pluck(global.InformationCenter.RemindTypes, "subTypes"));
+
+    var subTypeIndex = _.findIndex(subTypes, function(i) {
+      return i.ID == item;
+    });
+    return subTypes[subTypeIndex].name;
+
+  }
+}
+
+angular.module("HY").filter('checkNoticeTypeFilter', function() {
+  return function(type) {
+    var name = '-';
+    global.InformationCenter.RemindTypes.forEach(function(item) {
+      var index = _.findIndex(item.subTypes, {
+        ID: type
+      });
+      if (index > -1) {
+        name = item.name + '-' + item.subTypes[index].name;
+      }
+    });
+    return name;
+  };
+});
+
+
+angular.module("HY").filter("HandlingItemTypeFilter", function() {
+  return function func(subType) {
+
+    var type = -1;
+    var name = '';
+    global.InformationCenter.HandlingItemTypes.forEach(function(item) {
+      var index = _.findIndex(item.subTypes, {
+        ID: subType
+      });
+      if (index > -1) {
+        type = item.type;
+        name = item.name;
+      }
+    });
+
+    if (type == 1) {
+      name = '审核通知';
+    }
+
+    return name;
+
+  };
+});
+
+
+
+angular.module("HY").filter("ICIsReadFilter", ICIsReadFilter);
+
+function ICIsReadFilter() {
+  return func;
+
+  function func(item, sender) {
+    var receiver = "";
+    if (global.userinfo.FullName == sender) {
+      receiver = "对方";
+    }
+    if (item) {
+      return receiver + "已读";
+    } else {
+      return receiver + "未读";
+    }
+  }
+}
+
+/**
+ * 获取所有的通知类型
+ */
+angular.module("informationCenterService").factory("getInformationTypes", getInformationTypes);
+
+function getInformationTypes($http) {
+  return func;
+
+  function func(callback) {
+    var API = baseUrl + "common/remind/erpRemindTypesAll";
+    HYhttp($http, {
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+
+angular.module("informationCenterService").factory("getInformationSubtypeUnhandle", getInformationSubtypeUnhandle);
+
+function getInformationSubtypeUnhandle($http) {
+  return func;
+
+  function func(param, callback) {
+    var API = baseUrl + "common/remind/unhandleRemindCountByType";
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+
+/**
+ * 获取所有的待处理事项类型
+ */
+angular.module("informationCenterService").factory("getHandlingItems", getHandlingItems);
+
+function getHandlingItems($http) {
+  return func;
+
+  function func(callback) {
+    var API = baseUrl + "common/remind/getHandlingItems";
+    HYhttp($http, {
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+
+
+/**
+ * 修改一个通知的状态
+ */
+angular.module("informationCenterService").factory("changeInformationStatus", changeInformationStatus);
+
+function changeInformationStatus($http) {
+  return func;
+
+  function func(params, callback) {
+    var API = baseUrl + "common/Remind/crmRemindChangeStatus";
+    HYhttp($http, {
+      data: {
+        token: global.userinfo.token,
+        data: JSON.stringify(params)
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+/**
+ * 获取通知的列表
+ */
+angular.module("informationCenterService").factory("getInformationList", getInformationList);
+
+function getInformationList($http) {
+  return func;
+
+  function func(params, callback) {
+    var API = baseUrl + "common/remind/crmRemindList";
+    HYhttp($http, {
+      data: {
+        token: global.userinfo.token,
+        data: JSON.stringify(params)
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+
+/**
+ * 获取审核流程过程信息
+ */
+angular.module("informationCenterService").factory("getCheckProcessRecordDetail", getCheckProcessRecordDetail);
+
+function getCheckProcessRecordDetail($http, showErrorInfo) {
+  return func;
+
+  function func(params, callback) {
+    var API = baseUrl + "common/Check/getCheckProcessRecordDetail";
+    HYhttp($http, {
+      data: params,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+
+angular.module("informationCenterService").factory("getInformationOrderRefundDetail", function($http) {
+  return function(RecordID, callback) {
+    var API = dreamFlyUrl + "Order/OrderFinance/GetOrderPriceFinanceByID";
+    HYhttp($http, {
+      data: {
+        RecordID: RecordID
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("confirmInformationOrderRefund", function($http, showErrorInfo) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderFinance/AuditOrderFinanceRecord";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("backInformationOrderRefund", function($http) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderFinance/AuditBackOrderFinanceRecord";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("getInformationOrderTransferDetail", function($http) {
+  return function(BussinessID, callback) {
+    var API = dreamFlyUrl + "Order/OrderAuditInfo/GetOrderTransferInfo";
+    HYhttp($http, {
+      data: {
+        BussinessID: BussinessID
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("confirmInformationOrderTransfer", function($http) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderTransfer/AuditOrderTransfer";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("backInformationOrderTransfer", function($http) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderTransfer/AuditBackOrderTransfer";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("getInformationOrderChangeDateDetail", function($http) {
+  return function(RecordID, callback) {
+    var API = dreamFlyUrl + "Order/OrderInfo/GetRescheduleDetail";
+    HYhttp($http, {
+      data: {
+        RecordID: RecordID
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("confirmInformationOrderChangeDate", function($http) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderInfo/AgreeOrderRescheduleApply";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("backInformationOrderChangeDate", function($http) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderInfo/RefuseOrderRescheduleApply";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("getInformationOrderDelayDetail", function($http) {
+  return function(RecordID, callback) {
+    var API = dreamFlyUrl + "Order/OrderInfo/GetDelayDetail";
+    HYhttp($http, {
+      data: {
+        RecordID: RecordID
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("confirmInformationOrderDelay", function($http) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderInfo/AgreeOrderDelayApply";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("backInformationOrderDelay", function($http) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderInfo/RefuseOrderDelayApply";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("getInformationOrderQuitTeamDetail", function($http) {
+  return function(BussinessID, callback) {
+    var API = dreamFlyUrl + "Order/OrderAuditInfo/GetOrderExitTeamInfo";
+    HYhttp($http, {
+      data: {
+        BussinessID: BussinessID
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("confirmInformationOrderQuitTeam", function($http) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderTourist/AgreeExitTeamApply";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory("backInformationOrderQuitTeam", function($http) {
+  return function(param, callback) {
+    var API = dreamFlyUrl + "Order/OrderTourist/RefuseExitTeamApply";
+    HYhttp($http, {
+      data: param,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      }
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  };
+});
+
+angular.module("informationCenterService").factory('getInfomationPageConfig',function(){
+  return function(subtype){
+    var config = {};
+    switch (subtype) {
+      case 1:
+        config = {
+          name : '报销款',
+          header :  [
+            {name:'标题',css:'col-md-2'},
+            {name:'编号',css:'col-md-1'},
+            {name:'结算金额',css:'col-md-1'},
+            {name:'结算单位',css:'col-md-4'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/reimbursement.html',
+          search:{
+            list:[
+              {name:'结算单位',value:''},
+              {name:'结算金额',value:''},
+              {name:'结算编号',value:''},
+              {name:'标题',value:''},
+            ]
+          }
+        };
+        break;
+      case 2:
+        config = {
+          name : '采购成本',
+          header :  [
+            {name:'标题',css:'col-md-2'},
+            {name:'编号',css:'col-md-1'},
+            {name:'结算金额',css:'col-md-1'},
+            {name:'结算单位',css:'col-md-4'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/purchase.html',
+          search:{
+            list:[
+              {name:'结算单位',value:'GCOMP.Name'},
+              {name:'结算金额',value:'PayPrice'},
+              {name:'结算编号',value:'FinanceNo'},
+              {name:'标题',value:'Title'},
+            ]
+          }
+        };
+        break;
+      case 3:
+        config = {
+          name : '导游报账',
+          header :  [
+            {name:'标题',css:'col-md-3'},
+            {name:'团队编号',css:'col-md-1'},
+            {name:'发团日期',css:'col-md-1'},
+            {name:'预领金额',css:'col-md-1'},
+            {name:'报销金额',css:'col-md-1'},
+            {name:'结算金额',css:'col-md-1'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/guideReimbursement.html',
+          search:{
+            list:[
+              {name:'团队编号',value:'TeamInfo.TeamNo'},
+              {name:'预领金额',value:'ReimVerificationMoney'},
+              {name:'报销金额',value:'RealReimMoney'},
+              {name:'结算金额',value:'PayPrice'},
+              {name:'标题',value:'TeamInfo.TeamTitle'},
+            ]
+          }
+        };
+        break;
+      case 4:
+        config = {
+          name : '导游预领金',
+          header :  [
+            {name:'标题',css:'col-md-3'},
+            {name:'团队编号',css:'col-md-1'},
+            {name:'发团日期',css:'col-md-3'},
+            {name:'预领金额',css:'col-md-1'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/guideReimbursement.html',
+          search:{
+            list:[
+              {name:'团队编号',value:'TeamInfo.TeamNo'},
+              {name:'预领金额',value:'PayPrice'},
+              {name:'标题',value:'TeamInfo.TeamTitle'},
+            ]
+          }
+        };
+        break;
+      case 5:
+        config = {
+          name : '订单退款',
+          header :  [
+            {name:'标题',css:'col-md-3'},
+            {name:'订单编号',css:'col-md-2'},
+            {name:'退款金额',css:'col-md-3'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/orderRefund.html',
+          search:{
+            list:[
+              {name:'订单编号',value:'OrderInfo.OrderNo'},
+              {name:'退款金额',value:'Price'},
+              {name:'标题',value:'OrderInfo.OrderTitle'},
+            ]
+          }
+        };
+        break;
+      case 6:
+        config = {
+          name : '订单预付款',
+          header :  [
+            {name:'标题',css:'col-md-3'},
+            {name:'预付款编号',css:'col-md-1'},
+            {name:'预付金额',css:'col-md-1'},
+            {name:'结算单位',css:'col-md-3'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/orderAdvancePayment.html',
+          search:{
+            list:[
+              {name:'预付款编号',value:'FinanceNo'},
+              {name:'预付金额',value:'PayPrice'},
+              {name:'结算单位',value:'GCOMP.Name'},
+              {name:'标题',value:'Title'},
+            ]
+          }
+        };
+        break;
+      case 7:
+        config = {
+          name : '订单暂借款',
+          header :  [
+            {name:'标题',css:'col-md-3'},
+            {name:'编号',css:'col-md-1'},
+            {name:'金额',css:'col-md-1'},
+            {name:'结算单位',css:'col-md-3'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/orderAdvancePayment.html',
+          search:{
+            list:[
+              {name:'编号',value:'FinanceNo'},
+              {name:'金额',value:'PayPrice'},
+              {name:'结算单位',value:'GCOMP.Name'},
+              {name:'标题',value:'Title'},
+            ]
+          }
+        };
+        break;
+      case 8:
+        config = {
+          name : '其他支出',
+          header :  [
+            {name:'标题',css:'col-md-3'},
+            {name:'结算编号',css:'col-md-1'},
+            {name:'结算金额',css:'col-md-1'},
+            {name:'结算单位',css:'col-md-3'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/otherExpenses.html',
+          search:{
+            list:[
+              {name:'结算编号',value:'FinanceNo'},
+              {name:'结算金额',value:'PayPrice'},
+              {name:'结算单位',value:'GCOMP.Name'},
+              {name:'标题',value:'Title'},
+            ]
+          }
+        };
+        break;
+      case 9:
+        config = {
+          name : '三清单',
+          header :  [
+            {name:'标题',css:'col-md-2'},
+            {name:'三清单编号',css:'col-md-1'},
+            {name:'纯毛利',css:'col-md-1'},
+            {name:'三清单类型',css:'col-md-2'},
+            {name:'结算时间',css:'col-md-2'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/census.html',
+          search:{
+            list:[
+              {name:'三清单编号',value:'CensusNo'},
+              {name:'纯毛利',value:'TotalPureProfit'},
+              {name:'三清单类型',value:'CensusType.Name'},
+              {name:'标题',value:'CensusTitle'},
+            ]
+          }
+        };
+        break;
+      case 21:
+        config = {
+          name : '暂借款',
+          header :  [
+            {name:'标题',css:'col-md-3'},
+            {name:'编号',css:'col-md-1'},
+            {name:'金额',css:'col-md-1'},
+            {name:'结算单位',css:'col-md-3'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/census.html',
+          search:{
+            list:[
+              {name:'编号',value:''},
+              {name:'金额',value:''},
+              {name:'结算单位',value:''},
+              {name:'标题',value:''},
+            ]
+          }
+        };
+        break;
+      case 22:
+        config = {
+          name : '暂借款核销',
+          header :  [
+            {name:'标题',css:'col-md-2'},
+            {name:'编号',css:'col-md-1'},
+            {name:'金额',css:'col-md-1'},
+            {name:'三清单类型',css:'col-md-2'},
+            {name:'结算时间',css:'col-md-2'},
+            {name:'申请人',css:'col-md-1'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理状态',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/census.html',
+          search:{
+            list:[
+              {name:'编号',value:''},
+              {name:'金额',value:''},
+              {name:'结算单位',value:''},
+              {name:'标题',value:''},
+            ]
+          }
+        };
+        break;
+      default:
+        config = {
+          name : '',
+          header :  [
+            {name:'类型',css:'col-md-1'},
+            {name:'发送人',css:'col-md-1'},
+            {name:'标题',css:'col-md-6'},
+            {name:'申请时间',css:'col-md-2'},
+            {name:'处理结果',css:'col-md-1'},
+            {name:'是否已读',css:'col-md-1'},
+          ],
+          liTemplate:'/public/angularView/informationCenter/liTemplate/commom.html',
+          search:{
+            list:[
+            ]
+          }
+        };
+    }
+    return config;
+  };
+});

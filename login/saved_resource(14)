@@ -1,0 +1,1134 @@
+/*
+ * 回访 module
+ */
+customerCenterService.factory("getReturnVisitList", function ($http) {
+    var ReturnVisitList = function (parm1, callBack) {
+        var post = {};
+        var param = {
+            "Page": parm1.page ? parm1.page : 1,
+            "PageSize": parm1.pagesize ? parm1.pagesize : 25,
+            "PostData": JSON.stringify(parm1.postdata)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/get_ReturnVistList",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    }
+                },
+                function () {});
+    };
+    return ReturnVisitList;
+});
+
+customerCenterService.factory("getReturnVisitDetail", function ($http) {
+    var ReturnVisitDetail = function (data, callBack) {
+        var param = {
+            "orderID": data.id
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/get_ReturnVistDetail",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data !== "undefined" && response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        callBack(response.data);
+                    }
+                },
+                function () {});
+    };
+    return ReturnVisitDetail;
+});
+
+customerCenterService.factory("getShiftVistingRecordList", function ($http) {
+    var ShiftVistingRecordList = function (data, callBack) {
+        var param = {
+            "OrderID": data.id
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/get_ShiftVistingRecordList",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        callBack(response.data);
+                    }
+                },
+                function () {});
+    };
+    return ShiftVistingRecordList;
+});
+//保存订单转移接口
+customerCenterService.factory("applyShiftVistingRecord", function ($http) {
+    var ShiftVistingRecordList = function (data, callBack) {
+        var param = {
+            "OrderID": data.id,
+            "ToServicerID":data.customerId
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/apply_ShiftVistingRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data);
+                    } else {
+                        callBack(response.data);
+                    }
+                },
+                function () {});
+    };
+    return ShiftVistingRecordList;
+});
+
+//新增回访记录
+customerCenterService.factory("addVistingRecord", function ($http) {
+    var addVistingRecord = function (Data, callBack) {
+        var param = {
+            "OrderID": Data.OrderID,
+            "PostData":JSON.stringify(Data.PostData)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/add_VistingRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    // if (response.data.code >= 700 && response.data.code < 800) {
+                    //     callBack(response.data.data);
+                    // } else {
+                    //     callBack(response.data);
+                    // }
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return addVistingRecord;
+});
+
+//获取tag标签详情
+customerCenterService.factory("getTagDetail", function ($http) {
+    var getTag = function (tagList, callBack) {
+        var param = {
+            "json":JSON.stringify(tagList)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Tag/getTag",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return getTag;
+});
+
+//搜索tag标签
+customerCenterService.factory("searchTag", function ($http) {
+    var getTag = function (condition, callBack) {
+        var param = {
+            "json":JSON.stringify(condition)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Tag/searchTag",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return getTag;
+});
+
+//新插入tag到数据库
+customerCenterService.factory("insertTag", function ($http) {
+    var getTag = function (condition, callBack) {
+        var param = {
+            "json":JSON.stringify(condition)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Tag/insertTag",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return getTag;
+});
+
+////更新数据到recode表
+customerCenterService.factory("inserttoreTag", function ($http) {
+    var getTag = function (condition, callBack) {
+        var param = {
+            "json":JSON.stringify(condition)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/insertTag",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return getTag;
+});
+
+////修改回访记录
+customerCenterService.factory("editVisitRecord", function ($http) {
+    var editRecord = function (RecordID,condition, callBack) {
+        var param = {
+            "RecordID":RecordID,
+            "PostData":JSON.stringify(condition)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/edit_VistingRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return editRecord;
+});
+
+customerCenterService.factory("getCustomerServerList", getCustomerServerList);
+function getCustomerServerList($http) {
+	return func;
+	function func(callback) {
+		var API = baseUrl + "common/user/getPersonnel";
+		HYhttp($http, {
+			url : API,
+			data : {
+				label : 3003,
+                                    lock : 0,
+                                    limit : 100
+			},
+			method : "POST"
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data.data.list);
+		}
+		function fail(response) {
+
+		}
+	}
+}
+
+customerCenterService.factory("isCanAccept", function ($http) {
+    var isCanAccept = function (OrderID, CallBack) {
+        var param = {
+            "OrderID":OrderID,
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/isCanAccept",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    CallBack(response.data);
+                },
+                function () {});
+    };
+    return isCanAccept;
+});
+//cantAcceptgRecord
+//accept_ShiftVistingRecord
+
+customerCenterService.factory("cantAcceptgRecord", function ($http) {
+    var cantAcceptgRecord = function (OrderID, CallBack) {
+        var param = {
+            "OrderID":OrderID,
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/cantAcceptgRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    CallBack(response.data);
+                },
+                function () {});
+    };
+    return cantAcceptgRecord;
+});
+
+customerCenterService.factory("accept_ShiftVistingRecord", function ($http) {
+    var accept = function (OrderID, CallBack) {
+        var param = {
+            "OrderID":OrderID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit/accept_ShiftVistingRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    CallBack(response.data);
+                },
+                function () {});
+    };
+    return accept;
+});
+
+customerCenterService.factory("remindChangeStatus", function ($http) {
+    var remindChangeStatus = function (Condition, CallBack) {
+        var param = {
+             "token": global.userinfo.token,
+            "data":JSON.stringify(Condition)
+        };
+        HYhttp(
+                $http, {
+                    url: baseUrl + "common/Remind/crmRemindChangeStatus",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    CallBack(response.data);
+                },
+                function () {});
+    };
+    return remindChangeStatus;
+});
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+
+customerCenterService.factory("getIMComplaintDetail", function ($http) {
+    var ReturnVisitList = function (postData,callBack) {
+        var param = {
+            "ComplaintRecordID":postData.id
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/get_ComplaintRecordDetailByID",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        responseData = response.data.data;
+                        responseData.postData = postData;
+                        console.log(responseData);
+                        callBack(responseData);
+                    } else {
+                        callBack(response.data);
+                    }
+                },
+                function () {});
+    };
+    return ReturnVisitList;
+});
+
+
+customerCenterService.factory("confirmResponsibleMan", function ($http) {
+    var confirmResponsibleMan = function (postData,callBack) {
+        var param = {
+            "ResponsibleRecordID":postData.id
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/confirm_ResponsibleMan",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                        callBack(response.data);
+                },
+                function () {});
+    };
+    return confirmResponsibleMan;
+});
+angular.module("customerCenterService").factory("getCallRecordListAll", function ($http) {
+    var CallRecordList = function (parm,callBack) {
+        var ParamData = {
+            "Page":parm.page,
+            "PageSize":parm.pagesize,
+            "PostData":JSON.stringify(parm.postdata)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Incoming_telegram/get_CallRecord",
+                    data: ParamData,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        showErrorInfo(response.data);
+                    }
+                },
+                function () {});
+    };
+    return CallRecordList;
+});
+
+angular.module("customerCenterService").factory("getCallRecordDetail", function ($http) {
+    var CallRecordDetail= function (id,callBack) {
+        var param = {
+            CallRecordID:id
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Incoming_telegram/get_CallRecordDetail",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        showErrorInfo(response.data);
+                    }
+                },
+                function () {});
+    };
+    return CallRecordDetail;
+});
+
+angular.module("customerCenterService").factory("findOrderRecordByPHNO", function ($http) {
+    var orderRecordList = function (phone,callBack) {
+        var param = {
+            Telphone:phone
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Incoming_telegram/find_OrderRecordByPHNO",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        showErrorInfo(response.data);
+                    }
+                },
+                function () {});
+    };
+    return orderRecordList;
+});
+
+angular.module("customerCenterService").factory("claimRecord", function ($http) {
+    var claimRecord = function (recordID,callBack) {
+        var param = {
+            CallRecordID:recordID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Incoming_telegram/Claim",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data);
+                    } else {
+                        showErrorInfo(response.data);
+                    }
+                },
+                function () {});
+    };
+    return claimRecord;
+});
+
+angular.module("customerCenterService").factory("callHandling", function ($http) {
+    var callHandling = function (recordID,callBack) {
+        var param = {
+            CallRecordID:recordID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Incoming_telegram/change_CallHandlingStatus",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data);
+                    }
+                },
+                function () {});
+    };
+    return callHandling;
+});
+function getICConfirmListForServer($http) {
+  return callbackWithList;
+  // //////////
+  function callbackWithList(param, callback) {
+    var API = intentionCustomerUrl + "/ccr/MarketingClaimList";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      var data = [];
+      var url = 'intentionCustomer/ICOrder/detail';
+
+      function constructNewData(item) {
+        var order = {}
+        order.orderID = item._id;
+        order.customerName = item.CustomerInfo.Name;
+        order.contact = item.CustomerInfo.MT;
+        order.customerID = item.CustomerInfo.ID;
+        order.fromDate = item.Play_StartTime;
+        order.toDate = item.Play_EndTime;
+        var intentionType = {
+          n: "线路"
+        };
+        if (item.Record_Type && global.IntentionCustomer.RecordType) {
+          intentionType = _.find(global.IntentionCustomer.RecordType, function(e) {
+            return e.v == item.Record_Type;
+          });
+          if (intentionType) {
+            order.intentionType = intentionType.n;
+          }
+        }
+        var trackType = {
+          StateTitle: "未知类型"
+        };
+        if (item.Review) {
+          if (item.Review.Review_State) {
+            var newtrackType = _.find(global.IntentionCustomer.ReviewState, function(e) {
+              return e._id == item.Review.Review_State;
+            });
+            if (newtrackType) {
+              trackType = newtrackType;
+            }
+          }
+        }
+        order.destination = item.DestinationInfo;
+        order.members = item.Adult_Num;
+        order.trackType = trackType.StateTitle;
+        if (item.UserInfo) {
+          order.customerServer = item.UserInfo.Name;
+        }
+        if (item.Sales) {
+          order.customerSale = item.Sales.Name;
+        }
+        order.addDate = item.Record_Time;
+        order.url = url + "?recordID=" + order.orderID;
+        data.push(order);
+      }
+      var rdata = response.data.List;
+      if (rdata) {
+        rdata.forEach(constructNewData);
+      }
+      callback({
+        list: data,
+        page: 1,
+        pageCount: 1
+      });
+    }
+
+    function fail(response) {
+      return false;
+    }
+
+  }
+
+
+
+}
+angular.module("customerCenterService").factory("getICConfirmListForServer", getICConfirmListForServer);
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+
+customerCenterService.factory("getComplaintList", function ($http) {
+    var ReturnVisitList = function (PostData,callBack) {
+        var post = {};
+        var param = {
+            "Page":PostData.Page?PostData.Page:1,
+            "PageSize":PostData.PageSize?PostData.PageSize:25,
+            "PostData":JSON.stringify(PostData.PostData)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/get_ComplaintList",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        callBack(response.data);
+                    }
+                },
+                function () {});
+    };
+    return ReturnVisitList;
+});
+
+customerCenterService.factory("getComplaintDetail", function ($http) {
+    var ReturnVisitList = function (postData,callBack) {
+        var param = {
+            "ComplaintRecordID":postData.id
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/get_ComplaintRecordDetailByID",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                        //console.log(response);
+                    } else {
+                        callBack(response.data);
+                    }
+                },
+                function () {});
+    };
+    return ReturnVisitList;
+});
+
+customerCenterService.factory("addHandlingRecord", function ($http) {
+    var addHandlingRecord = function (postData,callBack) {
+        var param = {
+            "OrderID":postData.OrderID,
+            "ComplaintRecordID":postData.ComplaintRecordID,
+            "PostData":JSON.stringify(postData.PostData)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/add_HandlingRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        callBack(response.data);
+                    }
+                },
+                function () {});
+    };
+    return addHandlingRecord;
+});
+
+customerCenterService.factory("getHandlingRecordList", function ($http) {
+    var getHandlingRecordList = function (postData,callBack) {
+        var param = {
+            "OrderID":postData.OrderID,
+            "ComplaintRecordID":postData.ComplaintRecordID,
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/get_HandlingRecordList",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data);
+                    } else {
+                        callBack(response);
+                    }
+                },
+                function () {});
+    };
+    return getHandlingRecordList;
+});
+
+customerCenterService.factory("delHandlingRecord", function ($http) {
+    var delHandlingRecord = function (postData,callBack) {
+        var param = {
+            "HandlingRecordID":postData.HandlingRecordID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/del_HandlingRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return delHandlingRecord;
+});
+
+//general/Personnelx/get_Personnel_By_Name
+
+customerCenterService.factory("getPersonnelByName", function ($http) {
+    var getPersonnel = function (postData,callBack) {
+        var param = {
+            "inputName":postData.inputName
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "general/Personnelx/get_Personnel_By_Name",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return getPersonnel;
+});
+
+//customerservice/Complaints/add_ResponsibleMan
+//新增责任人
+customerCenterService.factory("saveResponsibleMan", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "OrderID":postData.OrderID,
+            "ComplaintRecordID":postData.ComplaintRecordID,
+            "PostData":JSON.stringify(postData.PostData),
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/add_ResponsibleMan",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+//customerservice/Complaints/get_ResponsibleManList
+//新增责任人
+customerCenterService.factory("getResponsibleManList", function ($http) {
+    var getResponsibleManList = function (postData,callBack) {
+        var param = {
+            "OrderID":postData.OrderID,
+            "ComplaintRecordID":postData.ComplaintRecordID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/get_ResponsibleManList",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return getResponsibleManList;
+});
+//customerservice/Complaints/del_ResponsibleMan
+//删除责任人
+customerCenterService.factory("delResponsibleManList", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "ResponsibleRecordID":postData.ResponsibleRecordID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/del_ResponsibleMan",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+//customerservice/Complaints/add_ReparationRecord
+//新增赔偿
+customerCenterService.factory("addReparationRecord", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "OrderID":postData.OrderID,
+            "ComplaintRecordID":postData.ComplaintRecordID,
+            "PostData":JSON.stringify(postData.PostData)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/add_ReparationRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+//customerservice/Complaints/del_ReparationRecord
+//删除赔偿
+customerCenterService.factory("delReparationRecord", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "ReparationRecordID":postData.ReparationRecordID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/del_ReparationRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+//
+//获取赔偿列表
+customerCenterService.factory("getReparationRecordList", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "OrderID":postData.OrderID,
+            "ComplaintRecordID":postData.ComplaintRecordID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/get_ReparationRecordList",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+//删除投诉
+customerCenterService.factory("delComplaint", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "ComplaintRecordID":postData.ComplaintRecordID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/del_Complaint",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+///////////////////////////////////////////////////////
+///客服列表
+//////////////////////////////////////////////////////
+customerCenterService.factory("getCustomerServerList", function($http){
+    var returnData = function (callBack) {
+        var param = {
+            "label": 3003,
+            "lock" : 0,
+            "limit" : 100
+        };
+        HYhttp(
+                $http, {
+                    url: baseUrl + "common/user/getPersonnel",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+////////////////////////////////////////////////////////
+//////搜索订单
+///////////////////////////////////////////////////////
+customerCenterService.factory("searchOrderInfo", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            SearchInfo: postData.searchKey,
+            iPageIndex: postData.page,
+            iPageSize: postData.pagesize,
+            isFullData: true
+        };
+        HYhttp(
+                $http, {
+                    url: dreamFlyUrl + "Order/OrderList/AllOrderList",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+///////////////////////////////////////////////////////
+///保存新增投诉addComplaint
+//////////////////////////////////////////////////////
+customerCenterService.factory("addComplaint", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "OrderID":postData.OrderID,
+            "HandlingPersonneID":postData.HandlingPersonneID,
+            "PostData":JSON.stringify(postData.PostData)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/add_Complaint",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+////////////////////////////////////////
+/////获取简要信息
+///////////////////////////////////////
+//customerservice/Complaints/get_MainComplaintsInfoByID
+
+customerCenterService.factory("getMainComplaintsInfoByID", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "ComplaintRecordID":postData.ComplaintRecordID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/get_MainComplaintsInfoByID",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+///////////////////////////////////////////////////////
+///保存修改投诉editComplaint
+//////////////////////////////////////////////////////
+customerCenterService.factory("editComplaint", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "OrderID":postData.OrderID,
+            "ComplaintRecordID":postData.ComplaintRecordID,
+            "PostData":JSON.stringify(postData.PostData)
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/edit_Complaint",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});
+
+////////////////////////////////////////////////////////
+//////  删除投诉 delComplaintByID
+////////////////////////////////////////////////////////
+customerCenterService.factory("delComplaintByID", function ($http) {
+    var returnData = function (postData,callBack) {
+        var param = {
+            "ComplaintRecordID":postData.ComplaintRecordID,
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Complaints/del_Complaint",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    callBack(response.data);
+                },
+                function () {});
+    };
+    return returnData;
+});/*
+ * 回访分配 module
+ */
+customerCenterService.factory("getTotalOrderByDate", function ($http) {
+    var TotalOrderByDate = function (parm1, callBack) {
+        var param = {
+            "Date": parm1.Date
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit_assign/get_TotalOrderByDate",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        showErrorInfo(response.data);
+                    }
+                },
+                function () {});
+    };
+    return TotalOrderByDate;
+});
+
+customerCenterService.factory("getNotAssignList", function ($http) {
+    var NotAssignList = function (parm1, callBack) {
+        var param = {
+            "Date": parm1.Date,
+            "Page":parm1.Page?parm1.Page:1,
+            "Pagesize":parm1.Pagesize?parm1.Pagesize:15
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit_assign/get_NotAssignList",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        showErrorInfo(response.data);
+                    }
+                },
+                function () {});
+    };
+    return NotAssignList;
+});
+
+
+customerCenterService.factory("getThisDayAssignList", function ($http) {
+    var getThisDayAssignList = function (parm1, callBack) {
+        var param = {
+            "Date": parm1.Date,
+            "Page":parm1.Page?parm1.Page:1,
+            "Pagesize":parm1.Pagesize?parm1.Pagesize:25
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit_assign/get_ThisDayAssignList",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data.data);
+                    } else {
+                        showErrorInfo(response.data);
+                    }
+                },
+                function () {});
+    };
+    return getThisDayAssignList;
+});
+
+customerCenterService.factory("assignVisitingRecord", function ($http) {
+    var assignVisitingRecord = function (parm1, callBack) {
+        var param = {
+            "OrderID": parm1.OrderID,
+            "CustomerServiceID":parm1.CustomerServiceID
+        };
+        HYhttp(
+                $http, {
+                    url: productUrl + "customerservice/Return_visit_assign/assign_VisitingRecord",
+                    data: param,
+                    method: "POST"
+                }).then(
+                function (response) {
+                    if (response.data.code >= 700 && response.data.code < 800) {
+                        callBack(response.data);
+                    } else {
+                        showErrorInfo(response.data);
+                    }
+                },
+                function () {});
+    };
+    return assignVisitingRecord;
+});
+
+
+customerCenterService.factory("assign_Batch_VisitingRecord", function ($http, $rootScope, _, showErrorInfo) {
+    var assignVisitingRecord = function (parm1, callBack) {
+        var param = {
+            "personal_id": parm1.personal_id,
+            "date":parm1.date
+        };
+        HYhttp(
+            $http, {
+                url: productUrl + "customerservice/Return_visit_assign/assign_VisitingRecordBatch",
+                data: param,
+                method: "POST"
+            }).then(
+            function (response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callBack(response.data);
+                } else {
+                    //console.log('fff');
+                    showErrorInfo(response.data);
+                }
+            },
+            function () {});
+    };
+    return assignVisitingRecord;
+});

@@ -1,0 +1,15 @@
+@charset "utf-8";
+/* CSS Document */
+
+body { background:#e4e8f0; border-top:10px solid #4b77be;}
+.bs-example { position:absolute; top:50%; width:400px; left:50%; margin-left:-200px; margin-top:-250px;}
+#loginForm { background:#fff; padding:10px 20px; box-shadow:0 0 10px rgba(75, 120, 190, 0.3);}
+.logo-login { text-align:center;}
+.logo-login img { display:block; margin:0 auto 30px;}
+#loginForm .control-label { font-size:14px; color:#666; line-height:30px;}
+#loginForm  .form-control { height:38px; line-height:38px; font-size:14px; background:#fff;}
+.form-action { padding:15px 0 10px;}
+.loginBtn { background:#4b77be; color:#fff; font-size:16px; display:block; height:40px; line-height:40px; width:100%; border:none; text-align:center;}
+#loginForm .checkbox { text-align:center;}
+#login-footer { position:absolute; bottom:10px; width:100%; left:0; color:#666; text-align:center;}
+.btn_cancel { background:#bebebe; line-height:1;}

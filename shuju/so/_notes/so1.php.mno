@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_DetailRS1" value="name:col_0_0_;datatype:int" />
+	<infoitem key="UD_LiveData_params" value="1" />
+	<infoitem key="UD_LiveData_param0" value="recordID=1" />
+	<infoitem key="UD_Recordset1" value="name:col_0_0_;datatype:string,name:col_1_0_;datatype:string,name:col_2_0_;datatype:date,name:col_3_0_;datatype:string,name:col_4_0_;datatype:string,name:col_5_0_;datatype:string,name:col_6_0_;datatype:string,name:col_7_0_;datatype:blob,name:col_8_0_;datatype:blob,name:col_9_0_;datatype:string,name:col_10_0_;datatype:real,name:col_11_0_;datatype:string,name:col_12_0_;datatype:string,name:col_13_0_;datatype:real,name:col_14_0_;datatype:real,name:col_15_0_;datatype:string" />
+</info>

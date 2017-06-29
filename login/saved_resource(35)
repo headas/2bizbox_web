@@ -1,0 +1,173 @@
+/**
+ * 意向客户
+ */
+
+angular.module("informationCenterRoute").service("informationCenterTasks", informationCenterTasks);
+
+function informationCenterTasks(getInformationList, $filter, $rootScope) {
+	var ICIntentionCustomerRoute = {};
+	var initialParams = {
+		page : 1,
+		limit : 25,
+		isForMe: 1,
+    isHandled: false,
+		startDate : $filter("date")(Date.now(), "yyyy-MM-01")
+	};
+	ICIntentionCustomerRoute.FinanceList = FinanceList;// 显示列表
+	ICIntentionCustomerRoute.OrderList = OrderList;// 显示列表
+	ICIntentionCustomerRoute.ServerList = ServerList;// 显示列表
+	ICIntentionCustomerRoute.IntentionCustomerList = IntentionCustomerList;// 显示列表
+	ICIntentionCustomerRoute.ICICServerTransfer = ICICServerTransfer;
+
+	return ICIntentionCustomerRoute;
+
+	function ICICServerTransfer(callback, params) {
+
+	}
+	function list(callback, params) {
+		// getICCustomerList([],constructResponse);
+		// function constructResponse(response){
+		getInformationList(params, function(response) {
+			callback(response.data);
+		});
+		// }
+	}
+
+	function FinanceList(callback) {
+		initialParams.type = 1;
+		initialParams.messageType = 1;
+		list(callback, initialParams);
+	}
+
+	function OrderList(callback) {
+		initialParams.type = 2;
+    initialParams.messageType = 1;
+		list(callback, initialParams);
+	}
+
+	function ServerList(callback) {
+		initialParams.type = 3;
+    initialParams.messageType = 1;
+		list(callback, initialParams);
+	}
+
+	function IntentionCustomerList(callback) {
+		initialParams.type = 4;
+    initialParams.messageType = 1;
+		list(callback, initialParams);
+	}
+
+}
+
+angular.module("informationCenterRoute").service("financeCenter", function($filter, $rootScope, getInformationOrderRefundDetail){
+  var route = {};
+
+  route.orderRefundDetail = function(callback, param){
+    var data = param;
+    getInformationOrderRefundDetail(param.RecordID, function(response){
+      angular.extend(data, response);
+      callback(data);
+    });
+  };
+
+  return route;
+});
+
+
+angular.module("informationCenterRoute").service("orderCenter", function($filter, $rootScope, getInformationOrderTransferDetail,
+getInformationOrderChangeDateDetail, getInformationOrderDelayDetail, getInformationOrderQuitTeamDetail){
+  var route = {};
+
+  route.cancel = function(callback, param){
+    var data = {};
+    callback(data);
+  };
+
+  route.changeDate = function(callback, param){
+    var data = param;
+    getInformationOrderChangeDateDetail(param.ID, function(response){
+      angular.extend(data, response);
+      data.showMenu = true;
+      if(data.AuditStatus == 3 || data.AuditStatus == 4 ||data.AuditStatus == 5 ||data.AuditStatus == 6){
+        data.showMenu = false;
+      }
+      callback(data);
+    });
+  };
+
+  route.delay = function(callback, param){
+    var data = {};
+
+    getInformationOrderDelayDetail(param.ID, function(response){
+      data = response;
+      data.remindId = param.ID;
+      data.showMenu = true;
+      if(data.AuditStatus == 3 || data.AuditStatus == 4 ||data.AuditStatus == 5 ||data.AuditStatus == 6){
+        data.showMenu = false;
+      }
+      callback(data);
+    });
+  };
+
+  route.quitTeam = function(callback, param){
+    var data = {};
+    getInformationOrderQuitTeamDetail(param.ID, function(response){
+      data = response;
+      data.showMenu = true;
+      if(data.exitTeamInfo.AuditStatus == 3 || data.exitTeamInfo.AuditStatus == 4 ||data.exitTeamInfo.AuditStatus == 5 ||data.exitTeamInfo.AuditStatus == 6){
+        data.showMenu = false;
+      }
+      data.remindId = param.ID;
+      callback(data);
+    });
+  };
+
+  route.trans = function(callback, param){
+    var data = {};
+    getInformationOrderTransferDetail(param.ID, function(response){
+      data = response;
+      data.remindId = param.ID;
+      data.showButton = true;
+      if(data.transfer.AuditStatus == 3 || data.transfer.AuditStatus == 4 ||data.transfer.AuditStatus == 5 ||data.transfer.AuditStatus == 6){
+        data.showButton = false;
+      }else{
+        if(data.transfer.FromOPUser.ForeignKeyID != data.transfer.ToOPUser.ForeignKeyID){
+          data.isTrans = true;
+          data.showButton = false;
+          data.transTarget = data.transfer.ToOPUser.ForeignKeyID;
+        }else if(data.transfer.FromUser.ForeignKeyID != data.transfer.ToUser.ForeignKeyID){
+          data.isTrans = true;
+          data.showButton = false;
+          data.transTarget = data.transfer.ToUser.ForeignKeyID;
+        }
+      }
+      callback(data);
+    });
+  };
+
+  return route;
+});
+angular.module("informationCenterRoute").service("informationCenterRemind", informationCenterRemind);
+
+function informationCenterRemind(getInformationList,$filter) {
+  var remind = {};
+
+  remind.remindList = remindList;
+
+  function remindList(callback, params) {
+    var initialParams = {
+      page: params.page ? params.page : 1,
+      limit: params.limit ? params.limit : 25,
+      startDate: params.startDate?params.startDate:$filter("date")(Date.now(), "yyyy-MM-01"),
+      messageType : 2
+    };
+    var data = {};
+    data.search = initialParams;
+    getInformationList(initialParams, function(response) {
+      data.list = response.data.list;
+      callback(data);
+    });
+  }
+
+  return remind;
+}

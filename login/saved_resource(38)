@@ -1,0 +1,43 @@
+
+route.service('HYRoute', function() {
+  var routeFunction = {};
+
+  /**
+   * [获取路由索要调用的方法]
+   * @param  {[type]} httpUrl [链接地址]
+   * @return {[type]}         [调用的方法]
+   */
+  routeFunction.getRoute = function(httpUrl) {
+    var routeStr = httpUrl.split("/");
+    var injector;
+    if (routeStr.length > 2) {
+      var routeName = routeStr[0] + 'Route';
+      injector = angular.injector([routeName]);
+      var myroute = injector.get(routeStr[1]);
+      return myroute[routeStr[2]];
+    } else {
+      console.log('无法正常匹配路由规则');
+    }
+  };
+
+  /**
+   * [解析链接的参数]
+   * @param  {[type]} url [链接地址]
+   * @return {[type]}     [参数的object]
+   */
+  routeFunction.getParam = function(url){
+    var param = {};
+    if(url.indexOf('?')>0){
+      var paramStr = url.substr(url.indexOf('?')+1,url.length-url.indexOf('?')-1);
+      var parameters = paramStr.split('&');
+      for (var i = 0; i < parameters.length; i++) {
+        if(parameters[i].indexOf('=')>0){
+          param[parameters[i].substr(0,parameters[i].indexOf('='))] = parameters[i].substr(parameters[i].indexOf('=')+1,parameters[i].length-parameters[i].indexOf('?')-1);
+        }
+      }
+    }
+    return param;
+  };
+
+  return routeFunction;
+});

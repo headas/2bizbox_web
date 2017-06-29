@@ -1,0 +1,340 @@
+/*
+ * 投诉 路由
+ */
+customerCenterRoute.service("imComplaint",function(getIMComplaintDetail){
+    var complaint = {};
+    complaint.detail = detail;
+    return complaint;
+
+    function detail(callback, param){
+        var data = {};
+        getIMComplaintDetail(param,function(response) {
+            data = response;
+            callback(data);
+        });
+    }
+
+});
+/*
+ * 来电列表 路由
+ */
+customerCenterRoute.service("callRecord", function(getCallRecordListAll,getCallRecordDetail,findOrderRecordByPHNO,claimRecord){
+    var callRecord = {};
+    callRecord.list = list;
+    callRecord.detail = detail;
+    return callRecord;
+    function list(callback,param){
+        var data = {};
+//        if(!param){
+//            param = {
+//                "page":1,
+//                "pagesize":25,
+//                "postdata":{}
+//            };
+//        }
+        param = {
+            "page":1,
+            "pagesize":25,
+            "postdata":{}
+        };
+        getCallRecordListAll(param,function(response) {
+            data.list = response.list;
+            data.list.forEach(function(item) {
+              item.showUrl = 'customerCenter/callRecord/detail?id=' + item.ThisID.$id + '&phone=' + item._id.TelPhone;
+            });
+            callback(data);
+        });
+    }
+    
+    function detail(callback, param) {
+        var data = {};
+        getCallRecordDetail(param.id, function(response) {
+            data = response;
+            findOrderRecordByPHNO(param.phone,function(orderRecord){
+                data.orderRecord = orderRecord.list;
+                callback(data);
+            });
+        });
+    }
+    
+});/*
+ * 投诉 路由
+ */
+customerCenterRoute.service("complaint",function(getComplaintList,getComplaintDetail,getCustomerServerList,getMainComplaintsInfoByID){
+    var complaint = {};
+    complaint.list = list;
+    complaint.detail = detail;
+    complaint.add = add;
+    complaint.edit = edit;
+    return complaint;
+
+    function list(callback, param){
+        var data = {};
+        if(!param){
+            param = {
+                "Page":1,
+                "PageSize":25,
+                "PostData": {}
+            };
+        }
+        getComplaintList(param,function(response) {
+            data.list = response.list;
+            //console.log(data.list);
+            data.list.forEach(function(item) {
+              item.showUrl = 'customerCenter/complaint/detail?id=' + item._id.$id;
+            });
+            callback(data);
+        });
+    }
+
+    function detail(callback, param){
+        var data = {};
+        getComplaintDetail(param,function(response) {
+            data = response;
+            callback(data);
+        });
+    }
+
+    function add(callback){
+        var data = {};
+        getCustomerServerList(function(returnBack){
+            data.getCustomerServerList = returnBack.data.list;
+            callback(data);
+        });
+    }
+
+    function edit(callback, param){
+        var data = {};
+        var paramData = {
+            "ComplaintRecordID":param.id
+        };
+        getMainComplaintsInfoByID(paramData,function(returnBackData){
+            data = returnBackData.data;
+            data.searchKeyWord = data.OrderInfo.OrderNo;
+            data.handleName = data.HandlingPersonnel._id.$id;
+            data.ComplaintTime.sec = data.ComplaintTime.sec * 1000;
+            data.orderID = data.OrderInfo._id.$id;
+        });
+        getCustomerServerList(function(returnBack){
+            data.getCustomerServerList = returnBack.data.list;
+            callback(data);
+        });
+    }
+});
+/*
+ * 回访 路由
+ */
+customerCenterRoute.service("returnVisit",function(getReturnVisitList,isCanAccept,getReturnVisitDetail,getShiftVistingRecordList,getTagDetail){
+    var Visit = {};
+    Visit.list = list;
+    Visit.detail = detail;
+    return Visit;
+
+    function list(callback, param){
+        // console.log("I'm here");
+        // console.log(global.userinfo);
+        // console.log(global.userinfo._id.$id);
+        var data = {};
+        param = {
+            "page":1,
+            "pagesize":25,
+            "postdata":{
+                "IsCustomerReturnVisitArrange":1,
+                "ReturnVisterID":global.userinfo._id.$id
+            }
+        };
+
+        getReturnVisitList(param,function(response) {
+            data.list = response.list;
+            data.list.forEach(function(item) {
+              item.showUrl = 'customerCenter/returnVisit/detail?id=' + item._id.$id;
+            });
+            callback(data);
+        });
+    }
+
+    function detail(callback, param){
+        var data = {};
+        getReturnVisitDetail(param,function(response){
+            data = response;
+            data.param = param;
+            data.satisfactionPercent = 0;
+            //console.log(data.param);
+            getShiftVistingRecordList(param,function(response){
+                data.ShiftVistingRecordList = response;
+                //是否具有回访能力
+                if(judgeMeAsAServer()){
+                    data.addReturnVisitLogLimit = 1;
+                }else{
+                    data.addReturnVisitLogLimit = 0;
+                }
+                callback(data);
+                isCanAccept(data._id.$id,function(response){
+                    if(response.code >= 700 && response.code < 800){
+                        data.isCanAcceptStatus = response.data.hasStatus;
+                        callback(data);
+                    }
+                });
+                if(data.VistingRecord !== "undefined" && data.VistingRecord.length > 0){
+                    if(data.VistingRecord["0"].Tag !== "undefined"){
+                        getTagDetail(data.VistingRecord["0"].Tag,function(response){
+                            data.VistingRecord["0"].Tag = response.data.list;
+                            callback(data);
+                        });
+                    }
+                    data.satisfactionPercent = calSatisfactionPercent(data.VistingRecord);
+                };
+            });
+        });
+    }
+    //\\\\\\\\\\\\\\\\\\\
+    // 满意度 计算
+    //\\\\\\\\\\\\\\\\\\\\\\
+    function calSatisfactionPercent(Rcord){
+        var allNumber=0;
+        var satisfactionPercent = 0;
+        Rcord.forEach(function(item, i) {
+            var score = Rcord[i].Score;
+            if(item.IsLatest){
+                   allNumber = score.TrafficScore + score.HotelScore + score.RouteScore  + score.ViewpointScore + score.TouristGuideScore + score.CounsellorScore;
+                   satisfactionPercent = allNumber/6;
+            }
+        });
+        return satisfactionPercent;
+    }
+    /**
+     *我是否是计调
+     **/
+    function judgeMeAsAnOperator() {
+      myLabels = _.pluck(global.userinfo.Label, "LabelGroup");
+      var labelGroupName = ["计调", "线路经理", '中心经理','接线专员经理'];
+      var tag = false;
+      myLabels.forEach(function(item) {
+        if (_.indexOf(labelGroupName, item) > -1) {
+          tag = true;
+        }
+      });
+      return tag;
+    }
+    /**
+     * 我是否是客服
+     */
+    function judgeMeAsAServer(myLabels) {
+      if (!myLabels) {
+        myLabels = _.pluck(global.userinfo.Label, "LabelGroup");
+      }
+      var labelGroupName = ["客服"];
+      var tag = false;
+      myLabels.forEach(function(item) {
+        if (_.indexOf(labelGroupName, item) > -1) {
+          tag = true;
+        }
+      });
+      return tag;
+    }
+    /**
+     * 我是否是私顾
+     */
+    function judgeMeAsASale(myLabels) {
+      if (!myLabels) {
+        myLabels = _.pluck(global.userinfo.Label, "LabelGroup");
+      }
+      var labelGroupName = ["私顾", '私人旅游顾问', "中心经理"];
+      var tag = false;
+      myLabels.forEach(function(item) {
+        if (_.indexOf(labelGroupName, item) > -1) {
+          tag = true;
+        }
+      });
+      return tag;
+    }
+
+});
+/**
+ * 意向订单认领
+ */
+angular.module("customerCenterRoute").service("intentionCustomers", intentionCustomers);
+
+function intentionCustomers(getICConfirmListForServer, getICConfirmOrderList) {
+  var Order = {};
+  Order.list = list;
+  return Order;
+
+  function list(callback, param) {
+    if (judgeMeAsAServer()) {
+      getICConfirmListForServer([], constructResponse);
+    } else if (judgeMeAsASale()) {
+      getICConfirmOrderList([], constructResponse);
+    }
+
+    function constructResponse(response) {
+      //console.log(response);
+      callback(response);
+    }
+    /**
+     * 我是否是客服
+     */
+    function judgeMeAsAServer(myLabels) {
+      if (!myLabels) {
+        myLabels = _.pluck(global.userinfo.Label, "LabelGroup");
+      }
+      var labelGroupName = ["客服", "中心经理"];
+      var tag = false;
+      myLabels.forEach(function(item) {
+        if (_.indexOf(labelGroupName, item) > -1) {
+          tag = true;
+        }
+      });
+      return tag;
+    }
+    /**
+     * 我是否是私顾
+     */
+    function judgeMeAsASale(myLabels) {
+      if (!myLabels) {
+        myLabels = _.pluck(global.userinfo.Label, "LabelGroup");
+      }
+      var labelGroupName = ["私顾", "中心经理"];
+      var tag = false;
+      myLabels.forEach(function(item) {
+        if (_.indexOf(labelGroupName, item) > -1) {
+          tag = true;
+        }
+      });
+      return tag;
+    }
+  }
+}
+/*
+ * 回访分配 路由
+ */
+customerCenterRoute.service("returnVisitDistribution",function(getTotalOrderByDate,getNotAssignList){
+    var Visit = {};
+    Visit.list = list;
+    Visit.detail = detail;
+    return Visit;
+
+    function list(callback, param){
+        var data = {}; 
+        var param = {};
+        getTotalOrderByDate(param,function(response) {
+            data.list = response;
+            data.list.url = 'customerCenter/returnVisitDistribution/detail?date=' + response.Date;
+            callback(data);
+        });
+    }
+
+    function detail(callback, parm1){
+        var data = {};
+        var param = {
+            "Date": parm1.date,
+            "Page":parm1.Page?parm1.Page:1,
+            "Pagesize":parm1.Pagesize?parm1.Pagesize:25
+        };
+        getNotAssignList(param,function(response){
+            data = response;
+            data.date = parm1.date;
+            callback(data);
+        });
+    }
+});

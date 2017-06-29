@@ -1,0 +1,111 @@
+//获取订单收款退款列表
+financeCenterService.factory("GetOrderInList",function($http, showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceOrder/GetOrderInList",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+					callBack(result);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});
+
+//获取指定订单收款退款
+financeCenterService.factory("GetOrderInRecord",function($http, showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceOrder/GetOrderInRecord",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+					callBack(result);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});
+
+//订单收款确认结算
+financeCenterService.factory("SaveOrderBillInData",function($http,showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceBill/SaveOrderBillInData",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var hotelDetail = response.data.data;
+					callBack(hotelDetail);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});
+
+//订单收款取消确认结算
+financeCenterService.factory("SaveOrderUnBillInData",function($http,showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceBill/SaveOrderUnBillInData",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var hotelDetail = response.data.data;
+					callBack(hotelDetail);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});

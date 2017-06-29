@@ -1,0 +1,888 @@
+customerService.factory("getCustomerList", function($http, $rootScope, _, showErrorInfo) {
+  var customerList = function(param1, callBack) {
+    var param = _.extend({
+      searchType: '',
+      key: '',
+      CustomerLevelID: '',
+      CompanyCustomer: false,
+      CustomerStatus: '',
+      page: 1,
+      limit: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return customerList;
+});
+
+customerService.factory("getCustomerList2", function($http, $rootScope, _, showErrorInfo) {
+  var customerList = function(param1, callBack) {
+    var param = _.extend({
+      searchType: '',
+      key: '',
+      CustomerLevelID: '',
+      page: 1,
+      limit: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return customerList;
+});
+
+customerService.factory("getListBasicData", function($http, $rootScope, _, showErrorInfo) {
+  var customerListBasicData = function(param, callBack) {
+
+  };
+  return customerListBasicData;
+});
+
+customerService.factory("getCustomerDetail", function($http, $rootScope, _, showErrorInfo) {
+  var customerList = function(customerID, callBack) {
+    var param = {
+      id: customerID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/findOneById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return customerList;
+});
+
+customerService.factory("delCustomerMember", function($http, $rootScope, _, showErrorInfo) {
+  var customerList = function(customerID, callBack) {
+    var param = {
+      id: customerID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/deleteById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return customerList;
+});
+
+customerService.factory("resetCustomerPassword", function($http, $rootScope, _, showErrorInfo) {
+  var customerList = function(customerID, callBack) {
+    var param = {
+      customerID: customerID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/resetCustomerPassword",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return customerList;
+});
+
+customerService.factory("resetCustomerIntegral", function($http, $rootScope, _, showErrorInfo) {
+  var customerList = function(customerID, callBack) {
+    var param = {
+      customerID: customerID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/resetCustomerIntegral",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return customerList;
+});
+
+//获取证件类型
+customerService.factory("getCertificatesTypes", function($http, $rootScope, _, showErrorInfo) {
+  var getCertificatesTypes = function(callBack) {
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general_customers/getCertificatesTypesAll",
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getCertificatesTypes;
+});
+
+//获取客户等级
+customerService.factory("getCustomerLevels", function($http, $rootScope, _, showErrorInfo) {
+  var getCustomerLevels = function(callBack) {
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general_customers/getCustomerLevelsAll",
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getCustomerLevels;
+});
+
+//保存客户信息
+customerService.factory("saveCustomer", function($http, $rootScope, _, showErrorInfo) {
+  var getCustomerLevels = function(json, callBack) {
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/saveBaseInfo",
+        data: {
+          json: JSON.stringify(json)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getCustomerLevels;
+});
+
+//添加客户信息
+customerService.factory("addCustomer", function($http, $rootScope, _, showErrorInfo) {
+  var getCustomerLevels = function(json, callBack) {
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/addBaseInfo",
+        data: {
+          json: JSON.stringify(json)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getCustomerLevels;
+});
+
+//积分清零
+customerService.factory("clearCustomerIntegral", function($http, $rootScope, _, showErrorInfo) {
+  var clearCustomerIntegral = function(customerID, callBack) {
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/resetCustomerIntegral",
+        data: {
+          customerID: customerID
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return clearCustomerIntegral;
+});
+
+//积分充值
+customerService.factory("addCustomerIntegral", function($http, $rootScope, _, showErrorInfo) {
+  var addCustomerIntegral = function(customerID, integral, IntegralOperationNotes, callBack) {
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/addCustomerIntegral",
+        data: {
+          customerID: customerID,
+          integral: integral,
+          IntegralOperationNotes: IntegralOperationNotes
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addCustomerIntegral;
+});
+
+//积分充值记录
+customerService.factory("getCustomerIntergralRecordList", function($http, $rootScope, _, showErrorInfo) {
+  var getCustomerIntergralRecordList = function(customerID, page, limit, callBack) {
+    var data = {
+      customerID: customerID,
+      page: page,
+      limit: limit
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customerintegralrecords/findlist",
+        data: {
+          json: JSON.stringify(data)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getCustomerIntergralRecordList;
+});
+
+//会员重置密码
+customerService.factory("resetCustomerPassword", function($http, $rootScope, _, showErrorInfo) {
+  var resetCustomerPassword = function(customerID, callBack) {
+    var data = {
+      customerID: customerID,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/resetCustomerPassword",
+        data: data,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return resetCustomerPassword;
+});
+
+//获取客户订单总数
+customerService.factory("getOrderCountByCustomerId", function($http, $rootScope, _, showErrorInfo) {
+  var getOrderCountByCustomerId = function(customerID, callBack) {
+    var data = {
+      customerId: customerID,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/getOrderCountByCustomerId",
+        data: {
+          json: JSON.stringify(data)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getOrderCountByCustomerId;
+});
+
+//获取回访记录总数
+customerService.factory("getOrderVisitingRecordCountByCustomerId", function($http, $rootScope, _, showErrorInfo) {
+  var getOrderVisitingRecordCountByCustomerId = function(customerID, callBack) {
+    var data = {
+      customerId: customerID,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/getOrderVisitingRecordCountByCustomerId",
+        data: {
+          json: JSON.stringify(data)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getOrderVisitingRecordCountByCustomerId;
+});
+
+customerService.factory("getOrderVisitingRecordListByCustomerId", function($http, $rootScope, _, showErrorInfo) {
+  var getOrderVisitingRecordCountByCustomerId = function(customerID, callBack) {
+    var data = {
+      CustomerId: [customerID],
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customer/customers/getOrderVisitingRecordListByCustomerId",
+        data: {
+          json: JSON.stringify(data)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getOrderVisitingRecordCountByCustomerId;
+});
+
+//客户订单列表
+customerService.factory("getCustomerOrderList", function($http, $rootScope, _, showErrorInfo) {
+  var getCustomerOrderList = function(customerID, page, limit, callBack) {
+    var data = {
+      CustomerId: customerID,
+      iPageIndex: page,
+      iPageSize: limit
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderList/GetOrderListByCustomerId",
+        data: data,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getCustomerOrderList;
+});
+
+//客户回访订单列表
+customerService.factory("getCustomerReturnVistList", function($http, $rootScope, _, showErrorInfo) {
+  var getCustomerReturnVistList = function(postData, page, pagesize, callBack) {
+    var data = {
+      page: page,
+      pagesize: pagesize,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "customerservice/Return_visit/get_ReturnVistList",
+        data: data,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getCustomerReturnVistList;
+});
+
+customerService.factory("getCustomerIntentionHistory", function($http){
+  return function(params, callback) {
+    HYhttp($http, {
+      url : intentionCustomerUrl + "/ccr/HistoryList",
+      data : params,
+      method : "GET"
+    }).then(success, fail);
+    function success(response) {
+      callback(response.data);
+    }
+    function fail(response) {
+      return false;
+    }
+  };
+});
+customerService.factory('getRechargeList', function($http, showErrorInfo) {
+	return function(param, type, callback) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "/Finance/FinanceCard/GetFinanceCardMoneyList",
+				data: param,
+				method: "POST"
+			}).then(function(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				response.data.data.list.forEach(function(item){
+					item.detailUrl = 'customer/'+ type +'/detail?ID=' + item._id;	
+				});
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data);
+			}
+		});
+	};
+});
+
+customerService.factory('getRechargeDetial', function($http, showErrorInfo){
+	return function(param, callback){
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + '/Finance/FinanceCard/GetFinanceCardMoneyInfo',
+				data: param,
+				method: "POST"
+			}).then(function(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		});
+	};
+});
+
+customerService.factory('confirmRecharge', function($http, showErrorInfo){
+	return function(param, success, error){
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + '/Finance/FinanceCard/GetFinanceCardMoneyBill',
+				data: param,
+				method: "POST"
+			}).then(function(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				success(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+				if(error) error();
+			}
+		});
+	};	
+});
+
+customerService.factory('cancelRecharge', function($http, showErrorInfo){
+	return function(param, callback){
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + '/Finance/FinanceCard/GetFinanceCardMoneyCancelBill',
+				data: param,
+				method: "POST"
+			}).then(function(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		});
+	};	
+});//会员卡列表
+customerService.factory('getMembershipCardList', function($http, showErrorInfo) {
+  var getMembershipCardList = function(param1, callBack) {
+    var param = _.extend({
+      SearchInfo: '',
+      MinBalance: '',
+      MaxBalance: '',
+      iPageIndex: 1,
+      iPageSize: pageLimit,
+      TypeId: "",
+      CardStatus: "",
+      customerType: ""
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceCard/GetFinanceCardList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getMembershipCardList;
+});
+
+//会员卡详情
+customerService.factory('getMembershipCardDetail', function($http, showErrorInfo) {
+  var getMembershipCardDetail = function(id, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceCard/GetFinanceCardInfo",
+        data: {
+          _id: id
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getMembershipCardDetail;
+});
+
+customerService.factory('membershipCardChangeLock', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/FinanceCardChangeLock',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+      }
+    }, function(response){
+      showErrorInfo(response.statusText);
+    }); 
+  }
+});
+
+customerService.factory('membershipCardRefund', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/FinanceCardBack',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+        error(response);
+      }
+    }, function(response){
+      showErrorInfo(response.statusText);
+      error();
+    }); 
+  }
+});
+
+
+//获取会员卡充值申请列表
+customerService.factory('membershipCardRechargeList', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/GetFinanceCardRechargeApplyList',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+        error(response);
+      }
+    }, function(response){
+      showErrorInfo(response.statusText);
+      error();
+    }); 
+  }
+});
+
+//获取客户类型
+customerService.factory('getCustomerType', function($http, showErrorInfo){
+  return function(success){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'BasicData/BasicComm/GetEnumeration',
+      data: {
+        "Title": "ECustomerType"
+      },
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+      }
+    }, function(response){
+      showErrorInfo(response.statusText);
+    });     
+  };
+});
+
+//添加会员卡充值申请
+customerService.factory('rechargeApplyAdd', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/FinanceCardRechargeApplyAdd',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+        if(error) error()
+      }
+    }, function(response){
+      showErrorInfo(response.statusText);
+      if(error) error();
+    });        
+  }
+})
+
+customerService.factory('getRechargeDetail', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/GetFinanceCardRechargeApplyInfo',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+      }
+    }, function(response){
+      showErrorInfo(response.statusText);
+    });     
+  }
+})
+
+customerService.factory('rechargeApplyAdd', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/FinanceCardRechargeApplyAdd',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+        if(error) error();
+      }
+    }, function(response){
+      showErrorInfo(response.statusText);
+      if(error) error();
+    });   
+  }
+});
+
+customerService.factory('getRechargeApplyInfo', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/GetFinanceCardRechargeApplyInfo',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+      }
+    }, function(response){
+      showErrorInfo(response.statusText);
+    });  
+  }
+});
+
+customerService.factory('financeRechargeCard', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/FinanceCardIn',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+        if(error) error();
+      }
+    }, function(response){
+      showErrorInfo(response);
+      if(error) error();
+    });
+  }
+});
+
+customerService.factory('getCardRechargeApplyFinance', function($http, showErrorInfo){
+  return function(param, success){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/GetCardRechargeApplyFinance',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+      }
+    }, function(response){
+      showErrorInfo(response);
+    });   
+  };
+});
+
+customerService.factory('financeCardMoneyOP', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/FinanceCardMoneyOP',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+        if(error) error();
+      }
+    }, function(response){
+      showErrorInfo(response);
+      if(error) error();
+    });
+  };
+});
+
+customerService.factory('cardRechargeApplyCancel', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/FinanceCardRechargeApplyCancel',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+        if(error) error();
+      }
+    }, function(response){
+      showErrorInfo(response);
+      if(error) error();
+    });
+  };
+});
+
+customerService.factory('financeCardMoneyDelete', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/FinanceCardMoneyOpDelete',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+        if(error) error();
+      }
+    }, function(response){
+      showErrorInfo(response);
+      if(error) error();
+    });
+  };
+});
+
+customerService.factory('cardRechargeApplyUpd', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Finance/FinanceCard/FinanceCardRechargeApplyUpd',
+      data: param,
+      method: 'POST'
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+        if(error) error();
+      }
+    }, function(response){
+      showErrorInfo(response);
+      if(error) error();
+    });
+  };
+});

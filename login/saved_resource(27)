@@ -1,0 +1,41 @@
+financeCenterRoute.service('orderRefund', function(
+  GetOrderInList,
+  GetOrderInRecord) {
+  var orderRefund = {};
+  orderRefund.list = list;
+  orderRefund.detail = detail;
+  orderRefund.isFirst = true;
+  return orderRefund;
+
+  function list(callback, param) {
+    var data = {};
+    param.PageIndex = param.PageIndex ? param.PageIndex : 1;
+    param.PageSize = pageLimit;
+    data.search = param;
+    data.search.PayType = 2;
+    data.search.AuditType = 3;
+    if (param.AuditStatus)
+      data.search.AuditStatus = param.AuditStatus;
+    if (data.search.isFirst === undefined || data.search.isFirst === true) {
+      data.search.PayStatus = 1;
+      data.search.AuditStatus = 3;
+      data.search.isFirst = false;
+    }
+    GetOrderInList(data.search, function(response) {
+      data.count = response.count;
+      data.limit = response.limit;
+      data.page = response.page;
+      data.list = response.list;
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    data.search = param;
+    GetOrderInRecord(data.search, function(response) {
+      data = response;
+      callback(data);
+    });
+  }
+});

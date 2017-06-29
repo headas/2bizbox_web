@@ -1,0 +1,898 @@
+app.controller('membershipCardController', function($scope, $rootScope, membershipCard, membershipCardChangeLock, showWarningBox, membershipCardRefund, addRefreshPageByID) {
+  $scope.pop = {
+    arrowConf: {
+      useArrow: true,
+      left: 590
+    },
+    popConf: {
+      left: -280,
+      position: 'bottom'
+    }
+  };
+
+
+  $scope.searchMemberCard = function() {
+    $scope.isLoading = true;
+    $rootScope[position[1]].search.iPageIndex = 1;
+    membershipCard.list(function(data){
+      $rootScope[position[1]].list = data.list;
+      $scope.isLoading = false;
+    },$rootScope[position[1]].search);
+  };
+
+  $scope.loadMemberCard = function(){
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {
+        iPageIndex: 1,
+        iPageSize: pageLimit
+      };
+    }
+    $rootScope[position[1]].search.iPageIndex += 1;
+
+    membershipCard.list(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.lockCard = function(type){
+    var cards = [];
+
+    showWarningBox(type==1?'是否确定锁定':'是否确定解锁', function(){
+      if(type == 1){
+        $rootScope[position[1]].list.forEach(function(item){
+          if(!item.isSelected) return;
+          if(item.CardStatus =="正常") cards.push(item._id);
+        });
+      }else {
+        $rootScope[position[1]].list.forEach(function(item){
+          if(!item.isSelected) return;
+          if(item.CardStatus =="锁定") cards.push(item._id);
+        });
+      }
+
+      membershipCardChangeLock({
+        CardIDs: JSON.stringify(cards)
+      }, function(response){
+        $scope.searchMemberCard();
+      });
+    });
+  };
+
+  $scope.detailLockCard = function(type) {
+    showWarningBox(type == 1 ? '是否确定锁定' : '是否确定解锁', function() {
+      membershipCardChangeLock({
+        CardIDs: JSON.stringify([$rootScope[position[2]].detail._id])
+      }, function() {
+        if (type == 1) $rootScope[position[2]].detail.CardStatus = '锁定';
+        else $rootScope[position[2]].detail.CardStatus = '正常';
+      });
+    });
+  };
+
+  $scope.refundLaunch = function(){
+    $rootScope[position[2]].refundInfo = {
+      contact: {},
+      FncRecordNum: 0,
+      FncRecordDiscount: 100
+    };
+  };
+
+  $scope.refundContactSelect = function(company, person){
+    $rootScope[position[2]].refundInfo.CusName = person.ContactName;
+    $rootScope[position[2]].refundInfo.CusId = person.ForeignKeyID;
+  };
+
+  $scope.refundApply = function(){
+    var data = {
+      FinanceCardId: $rootScope[position[2]].detail._id,
+      FinanceCardNo: $rootScope[position[2]].detail.NO,
+      FncRecordNum: $rootScope[position[2]].refundInfo.FncRecordNum,
+      FncRecordDiscount: $rootScope[position[2]].refundInfo.FncRecordDiscount,
+      FncRecordMoney: $rootScope[position[2]].refundInfo.FncRecordNum * $rootScope[position[2]].refundInfo.FncRecordDiscount / 100,
+      FncPayType: {
+        ID: $rootScope[position[2]].refundInfo.FncPayType,
+        Name: ''
+      },
+      CusName: $rootScope[position[2]].refundInfo.CusName,
+      CusId: $rootScope[position[2]].refundInfo.CusId || '',
+      FncRecordContent: $rootScope[position[2]].refundInfo.FncRecordContent
+    };
+
+    data.FncPayType.Name = _.find($scope.FinancesType.paymodeList, {
+      _id: data.FncPayType.ID
+    }).Name;
+
+    $rootScope[position[2]].refundInfo.isSubmit = true;
+    membershipCardRefund({
+      RequestData: JSON.stringify(data)
+    }, function(response){
+      addRefreshPageByID($rootScope[switchType[2]].id);
+      $rootScope[position[2]].refundInfo.isSubmit = false;
+      $scope.fetch($rootScope[switchType[2]].targetUrl);
+    }, function(response){
+      $rootScope[position[2]].refundInfo.isSubmit = false;
+    });
+  }
+});
+app.controller('customerCardChargeController', function($scope, $rootScope, customerCardCharge, $filter, rechargeApplyAdd, addRefreshPageByID, showErrorInfo, financeRechargeCard, getCardRechargeApplyFinance, Pagination, closeSubView, cardRechargeApplyCancel, cardRechargeApplyUpd) {
+	$scope.status = {};
+	$scope.loadingList = false;
+
+	$scope.openDatePicker = function($event, type) {
+		$scope.status[type] = true;
+	};
+
+	$scope.searchList = function(){
+		$scope.loadingList = true;
+		$rootScope[position[1]].search.iPageIndex = 1;
+
+		var search = angular.extend({}, $rootScope[position[1]].search, {
+			STime: $filter('date')($rootScope[position[1]].search.STime, 'yyyy-MM-dd'),
+			ETime: $filter('date')($rootScope[position[1]].search.ETime, 'yyyy-MM-dd'),
+		});
+
+		customerCardCharge.list(function(data){
+			$rootScope[position[1]].list = data.list;
+			$scope.loadingList = false;
+		}, search);
+	};
+
+	$scope.loadListData = function(){
+		if(!$rootScope[position[1]].search){
+			$rootScope[position[1]].search = {
+				iPageSize: pageLimit,
+				iPageIndex: 0
+			};
+		}
+
+		$rootScope[position[1]].search.iPageIndex++;
+
+		customerCardCharge.list(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+	};
+
+
+	//recharge apply add
+	$scope.addApplyDetil = function(){
+		$rootScope[position[2]].applyDetails.push({
+			RechargeNum: 0,
+			SingerRechargeMoney: 0,
+			RechargeDiscount: 100,
+			CustomerType: {
+				ID: 1,
+				Name: ''	
+			}
+		});
+	};
+
+	$scope.delApplyDetail = function(index){
+		$rootScope[position[2]].applyDetails.splice(index, 1);
+	};
+
+	$scope.$watch('detailData.applyDetails', function(details){
+		if(details === undefined) return;
+
+		$rootScope[position[2]].data.RechangeMoney = 0;
+		$rootScope[position[2]].data.RealRechargeMoney = 0;
+
+		details.forEach(function(item){
+			$rootScope[position[2]].data.RechangeMoney += item.RechargeNum * item.SingerRechargeMoney;
+			$rootScope[position[2]].data.RealRechargeMoney += item.RechargeNum * item.SingerRechargeMoney * item.RechargeDiscount / 100;
+		});
+	}, true);
+
+	$scope.saveRechangeApply = function(){
+		if($scope.isSubmit) return;
+
+		$scope.isSubmit = true;
+
+		var data = angular.extend({}, $rootScope[position[2]].data);	
+
+		data.ApplyDetail = [];
+		data.CustomerType.Name = _.find($rootScope[position[2]].CustomerTypes, {
+			Value: data.CustomerType.ID
+		}).Text;
+
+		$rootScope[position[2]].applyDetails.forEach(function(item){
+			if(item.SingerRechargeMoney == 0) return;
+
+			item.TotalRechargeMoney = item.SingerRechargeMoney * item.RechargeNum;
+			item.RealRechargeMoney = item.TotalRechargeMoney * item.RechargeDiscount / 100;
+
+			data.ApplyDetail.push(item);
+		});
+
+		if($rootScope[position[2]].isEditMode){
+			data._id = $rootScope[position[2]].data._id;
+			cardRechargeApplyUpd({
+				RequestData: angular.toJson(data)
+			}, function(){
+				addRefreshPageByID($scope.subHead.url.id);
+				$scope.hideSubHead();
+				$scope.fetch($scope.subHead.url.targetUrl);
+				$scope.isSubmit = false;
+			}, function(){
+				$scope.isSubmit = false;
+			});
+		}else {
+			rechargeApplyAdd({
+				RequestData: angular.toJson(data)
+			}, function(response){
+				addRefreshPageByID($rootScope[switchType[2]].id);
+				$scope.searchList();
+				$scope.closeSubView();
+				showErrorInfo('已提交申请');
+				$scope.isSubmit = false;
+			}, function(){
+				$scope.isSubmit = false;
+			});
+		}
+	};
+
+	$scope.InTypes = [{
+		Name: '单个',
+		ID: 1
+	}, {
+		Name: '批量',
+		ID: 2
+	}];
+
+	$scope.openCardRechargePanel = function(){
+		$scope.financeCardIn = {
+			CradNoStart: '',
+			CradNoEnd: '',
+			Notes: '',
+			InType: 2
+		};
+	};
+
+	$scope.financeCardRecharge = function(){
+		$scope.isSubmit = true;
+
+		var data = angular.extend({}, $scope.financeCardIn);
+
+		data.ApplyId = $rootScope[position[2]]._id;
+		data.ApplyDetailId = $rootScope[position[2]].rechargeItem._id;
+
+
+		if(data.InType == 2){
+			data.CradMoney = $rootScope[position[2]].rechargeItem.SingerRechargeMoney;
+			data.CradRealMoney = $rootScope[position[2]].rechargeItem.RealRechargeMoney;
+			data.CradCount = 	+$scope.financeCardIn.CradNoEnd.slice(10) - $scope.financeCardIn.CradNoStart.slice(10) + 1;
+		}else {
+			data.CradMoney = $rootScope[position[2]].rechargeItem.SingerRechargeMoney;
+			data.CradRealMoney = $rootScope[position[2]].rechargeItem.RealRechargeMoney;
+			data.CradCount = 1;
+		}
+
+		financeRechargeCard({
+			RequestData: angular.toJson(data)
+		}, function(response){
+			$scope.isSubmit = false;
+			addRefreshPageByID($rootScope[switchType[2]].id);
+			$scope.fetch($rootScope[switchType[2]].targetUrl);
+		}, function(response){
+			$scope.isSubmit = false;
+		});
+	};
+
+	$scope.closeEditAddView = function(){
+		if($rootScope[position[2]].isEditMode){
+			addRefreshPageByID($rootScope[switchType[2]].id);
+			$scope.hideSubHead();
+			$scope.fetch($scope.subHead.url.targetUrl);
+		}else {
+			closeSubView();
+		}
+	};
+
+	$scope.openRechargeCancelPanel = function(){
+		$scope.cancelInfo = {};
+	};
+
+	$scope.rechargeApplyCancel = function(){
+		$scope.isLoading = true;
+
+		cardRechargeApplyCancel({
+			_id: $rootScope[position[2]]._id,
+			Notes: $scope.cancelInfo.Notes
+		}, function(){
+			$scope.isLoading = false;
+			showErrorInfo('取消成功');
+			$scope.searchList();
+			closeSubView();
+		}, function(){
+			$scope.isLoading = false;
+		});
+	};
+});
+app.controller("customerCustomersController", function($scope, $rootScope, getCustomerList, delCustomerMember,
+  resetCustomerPassword, getCertificatesTypes, getCustomerLevels, findInnerObjIndex, addCustomer, saveCustomer,
+  clearCustomerIntegral, addCustomerIntegral, getCustomerIntergralRecordList, Pagination, getOrderVisitingRecordCountByCustomerId, getOrderCountByCustomerId, addRefreshPageByID, showWarningBox, getCustomerOrderList, getCustomerReturnVistList, $timeout, getCustomerIntentionHistory, getOrderVisitingRecordListByCustomerId, closeSubView) {
+  $scope.searchTypes = [{
+    id: 1,
+    value: '模糊搜索'
+  }, {
+    id: 2,
+    value: '精确搜索'
+  }];
+
+  $scope.searchCustomer = function() {
+    $scope.loadingList = true;
+    $rootScope[position[1]].search = {
+      page: 1,
+      key: $rootScope[position[1]].searchContent,
+      searchType: $rootScope[position[1]].searchType,
+      CompanyCustomer: $rootScope[position[1]].CompanyCustomer==="true"?true:false,
+      CustomerLevelID: $rootScope[position[1]].CustomerLevel?$rootScope[position[1]].CustomerLevel._id.$id:'',
+      CustomerStatus: $rootScope[position[1]].CustomerStatus?$rootScope[position[1]].CustomerStatus.Value:'',
+    };
+    getCustomerList($rootScope[position[1]].search, function(response) {
+      response.list.forEach(function (item) {
+          item.showUrl = 'customer/customers/detail?id=' + item._id.$id;
+      });
+      $rootScope[position[1]].list = response.list;
+      $scope.loadingList = false;
+    });
+  };
+
+  $scope.loadCustomerListData = function(viewID) {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.page += 1;
+    getCustomerList($rootScope[position[1]].search, function(response) {
+      response.list.forEach(function (item) {
+          item.showUrl = 'customer/customers/detail?id=' + item._id.$id;
+      });
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, response.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    });
+  };
+
+  $scope.showSubContent = function(showID) {
+    if ($scope.subContentID == showID) {
+      return;
+    }
+    $scope.subContentID = showID;
+    if (showID == 1) {
+      $scope.orderList(1);
+    }else if (showID == 2){
+      $scope.customerIntentionList(1);
+    }else if (showID == 4) {
+      $scope.returnVisitList(1);
+    }
+  };
+
+  $scope.delMember = function(memberID) {
+    showWarningBox('确定要删除该会员吗', function(){
+      delCustomerMember(memberID, function(response) {
+        var index = _.findIndex($rootScope[position[1]].list, function(item){
+          return item._id.$id == $rootScope[position[2]]._id.$id;
+        });
+
+        $rootScope[position[1]].list.splice(index, 1);
+        closeSubView();
+      });
+    });
+  };
+
+  $scope.changeEditMode = function(value) {
+    if (value) {
+      $rootScope[position[2]].editCustomerInfo = angular.copy($rootScope[position[2]]);
+      var tel = $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerTel.split('-');
+      $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerTelFront = tel[0];
+      $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerTel = tel[1];
+      getCertificatesTypes(function(response1) {
+        $rootScope[position[2]].editCustomerInfo.CertificatesType = response1;
+        $rootScope[position[2]].editCustomerInfo.certificates = _.find($rootScope[position[2]].editCustomerInfo.CertificatesType, function(item){
+          return item._id.$id === $rootScope[position[2]].editCustomerInfo.Enlarge.CertificatesType.ForeignKeyID.$id;
+        });
+        getCustomerLevels(function(response2) {
+          $rootScope[position[2]].editCustomerInfo.customerLevels = response2;
+          var index2 = findInnerObjIndex($rootScope[position[2]].editCustomerInfo.customerLevels, ["_id", "$id"], $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerLevelID.$id);
+          $rootScope[position[2]].editCustomerInfo.CustomerLevel = $rootScope[position[2]].editCustomerInfo.customerLevels[index2];
+        });
+      });
+      $rootScope[position[2]].editCustomerInfo.CustomerLocations.forEach(function(item) {
+        item.address = {
+          country: item.CountryID?item.CountryID.$id:'',
+          region: item.ProvinceID?item.ProvinceID.$id:'',
+          city: item.CityID?item.CityID.$id:''
+        };
+      });
+    }
+    $rootScope[position[2]].isEditMode = value;
+  };
+
+
+  $scope.status = {};
+  $scope.openDatePicker = function(){
+    $scope.status.birthday = true; 
+  };
+
+  $scope.saveCustomer = function() {
+    var param = {};
+    param.IsExistTouristBlacklist = $rootScope[position[2]].editCustomerInfo.IsExistTouristBlacklist;
+    param.CompanyCustomer = $rootScope[position[2]].editCustomerInfo.CompanyCustomer;
+    param.CustomerJob = $rootScope[position[2]].editCustomerInfo.CustomerJob ? $rootScope[position[2]].editCustomerInfo.CustomerJob : '';
+    param.CustomerName = $rootScope[position[2]].editCustomerInfo.CustomerName;
+    param.CustomerAccountName = $rootScope[position[2]].editCustomerInfo.CustomerAccountName;
+    param.GenderTypeID = $rootScope[position[2]].editCustomerInfo.Enlarge.GenderTypeID;
+    param.CustomerMobile = $rootScope[position[2]].editCustomerInfo.CustomerMobile;
+    param.CustomerQQ = $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerQQ;
+    param.CustomerEMail = $rootScope[position[2]].editCustomerInfo.CustomerEMail;
+    param.CustomerTel = $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerTelFront?$rootScope[position[2]].editCustomerInfo.Enlarge.CustomerTelFront + '-' + $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerTel:$rootScope[position[2]].editCustomerInfo.Enlarge.CustomerTel;
+    param.CustomerDocumentNumber = $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerDocumentNumber;
+    param.CustomerPostCode = $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerPostCode;
+    param.CustomerContent = $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerContent;
+    param.MembershipCardNumber = $rootScope[position[2]].editCustomerInfo.MembershipCardNumber;
+    param.CustomerCompanyName = $rootScope[position[2]].editCustomerInfo.CustomerCompanyName;
+    param.CompanyId = $rootScope.userinfo.CompanyID.$id;
+
+    if($rootScope[position[2]].editCustomerInfo.Enlarge.CustomerBirth){
+      param.CustomerBirth = $rootScope[position[2]].editCustomerInfo.Enlarge.CustomerBirth.getTime() / 1000; 
+    }
+
+    if ($rootScope[position[2]].editCustomerInfo.CustomerLevel === undefined) {
+      $rootScope[position[2]].info = '请选择会员等级';
+      return;
+    }
+    param.CustomerLevelID = $rootScope[position[2]].editCustomerInfo.CustomerLevel._id.$id;
+
+    if (param.CompanyCustomer === undefined) {
+      $rootScope[position[2]].info = '请选择会员类型';
+      return;
+    }
+
+    if ($rootScope[position[2]].editCustomerInfo.certificates === undefined) {
+      $rootScope[position[2]].info = '请选择证件类型';
+      return;
+    }
+    param.CertificatesTypeId = $rootScope[position[2]].editCustomerInfo.certificates._id.$id;
+
+    if (param.CustomerName === undefined) {
+      $rootScope[position[2]].info = '请填写会员姓名';
+      return;
+    }
+
+    if (param.GenderTypeID === undefined) {
+      $rootScope[position[2]].info = '请选择会员性别';
+      return;
+    }
+
+    if (param.CustomerMobile === undefined) {
+      $rootScope[position[2]].info = '请填写会员手机号码';
+      return;
+    }
+
+    param.CustomerLocations = [];
+    $rootScope[position[2]].editCustomerInfo.CustomerLocations.forEach(function(item) {
+      var data = {};
+      data.CountryID = item.address.country;
+      data.ProvinceID = item.address.region;
+      data.CityID = item.address.city;
+      data.CustomerAddressBindStatus = item.CustomerAddressBindStatus ? true : false;
+      data.CustomerPositionDetail = item.CustomerPositionDetail ? item.CustomerPositionDetail : '';
+      // data.AreaID = '000000000000000000000000';
+      // data.StreetID = '000000000000000000000000';
+      data.IsUseP4PSystem = false;
+      if (item._id) {
+        data.id = item._id.$id;
+      }
+      param.CustomerLocations.push(data);
+    });
+
+    if ($rootScope[position[2]]._id) {
+      param.id = $rootScope[position[2]]._id.$id;
+      saveCustomer(param, function(response) {
+        $scope.showDetail();
+      });
+    } else {
+      addCustomer(param, function(response) {
+        var data = {
+          CompanyCustomer: param.CompanyCustomer,
+          CustomerEMail: param.CustomerEMail,
+          CustomerMobile: param.CustomerMobile,
+          CustomerName: param.CustomerName,
+          CustomerNickName: param.CustomerNickName,
+          CustomerStatus: param.CustomerStatus,
+          CustomerNo: response[1],
+          DelStatus: 0,
+          _id: {$id: response[0]},
+          showUrl: "customer/customers/detail?id=" + response[0]
+        };
+        $rootScope[position[2]]._id = {$id: response[0]};
+        $rootScope[position[2]].showUrl = data.showUrl;
+        $rootScope[position[1]].list.unshift(data);
+        $scope.showDetail();
+      });
+    }
+  };
+
+  $scope.newAddress = function() {
+    $rootScope[position[2]].editCustomerInfo.CustomerLocations.push({});
+    var defaultPosition = _.find($rootScope[position[2]].editCustomerInfo.CustomerLocations, function(item){
+      if(item.CustomerAddressBindStatus) return true;
+    });
+    if(!defaultPosition){
+      $rootScope[position[2]].editCustomerInfo.CustomerLocations[0].CustomerAddressBindStatus = true;
+    }
+  };
+
+  $scope.delAddress = function(item) {
+    $rootScope[position[2]].editCustomerInfo.CustomerLocations = _.without($rootScope[position[2]].editCustomerInfo.CustomerLocations, item);
+    var defaultPosition = _.find($rootScope[position[2]].editCustomerInfo.CustomerLocations, function(item){
+      if(item.CustomerAddressBindStatus) return true;
+    });
+    if(!defaultPosition){
+      if($rootScope[position[2]].editCustomerInfo.CustomerLocations.length>0){
+        $rootScope[position[2]].editCustomerInfo.CustomerLocations[0].CustomerAddressBindStatus = true;
+      }
+    }
+  };
+
+  //积分清零
+  $scope.clearIntegral = function() {
+    clearCustomerIntegral($rootScope[position[2]]._id.$id, function(response) {
+      $rootScope[position[2]].info = '积分清零成功！';
+      $rootScope[position[2]].CustomerIntegral = 0;
+    });
+  };
+
+  //积分充值
+  $scope.addCustomerIntegral = function() {
+    if($rootScope[position[2]].integral + $rootScope[position[2]].CustomerIntegral < 0){
+      $rootScope[position[2]].info = '扣除的积分超过会员积分！';
+    }else{
+      addCustomerIntegral($rootScope[position[2]]._id.$id, $rootScope[position[2]].integral, $rootScope[position[2]].IntegralOperationNotes, function() {
+        $rootScope[position[2]].CustomerIntegral += $rootScope[position[2]].integral;
+        $rootScope[position[2]].integral = 0;
+        $rootScope[position[2]].IntegralOperationNotes = '';
+        $rootScope[position[2]].info = '积分充值成功！';
+      });
+    }
+  };
+
+  //充值记录
+  $scope.recordList = function(page) {
+    var limit = 10;
+    getCustomerIntergralRecordList($rootScope[position[2]]._id.$id, page, limit, function(response) {
+      $rootScope[position[2]].records = response.data.list;
+      $rootScope[position[2]].recordPagination = new Pagination(response.count, page, limit);
+    });
+  };
+
+  //重置密码
+  $scope.resetPWD = function() {
+    showWarningBox("确定要重置用户密码吗", function(){
+      resetCustomerPassword($rootScope[position[2]]._id.$id, function(response) {
+        $rootScope[position[2]].info = '重置密码成功！';
+      });
+    });
+  };
+
+  //订单列表
+  $scope.orderList = function(page) {
+    var limit = 10;
+    getCustomerOrderList($rootScope[position[2]]._id.$id, page, limit, function(response) {
+      $rootScope[position[2]].orderPagination = new Pagination(response.count, page, limit);
+      $rootScope[position[2]].orders = response.list;
+    });
+  };
+
+  $scope.customerIntentionList = function(page){
+    var limit = 10;
+    var param = {};
+    param.customerID = $rootScope[position[2]]._id.$id;
+    param.top = 9999;
+    if($rootScope[position[2]].customerIntentionList){
+      $rootScope[position[2]].customerIntentionListShow = $rootScope[position[2]].customerIntentionList.slice((page - 1) * 10, page * 10);
+      $rootScope[position[2]].intentionPagination = new Pagination($rootScope[position[2]].customerIntentionList.length, page, 10);
+      return;
+    }
+    getCustomerIntentionHistory(param, function(response){
+      $rootScope[position[2]].customerIntentionList = response.data;
+      $rootScope[position[2]].customerIntentionListShow = response.data.slice((page - 1) * 10, page * 10);
+      $rootScope[position[2]].intentionPagination = new Pagination($rootScope[position[2]].customerIntentionList.length, page, 10);
+    });
+  };
+
+  $scope.returnVisitList = function(page) {
+    var limit = 10;
+    if($rootScope[position[2]].returnVisits){
+      $rootScope[position[2]].returnVisitsShow = $rootScope[position[2]].returnVisits.slice((page - 1) * 10, page * 10);
+      $rootScope[position[2]].visitPagination = new Pagination($rootScope[position[2]].returnVisits.length, page, 10);
+      return;
+    }
+    getOrderVisitingRecordListByCustomerId($rootScope[position[2]]._id.$id, function(response) {
+      $rootScope[position[2]].returnVisits = response.data;
+      $rootScope[position[2]].returnVisitsShow = response.data.slice(0, 10);
+      $rootScope[position[2]].visitPagination = new Pagination($rootScope[position[2]].returnVisits.length, 1, 10);
+    });
+  };
+
+  $scope.clearDetailInfo = function() {
+    addRefreshPageByID('customer-customers-detail-id-' + $rootScope[position[2]]._id.$id);
+  };
+
+  $scope.clearAddData = function() {
+    addRefreshPageByID('customer-customers-add-id-addCustmersCustomer');
+  };
+
+  $scope.showDetail = function(){
+    addRefreshPageByID($rootScope[switchType[2]].id);
+    // $scope.fetch($rootScope[position[2]].showUrl, '');
+    if($rootScope[position[2]].showUrl)
+      $scope.fetch($rootScope[position[2]].showUrl, '');
+    else
+      $scope.fetch($rootScope[switchType[2]].targetUrl);
+
+    // $scope.openItem();
+    // $scope.clearAddData();
+  };
+
+});
+app.controller('rechargeRecievablesCtrl', function($scope, $rootScope, getRechargeList, $filter, confirmRecharge, showWarningBox, addRefreshPageByID, cancelRecharge, closeSubView, financeCardMoneyDelete){
+	$scope.status = {};
+
+	$scope.openDatePicker = function(evt, type){
+		$scope.status[type] = true;
+	};
+
+	$scope.loadListData = function(){
+		$rootScope.isloadList = true;
+		$rootScope[position[1]].search.iPageIndex++;
+
+		var search = angular.extend({}, $rootScope[position[1]].search);
+		search.STime = $filter('date')(search.STime, 'yyyy-MM-dd');
+		search.ETime = $filter('date')(search.ETime, 'yyyy-MM-dd');
+
+		getRechargeList(search, 'rechargeRecievables', function(data){
+			$rootScope.isloadList = false;
+			$rootScope.showProcessBar = false;
+			$rootScope[position[1]].list = $rootScope[position[1]].list.concat(data.list);
+		});
+	};
+
+	$scope.search = function(){
+		$rootScope[position[1]].search.iPageIndex = 1;
+		var search = angular.extend({}, $rootScope[position[1]].search);
+		search.STime = $filter('date')(search.STime, 'yyyy-MM-dd');
+		search.ETime = $filter('date')(search.ETime, 'yyyy-MM-dd');
+
+		$scope.loadingList = true;
+		getRechargeList(search, 'rechargeRecievables', function(data){
+			$rootScope[position[1]].list = data.list;
+			$scope.loadingList = false;
+		});
+	};
+
+	$scope.openConfirm = function(){
+		$scope.confirmInfo = {
+			Money: $rootScope[position[2]].Money,
+			Notes: $rootScope[position[2]].Notes
+		};
+
+		if($rootScope[position[2]].MoneyType){
+			$scope.confirmInfo.MoneyType = {
+				Name: $rootScope[position[2]].MoneyType.Name,
+				_id: $rootScope[position[2]].MoneyType.ForeignKeyID
+			};
+		}
+
+		if($rootScope[position[2]].PayMode){
+			$scope.confirmInfo.PayMode = {
+				Name: $rootScope[position[2]].PayMode.Name,
+				_id: $rootScope[position[2]].PayMode.ForeignKeyID
+			};
+		}
+
+		if($rootScope[position[2]].PayBank){
+			$scope.confirmInfo.PayBank = {
+				Name: $rootScope[position[2]].PayBank.Name,
+				_id: $rootScope[position[2]].PayBank.ForeignKeyID
+			};
+		}
+	};
+
+	$scope.confirm = function(){
+		$scope.isSubmit = true;
+		var data = {
+			Money: $scope.confirmInfo.Money,
+			Notes: $scope.confirmInfo.Notes,
+			PayType: 1,
+			_id: $rootScope[position[2]]._id
+		};
+
+		if($scope.confirmInfo.MoneyType){
+			data.MoneyType = {
+				Name: $scope.confirmInfo.MoneyType.Name,
+				ForeignKeyID: $scope.confirmInfo.MoneyType._id
+			};
+		}
+
+		if($scope.confirmInfo.PayMode){
+			data.PayMode = {
+				Name: $scope.confirmInfo.PayMode.Name,
+				ForeignKeyID: $scope.confirmInfo.PayMode._id
+			};
+		}
+
+		if($scope.confirmInfo.PayBank){
+			data.PayBank = {
+				Name: $scope.confirmInfo.PayBank.Name,
+				ForeignKeyID: $scope.confirmInfo.PayBank._id
+			};
+		}
+
+		confirmRecharge(data, function(){
+			addRefreshPageByID($rootScope[switchType[2]].id);
+			$scope.fetch($rootScope[switchType[2]].targetUrl);
+			$scope.isSubmit = false;
+			$scope.search();
+		}, function(){
+			$scope.isSubmit = false;
+		});
+	};
+
+	$scope.delete = function(){
+		showWarningBox('是否确认删除该信息', function(){
+			financeCardMoneyDelete({
+				_id: $rootScope[position[2]]._id
+			}, function(){
+				closeSubView();
+				$scope.search();
+			});
+		});
+	};
+
+	$scope.cancel = function(){
+		showWarningBox('是否确认取消', function(){
+			cancelRecharge({
+				_id: $rootScope[position[2]]._id,
+			}, function(){
+				addRefreshPageByID($rootScope[switchType[2]].id);
+				$scope.fetch($rootScope[switchType[2]].targetUrl);
+				$scope.search();
+			});
+		});
+	};
+
+});
+
+app.controller('rechargeRefundCtrl', function($scope, $rootScope, getRechargeList, $filter, confirmRecharge,showWarningBox,addRefreshPageByID, cancelRecharge, closeSubView, financeCardMoneyDelete){
+	$scope.status = {};
+
+	$scope.openDatePicker = function(evt, type){
+		$scope.status[type] = true;
+	};
+
+	$scope.loadListData = function(){
+		$rootScope.isloadList = true;
+		$rootScope[position[1]].search.iPageIndex++;
+
+		var search = angular.extend({}, $rootScope[position[1]].search);
+		search.STime = $filter('date')(search.STime, 'yyyy-MM-dd');
+		search.ETime = $filter('date')(search.ETime, 'yyyy-MM-dd');
+
+		getRechargeList(search,'rechargeRefund',function(data){
+			$rootScope.isloadList = false;
+			$rootScope.showProcessBar = false;
+			$rootScope[position[1]].list = $rootScope[position[1]].list.concat(data.list);
+		});
+	};
+
+	$scope.search = function(){
+		$rootScope[position[1]].search.iPageIndex = 1;
+		var search = angular.extend({}, $rootScope[position[1]].search);
+		search.STime = $filter('date')(search.STime, 'yyyy-MM-dd');
+		search.ETime = $filter('date')(search.ETime, 'yyyy-MM-dd');
+
+		$scope.loadingList = true;
+		getRechargeList(search,'rechargeRefund',function(data){
+			$rootScope[position[1]].list = data.list;
+			$scope.loadingList = false;
+		});
+	};
+
+	$scope.openConfirm = function(){
+		$scope.confirmInfo = {
+			Money: $rootScope[position[2]].Money,
+			Notes: $rootScope[position[2]].Notes
+		};
+
+		if($rootScope[position[2]].MoneyType){
+			$scope.confirmInfo.MoneyType = {
+				Name: $rootScope[position[2]].MoneyType.Name,
+				_id: $rootScope[position[2]].MoneyType.ForeignKeyID
+			};
+		}
+
+		if($rootScope[position[2]].PayMode){
+			$scope.confirmInfo.PayMode = {
+				Name: $rootScope[position[2]].PayMode.Name,
+				_id: $rootScope[position[2]].PayMode.ForeignKeyID
+			};
+		}
+
+		if($rootScope[position[2]].PayBank){
+			$scope.confirmInfo.PayBank = {
+				Name: $rootScope[position[2]].PayBank.Name,
+				_id: $rootScope[position[2]].PayBank.ForeignKeyID
+			};
+		}
+	};
+
+	$scope.confirm = function(){
+		$scope.isSubmit = true;
+		var data = {
+			Money: $scope.confirmInfo.Money,
+			Notes: $scope.confirmInfo.Notes,
+			PayType: 2,
+			_id: $rootScope[position[2]]._id
+		};
+
+		if($scope.confirmInfo.MoneyType){
+			data.MoneyType = {
+				Name: $scope.confirmInfo.MoneyType.Name,
+				ForeignKeyID: $scope.confirmInfo.MoneyType._id
+			};
+		}
+
+		if($scope.confirmInfo.PayMode){
+			data.PayMode = {
+				Name: $scope.confirmInfo.PayMode.Name,
+				ForeignKeyID: $scope.confirmInfo.PayMode._id
+			};
+		}
+
+		if($scope.confirmInfo.PayBank){
+			data.PayBank = {
+				Name: $scope.confirmInfo.PayBank.Name,
+				ForeignKeyID: $scope.confirmInfo.PayBank._id
+			};
+		}
+
+		confirmRecharge({
+			RequestData: JSON.stringify(data)
+		}, function(){
+			addRefreshPageByID($rootScope[switchType[2]].id);
+			$scope.fetch($rootScope[switchType[2]].targetUrl);
+			$scope.search();
+			$scope.isSubmit = false;	
+		}, function(){
+			$scope.isSubmit = false;
+		});
+
+	};
+
+	$scope.delete = function(){
+		showWarningBox('是否确认删除该信息', function(){
+			financeCardMoneyDelete({
+				_id: $rootScope[position[2]]._id
+			}, function(){
+				closeSubView();
+				$scope.search();
+			});
+		});
+	};
+
+	$scope.cancel = function(){
+		showWarningBox('是否确认取消', function(){
+			cancelRecharge({
+				_id: $rootScope[position[2]]._id,
+			}, function(){
+				addRefreshPageByID($rootScope[switchType[2]].id);
+				$scope.fetch($rootScope[switchType[2]].targetUrl);
+				$scope.search();
+			});
+		});
+	};
+});

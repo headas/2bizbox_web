@@ -1,0 +1,124 @@
+financeCenterRoute.service('expenditureSettlement', function(
+  getFinanceOrderAdvanceInfo,
+  getFinanceGuidePreCollarInfo,
+  GetGuideReimTeamInfo,
+  GetPurchaseBillData,
+  OtherExpensesDataDetail,
+  GetCardBackInfo, $timeout) {
+  var expenditureSettlement = {};
+  expenditureSettlement.list = list;
+  expenditureSettlement.detail_censuscostsettlement = detail_censuscostsettlement;
+  expenditureSettlement.detail_guideallowance = detail_guideallowance;
+  expenditureSettlement.detail_guideprecollar = detail_guideprecollar;
+  expenditureSettlement.detail_guidereimbursement = detail_guidereimbursement;
+  expenditureSettlement.detail_orderadvancepayment = detail_orderadvancepayment;
+  expenditureSettlement.detail_ordertemporaryloan = detail_ordertemporaryloan;
+  expenditureSettlement.detail_otherexpenses = detail_otherexpenses;
+  expenditureSettlement.detail_membershipcardrefund = detail_membershipcardrefund;
+  return expenditureSettlement;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = param;
+    $timeout(function() {
+      callback(data);
+    });
+  }
+
+  function detail_censuscostsettlement(callback, param) {
+    var data = {
+      search: {
+        BillID: param.RecordID
+      }
+    };
+    GetPurchaseBillData(data.search, function(response) {
+      data = response;
+      data.CurrentTypeName = param.CurrentTypeName;
+      callback(data);
+    });
+  }
+
+  function detail_guideallowance(callback, param) {
+    var data = {};
+    data.search = param;
+    callback(data);
+  }
+
+  function detail_guideprecollar(callback, param) {
+    var data = {
+      search: {
+        FinanceID: param.RecordID
+      }
+    };
+    getFinanceGuidePreCollarInfo(data.search, function(response) {
+      data = response;
+      data.CurrentTypeName = param.CurrentTypeName;
+      callback(data);
+    });
+  }
+
+  function detail_guidereimbursement(callback, param) {
+    var data = {
+      search: {
+        GuideReimID: param.RecordID
+      }
+    };
+    GetGuideReimTeamInfo(data.search, function(response) {
+      data = response;
+      data.CurrentTypeName = param.CurrentTypeName;
+      callback(data);
+    });
+  }
+
+  function detail_orderadvancepayment(callback, param) {
+    var data = {
+      search: {
+        id: param.RecordID
+      }
+    };
+    getFinanceOrderAdvanceInfo(data.search, function(response) {
+      data = response;
+      data.CurrentTypeName = param.CurrentTypeName;
+      callback(data);
+    });
+  }
+
+  function detail_ordertemporaryloan(callback, param) {
+    var data = {
+      search: {
+        id: param.RecordID
+      }
+    };
+    getFinanceOrderAdvanceInfo(data.search, function(response) {
+      data = response;
+      data.CurrentTypeName = param.CurrentTypeName;
+      callback(data);
+    });
+  }
+
+  function detail_otherexpenses(callback, param) {
+    var data = {
+      search: {
+        Guid: param.RecordID
+      }
+    };
+    OtherExpensesDataDetail(data.search, function(response) {
+      data = response;
+      data.CurrentTypeName = param.CurrentTypeName;
+      callback(data);
+    });
+  }
+
+  function detail_membershipcardrefund(callback, param) {
+    var data = {
+      search: {
+        _id: param.RecordID
+      }
+    };
+    GetCardBackInfo(data.search, function(response) {
+      data = response;
+      data.CurrentTypeName = param.CurrentTypeName;
+      callback(data);
+    });
+  }
+});

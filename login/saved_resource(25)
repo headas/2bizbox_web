@@ -1,0 +1,37 @@
+financeCenterRoute.service('orderReceivables', function(
+  GetOrderInList,
+  GetOrderInRecord) {
+  var orderReceivables = {};
+  orderReceivables.list = list;
+  orderReceivables.detail = detail;
+  return orderReceivables;
+
+  function list(callback, param) {
+    var data = {};
+    param.PageIndex = param.PageIndex ? param.PageIndex : 1;
+    param.PageSize = pageLimit;
+    data.search = param;
+    data.search.PayType = 1;
+    if(data.search.isFirst === undefined || data.search.isFirst === true)
+    {
+      data.search.PayStatus = 1;
+      data.search.isFirst = false;
+    }
+    GetOrderInList(data.search, function(response) {
+      data.count = response.count;
+      data.limit = response.limit;
+      data.page = response.page;
+      data.list = response.list;
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    data.search = param;
+    GetOrderInRecord(data.search, function(response) {
+      data = response;
+      callback(data);
+    });
+  }
+});

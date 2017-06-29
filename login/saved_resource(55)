@@ -1,0 +1,3018 @@
+app.controller('PCDisneyHotelController', function($scope, $filter, $rootScope, getDisneyHotelContent, getDisneyRoomContent,
+  getDisneyHotelList, getDisneyHotelOrderLog, disneyHotelOrderSubmit, getDisneyHotelOrderCancel, getDisneyHotelDetail,
+  addRefreshPageByID, showWarningBox, disneyHotelBookAvailable, sendDisneyMessage) {
+
+  $scope.search = {
+    year: $filter('date')(new Date(), "yyyy"),
+    month: $filter('date')(new Date(), "MM")
+  };
+
+	$scope.dateOptions = {
+		formatYear: 'yy',
+    startingDay: 1
+  };
+
+  $scope.loadBasicData = function() {
+    getDisneyHotelContent(function(hotelContent) {
+      $scope.hotelContent = hotelContent;
+    });
+    getDisneyRoomContent(function(roomContent) {
+      $scope.roomContent = roomContent;
+    });
+  };
+
+  $scope.getNewList = function() {
+    getDisneyHotelList($scope.search, function(content) {
+      $rootScope[position[1]].hotels = content;
+    });
+  };
+
+  $scope.showSubContent = function(id) {
+    $rootScope[position[2]].scopeInfo.subContentID = id;
+    if ($rootScope[position[2]].scopeInfo.subContentID == 2) {
+      getDisneyHotelOrderLog({
+        time: $rootScope[position[2]].VisitDate
+      }, function(orderLog) {
+        if (orderLog.length <= 0) {
+          $rootScope[position[2]].orderLog = orderLog;
+          return;
+        }
+        orderLog.forEach(function(order) {
+          if (order.resultStatusFlag == 'CANCEL') {
+            order.cancel = true;
+            return true;
+          }
+          var time = order.startDate.substr(0, 10).replace(/-/g, '/');
+          var date = new Date(time);
+          date.setDate(date.getDate() - 2);
+          var nowDate = new Date();
+          if (nowDate < date) {
+            order.cancelable = true;
+          }
+        });
+        $rootScope[position[2]].orderLog = orderLog;
+      });
+    }
+  };
+
+  $scope.saveOrderInfo = function(hotelCode, roomCode) {
+    var room = $rootScope[position[2]].Hotels[hotelCode][roomCode];
+    if (!room.orderNumAdult) {
+      room.orderNumAdult = 0;
+    }
+    if (!room.orderNumChild) {
+      room.orderNumChild = 0;
+    }
+    if (!room.orderNumChildUp) {
+      room.orderNumChildUp = 0;
+    }
+    $rootScope[position[2]].scopeInfo.allNum = room.orderNumAdult + room.orderNumChild + room.orderNumChildUp;
+    if ($rootScope[position[2]].scopeInfo.roomAvailCode == (hotelCode + '-' + roomCode)) {
+      if ($rootScope[position[2]].scopeInfo.allNum <= 0) {
+        $rootScope[position[2]].scopeInfo.roomAvailCode = '';
+        $rootScope[position[2]].scopeInfo.roomAvail = true;
+      } else {
+        //下单信息
+        $rootScope[position[2]].scopeInfo.orderInfo.hotelCode = hotelCode;
+        $rootScope[position[2]].scopeInfo.orderInfo.roomTypeCode = roomCode;
+        $rootScope[position[2]].scopeInfo.orderInfo.ratePlanCode = $rootScope[position[2]].Hotels[hotelCode][roomCode].Price.PriceTypeCode;
+        $rootScope[position[2]].scopeInfo.orderInfo.Rates = [{
+          rate: $rootScope[position[2]].Hotels[hotelCode][roomCode].Price.OnePerson,
+					effectiveDate: $rootScope[position[2]].VisitDate
+        }];
+				$rootScope[position[2]].scopeInfo.dayPrice = $rootScope[position[2]].scopeInfo.orderInfo.Rates;
+				$rootScope[position[2]].scopeInfo.dayPriceAll = $rootScope[position[2]].Hotels[hotelCode][roomCode].Price.OnePerson;
+        $rootScope[position[2]].scopeInfo.orderInfo.Count_Adults = room.orderNumAdult + room.orderNumChildUp;
+        $rootScope[position[2]].scopeInfo.orderInfo.orderNumChildUp = room.orderNumChildUp;
+        $rootScope[position[2]].scopeInfo.orderInfo.Count_Children = room.orderNumChild;
+      }
+    } else if ($rootScope[position[2]].scopeInfo.roomAvail) {
+      if ($rootScope[position[2]].scopeInfo.allNum > 0) {
+        $rootScope[position[2]].scopeInfo.roomAvailCode = hotelCode + '-' + roomCode;
+        $rootScope[position[2]].scopeInfo.roomAvail = false;
+        //下单信息
+        $rootScope[position[2]].scopeInfo.orderInfo.hotelCode = hotelCode;
+        $rootScope[position[2]].scopeInfo.orderInfo.roomTypeCode = roomCode;
+        $rootScope[position[2]].scopeInfo.orderInfo.ratePlanCode = $rootScope[position[2]].Hotels[hotelCode][roomCode].Price.PriceTypeCode;
+        $rootScope[position[2]].scopeInfo.orderInfo.Rates = [{
+          rate: $rootScope[position[2]].Hotels[hotelCode][roomCode].Price.OnePerson,
+					effectiveDate: $rootScope[position[2]].VisitDate
+        }];
+				$rootScope[position[2]].scopeInfo.dayPrice = $rootScope[position[2]].scopeInfo.orderInfo.Rates;
+				$rootScope[position[2]].scopeInfo.dayPriceAll = $rootScope[position[2]].Hotels[hotelCode][roomCode].Price.OnePerson;
+        $rootScope[position[2]].scopeInfo.orderInfo.Count_Adults = room.orderNumAdult + room.orderNumChildUp;
+        $rootScope[position[2]].scopeInfo.orderInfo.orderNumChildUp = room.orderNumChildUp;
+        $rootScope[position[2]].scopeInfo.orderInfo.Count_Children = room.orderNumChild;
+      }
+    }
+  };
+
+  $scope.submitOrder = function() {
+    if ($rootScope[position[2]].scopeInfo.userInfo.firstName && $rootScope[position[2]].scopeInfo.userInfo.firstName == '') {
+			$scope.detailTipInfo = '请填写联系人姓名';
+      return;
+    }
+    if ($rootScope[position[2]].scopeInfo.userInfo.lastNameXing && $rootScope[position[2]].scopeInfo.userInfo.lastNameXing == '') {
+			$scope.detailTipInfo = '请填写联系人姓拼音';
+      return;
+    }
+    if ($rootScope[position[2]].scopeInfo.userInfo.lastNameMing && $rootScope[position[2]].scopeInfo.userInfo.lastNameMing == '') {
+			$scope.detailTipInfo = '请填写联系人名拼音';
+      return;
+    }
+    if ($rootScope[position[2]].scopeInfo.userInfo.phoneNumber && $rootScope[position[2]].scopeInfo.userInfo.phoneNumber == '') {
+			$scope.detailTipInfo = '请填写联系人手机号';
+      return;
+    }
+    if ($rootScope[position[2]].scopeInfo.allNum <= 0) {
+      $scope.detailTipInfo = '请添加房间数量再提交';
+      return;
+    }
+    //提交数据
+    $rootScope[position[2]].scopeInfo.submitLoading = true;
+    $rootScope[position[2]].scopeInfo.orderInfo.numberOfUnits = 1;
+    $rootScope[position[2]].scopeInfo.orderInfo.ageQualifyingCode_Adults = "ADULT";
+    $rootScope[position[2]].scopeInfo.orderInfo.ageQualifyingCode_Children = "CHILD";
+    $rootScope[position[2]].scopeInfo.orderInfo.gender = $rootScope[position[2]].scopeInfo.userInfo.guestGender;
+    $rootScope[position[2]].scopeInfo.orderInfo.firstName = $rootScope[position[2]].scopeInfo.userInfo.firstName;
+    $rootScope[position[2]].scopeInfo.orderInfo.lastName = $filter('uppercase')($rootScope[position[2]].scopeInfo.userInfo.lastNameXing) + ' ' + $filter('uppercase')($rootScope[position[2]].scopeInfo.userInfo.lastNameMing);
+    $rootScope[position[2]].scopeInfo.orderInfo.nameTitle = $rootScope[position[2]].scopeInfo.userInfo.guestGender == 'MALE' ? 'Mr.' : 'Ms.';
+    // $rootScope[position[2]].scopeInfo.orderInfo.comments = "1名儿童，张三11岁，李四3月28日生日";
+    $rootScope[position[2]].scopeInfo.orderInfo.comments = "";
+    if ($rootScope[position[2]].scopeInfo.orderInfo.Count_Children > 0) {
+      $rootScope[position[2]].scopeInfo.orderInfo.comments = $rootScope[position[2]].scopeInfo.orderInfo.Count_Children + '名12岁以下儿童随行;';
+    }
+    if ($rootScope[position[2]].scopeInfo.orderInfo.orderNumChildUp > 0) {
+      $rootScope[position[2]].scopeInfo.orderInfo.comments += $rootScope[position[2]].scopeInfo.orderInfo.orderNumChildUp + '名12岁以上儿童随行;';
+    }
+    $rootScope[position[2]].scopeInfo.orderInfo.Phones = [{
+      phoneRole: 'PHONE',
+      phoneType: 'MOBILE',
+      phoneNumber: $rootScope[position[2]].scopeInfo.userInfo.phoneNumber
+    }];
+    $rootScope[position[2]].scopeInfo.orderInfo.startDate = $rootScope[position[2]].VisitDate;
+    // $rootScope[position[2]].scopeInfo.orderInfo.Rates[0].effectiveDate = $rootScope[position[2]].VisitDate;
+    $rootScope[position[2]].scopeInfo.orderInfo.endDate = $filter('date')($rootScope[position[2]].scopeInfo.datePicker.endDate, "yyyy-MM-dd");
+    console.log($rootScope[position[2]].scopeInfo.orderInfo);
+    disneyHotelOrderSubmit($rootScope[position[2]].scopeInfo.orderInfo, function(response) {
+      if (response.resultStatusFlag == 'SUCCESS') {
+        $scope.detailTipInfo = '采购完成';
+        var hotelName = "上海迪士尼酒店";
+        if($rootScope[position[2]].scopeInfo.orderInfo.hotelCode == "SHTSH"){
+          hotelName = "玩具总动员酒店";
+        }else if($rootScope[position[2]].scopeInfo.orderInfo.hotelCode == "SHDLH"){
+          hotelName = "迪士尼乐园酒店";
+        }
+        var message = {
+          OperationMobile : $rootScope[position[2]].scopeInfo.userInfo.phoneNumber,
+          OperationNotes : "尊敬的顾客" + $rootScope[position[2]].scopeInfo.userInfo.firstName + "，已经帮您预定" + hotelName + "，订单号" + response.UniqueID + "。",
+          OperationTypeID : 2,// 固定写2
+          OrderID : response.UniqueID ,// 订单ID
+          SMSOrderStatus : 3
+        // 【2暂留或预定，3提交或成交，4取消】
+        };
+        sendDisneyMessage(message, function() {
+        });
+				$scope.clearData();
+        $scope.refreshPage();
+      } else {
+        $scope.detailTipInfo = '采购失败';
+      }
+      $rootScope[position[2]].scopeInfo.submitLoading = false;
+      console.log(response);
+    });
+  };
+
+  $scope.clearData = function() {
+    $rootScope[position[2]].scopeInfo.userInfo.guestGender = 'MALE';
+    $rootScope[position[2]].scopeInfo.userInfo.firstName = '';
+    $rootScope[position[2]].scopeInfo.userInfo.lastName = '';
+    $rootScope[position[2]].scopeInfo.userInfo.phoneNumber = '';
+    $rootScope[position[2]].scopeInfo.orderInfo.Count_Adults = 0;
+    $rootScope[position[2]].scopeInfo.orderInfo.Count_Children = 0;
+    $rootScope[position[2]].scopeInfo.allNum = 0;
+    $rootScope[position[2]].scopeInfo.roomAvail = true;
+    var info = $rootScope[position[2]].scopeInfo.roomAvailCode.split('-');
+    $rootScope[position[2]].scopeInfo.roomAvailCode = true;
+    var room = $rootScope[position[2]].Hotels[info[0]][info[1]];
+    room.orderNumAdult = 0;
+    room.orderNumChildUp = 0;
+    room.orderNumChild = 0;
+  };
+
+  $scope.cancelOrder = function(order) {
+    showWarningBox("是否确定取消订单", function() {
+      getDisneyHotelOrderCancel({
+        orderId: order.UniqueID,
+        historyId: order._id.$id,
+        hotelCode: order.hotelCode
+      }, function(response) {
+        if (response.resultStatusFlag == 'SUCCESS') {
+          order.cancel = true;
+          $scope.detailTipInfo = '取消订单成功';
+
+          var message = {
+            OperationMobile : order.Phones.phoneNumber,
+            OperationNotes : "尊敬的顾客" + order.firstName + "，已经帮您预定上海迪士尼乐园酒店，订单号" + order.UniqueID + "，订单将为您保留30分钟，请尽快完成付款。",
+            OperationTypeID : 2,// 固定写2
+            OrderID : order.UniqueID ,// 订单ID
+            SMSOrderStatus : 3
+          // 【2暂留或预定，3提交或成交，4取消】
+          };
+          sendDisneyMessage(message, function() {
+          });
+
+          $scope.refreshPage();
+        } else {
+          $scope.detailTipInfo = '取消订单失败';
+        }
+      });
+    });
+  };
+
+  $scope.refreshPage = function() {
+    var viewId = $rootScope[switchType[2]].id;
+    addRefreshPageByID(viewId);
+    $scope.fetch('purchaseCenter/PCDisneyHotel/detail?time=' + $rootScope[position[2]].VisitDate);
+    var viewIdList = $rootScope[switchType[1]].id;
+    addRefreshPageByID(viewIdList);
+    $scope.fetch('purchaseCenter/PCDisneyHotel/list');
+  };
+
+	$scope.checkBookingAvailable = function(){
+		var dateTmp = new Date($rootScope[position[2]].scopeInfo.datePicker.endDate);
+		$rootScope[position[2]].scopeInfo.dayPriceAll = 0;
+		dateTmp.setDate($rootScope[position[2]].scopeInfo.datePicker.endDate.getDate() - 1);
+		var param = {
+			startDate: $rootScope[position[2]].VisitDate,
+			endDate: $filter('date')(dateTmp, "yyyy-MM-dd"),
+			hotelCode: $rootScope[position[2]].scopeInfo.orderInfo.hotelCode,
+			roomCode: $rootScope[position[2]].scopeInfo.orderInfo.roomTypeCode,
+			rateCode: $rootScope[position[2]].scopeInfo.orderInfo.ratePlanCode
+		}
+		disneyHotelBookAvailable(param, function(response){
+			if(response.canBook){
+				$rootScope[position[2]].scopeInfo.canBook = response.canBook;
+				$rootScope[position[2]].scopeInfo.dayPrice = [];
+				$rootScope[position[2]].scopeInfo.dayPrice = response.priceInfo;
+				$rootScope[position[2]].scopeInfo.orderInfo.Rates = [];
+				response.priceInfo.forEach(function(price){
+					$rootScope[position[2]].scopeInfo.orderInfo.Rates.push({
+						effectiveDate: price.effectiveDate,
+						rate: price.rate
+					});
+					$rootScope[position[2]].scopeInfo.dayPriceAll += price.rate;
+				});
+				console.log($rootScope[position[2]].scopeInfo.orderInfo);
+			}else{
+				if('unBlock' in response){
+					$scope.detailTipInfo = response.unBlock;
+				}else if('unAvail' in response){
+					$scope.detailTipInfo = response.unAvail;
+				}
+			}
+		});
+	};
+
+});
+
+angular.module("HY").controller("PCDisneyTicketStatisticsController", PCDisneyTicketStatisticsController);
+
+function PCDisneyTicketStatisticsController($scope,$filter,DTSGetList){
+
+  //定义默认查询时间
+  var myDate = new Date();
+  $scope.OrderDate = $filter("date")(myDate, "yyyy-MM-dd");
+  $scope.SDate='2016-07-01';
+  $scope.GetDate = function(){}
+
+  $scope.status = {
+    StartTime: false,
+    EndTime: false
+  };
+  //时间选择方法
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  $scope.GetDisneyTickDate = function(){
+    var GetOrderDate = $filter("date")($scope.OrderDate, "yyyy-MM-dd");
+    //alert(GetOrderDate);
+    DTSGetList(GetOrderDate,function(response){
+      //alert(response);
+      $scope.item = response.data.data;
+    });
+  }
+
+
+}
+// // 读取数据 方法 之后再转移到 Model
+// angular.module("HY").factory("GetTicketStatisticsList", GetTicketStatisticsList);
+// function GetTicketStatisticsList() {
+// 	return func;
+//   function func(params, callback) {
+// 		var api = disneyTicketOfficialAPI + "ConfirmOrder";
+// 		HYhttp($http, {
+// 			url : api,
+// 			method : "POST",
+// 			data : {
+// 				Parameter : JSON.stringify(params)
+// 			}
+// 		}).then(success, fail);
+// 		function success(response) {
+// 			callback(response.data);
+// 		}
+// 		function fail(response) {
+//
+// 		}
+// 	}
+// }
+//controller
+app.controller("CostController", CostController);
+function CostController($http, $window, $scope, $rootScope, ngDialog, Cost, $timeout, $filter, addCostBaseInfo, saveCostBaseInfo,
+                        showWarningBox, deleteCostById, findInnerObjIndex, closeSubView, addRefreshPageByID) {
+
+    $scope.loadCostListData = function (viewID) {
+        if (!$rootScope[position[1]].search) {
+            $rootScope[position[1]].search = {};
+        }
+        $rootScope[position[1]].search.page += 1;
+        Cost.list(function (data) {
+            if (data.list.length == 0) {
+                $rootScope[position[1]].search.page -= 1;
+            }
+            $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+            $rootScope.isloadList = false;
+            $rootScope.showProcessBar = false;
+        }, $rootScope[position[1]].search);
+    };
+
+
+    $scope.delCost = function () {
+
+        var costID = $scope.detailData._id.$id;
+
+
+        showWarningBox("确定要删除[" + costID + "]？", activate);
+        function activate() {
+            console.log('activate');
+            deleteCostById(costID, function (response) {
+                console.log(response);
+                $rootScope[position[2]].info = '删除成功!';
+                changeScope();
+                closeSubView();
+            });
+        }
+
+        function changeScope() {
+            console.log(costID);
+            var item = _.filter($scope.mainData.list, function (i) {
+                return i._id.$id == costID;
+            });
+            $scope.mainData.list = _.without($scope.mainData.list, item[0]);
+        }
+    };
+
+
+    $scope.saveCost = function () {
+        var param = {};
+
+        param.id = $scope.detailData._id.$id;
+
+        if (!$rootScope[position[2]].Title) {
+            $rootScope[position[2]].info = '请输入成本名称!';
+            return;
+        }
+        param.Title = $rootScope[position[2]].Title;
+
+        if (!$rootScope[position[2]].PurchaseType) {
+            $rootScope[position[2]].info = '请选择采购类型!';
+            return;
+        }
+        param.PurchaseType = $rootScope[position[2]].PurchaseType;
+
+        param.ProductActivity = $rootScope[position[2]].ProductActivity;
+        param.SupplyMode = $rootScope[position[2]].SupplyMode;
+        param.Businesss = $rootScope[position[2]].Businesss;
+
+        param.Bus = [];
+        param.Plane = [];
+        param.Cruise = [];
+
+        $rootScope[position[2]].Traffics.Bus.forEach(function (item) {
+            var dBus = {};
+            dBus.Destination = [];
+            //console.log(item.Destination);
+            item.Destination.forEach(function (item1) {
+                if (item1.ForeignKeyID) {
+                    dBus.Destination.push(item1.ForeignKeyID.$id);
+                } else {
+                    dBus.Destination.push(item1.GADDRID.$id);
+                }
+            });
+            if (!item.Destination) {
+                $rootScope[position[2]].info = '请选择目的地!';
+                return;
+            }
+            if (!item.SeatCount) {
+                $rootScope[position[2]].info = '请输入座位总数!';
+                return;
+            }
+            if (!item.UsedSeatCount) {
+                $rootScope[position[2]].info = '请输入成交座位!';
+                return;
+            }
+            if (!item.FightSeatCount) {
+                $rootScope[position[2]].info = '请输入可拼座位!';
+                return;
+            }
+            if (!item.GuideSeatCount) {
+                $rootScope[position[2]].info = '请输入导游座位!';
+                return;
+            }
+            if (!item.UnitPrice) {
+                $rootScope[position[2]].info = '请输入座位单价!';
+                return;
+            }
+            if (!item.StartTime) {
+                $rootScope[position[2]].info = '请输入开车时间!';
+                return;
+            }
+            if (!item.Carlocation) {
+                $rootScope[position[2]].info = '请输入上车地点!';
+                return;
+            }
+            dBus.SeatCount = item.SeatCount;
+            dBus.UsedSeatCount = item.UsedSeatCount;
+            dBus.FightSeatCount = item.FightSeatCount;
+            dBus.GuideSeatCount = item.GuideSeatCount;
+            dBus.UnitPrice = item.UnitPrice;
+            dBus.StartTime = item.StartTime.sec;
+            dBus.Carlocation = item.Carlocation;
+            param.Bus.push(dBus);
+        });
+
+
+        $rootScope[position[2]].Traffics.Plane.forEach(function (item) {
+            var dPlane = {};
+            dPlane.Destination = [];
+            if (item.Traffic != 2 || (item.Destination == '' && item.Destination == '' && item.Company == '' && item.Deposit == '')) {
+                $rootScope[position[2]].Traffics.Plane = _.without($rootScope[position[2]].Traffics.Plane, item);
+                console.log($rootScope[position[2]].Traffics);
+            } else {
+                item.Destination.forEach(function (item1) {
+                    if (item1.ForeignKeyID) {
+                        dPlane.Destination.push(item1.ForeignKeyID.$id);
+                    } else {
+                        dPlane.Destination.push(item1.GADDRID.$id);
+                    }
+                });
+                if (!item.Destination) {
+                    $rootScope[position[2]].info = '请选择目的地!';
+                    return;
+                }
+                if (!item.Company) {
+                    $rootScope[position[2]].info = '请输入委托社!';
+                    return;
+                }
+                if (!item.Deposit) {
+                    $rootScope[position[2]].info = '请输入预支定金!';
+                    return;
+                }
+                dPlane.Company = item.Company;
+                dPlane.Deposit = item.Deposit;
+                param.Plane.push(dPlane);
+            }
+        });
+
+        $rootScope[position[2]].Traffics.Cruise.forEach(function (item) {
+            var dCruise = {};
+            dCruise.Destination = [];
+            item.Destination.forEach(function (item1) {
+                if (item1.ForeignKeyID) {
+                    dCruise.Destination.push(item1.ForeignKeyID.$id);
+                } else {
+                    dCruise.Destination.push(item1.GADDRID.$id);
+                }
+            });
+            if (!item.Destination) {
+                $rootScope[position[2]].info = '请选择目的地!';
+                return;
+            }
+            if (!item.Type) {
+                $rootScope[position[2]].info = '请选择舱房类型!';
+                return;
+            }
+            if (!item.StockCount) {
+                $rootScope[position[2]].info = '请输入房间数!';
+                return;
+            }
+            if (!item.UnitPrice) {
+                $rootScope[position[2]].info = '请输入单间价!';
+                return;
+            }
+            dCruise.Type = item.Type;
+            dCruise.StockCount = item.StockCount;
+            dCruise.UnitPrice = item.UnitPrice;
+            param.Cruise.push(dCruise);
+        });
+
+        //酒店
+        param.Hotels = [];
+        $rootScope[position[2]].Hotels.forEach(function (item) {
+            var hotel = {};
+            if (!item.Title) {
+                $rootScope[position[2]].info = '请输入酒店名称!';
+                return;
+            }
+            if (!item.HotelsType) {
+                $rootScope[position[2]].info = '请选择酒店类型!';
+                return;
+            }
+            if (!item.StockCount) {
+                $rootScope[position[2]].info = '请输入房间数!';
+                return;
+            }
+            if (!item.UnitPrice) {
+                $rootScope[position[2]].info = '请输入单间价!';
+                return;
+            }
+            if (!item.RoomType) {
+                $rootScope[position[2]].info = '请选择房间类型!';
+                return;
+            }
+            hotel.Title = item.Title;
+            hotel.HotelsType = item.HotelsType;
+            hotel.StockCount = item.StockCount;
+            hotel.UnitPrice = item.UnitPrice;
+            hotel.RoomType = item.RoomType;
+            param.Hotels.push(hotel);
+        });
+
+        //门票
+        param.Tickets = [];
+        $rootScope[position[2]].Tickets.forEach(function (item) {
+            var ticket = {};
+            if (!item.Type) {
+                $rootScope[position[2]].info = '请选择景区级别!';
+                return;
+            }
+            if (!item.Title) {
+                $rootScope[position[2]].info = '请输入景区名称!';
+                return;
+            }
+            if (!item.StockCount) {
+                $rootScope[position[2]].info = '请输入门票数量!';
+                return;
+            }
+            if (!item.UnitPrice) {
+                $rootScope[position[2]].info = '请输入门票价格!';
+                return;
+            }
+            ticket.Type = item.Type;
+            ticket.Title = item.Title;
+            ticket.StockCount = item.StockCount;
+            ticket.UnitPrice = item.UnitPrice;
+            param.Tickets.push(ticket);
+        });
+
+        //餐饮
+        param.Caterings = [];
+        $rootScope[position[2]].Caterings.forEach(function (item) {
+            var catering = {};
+            if (!item.Type) {
+                $rootScope[position[2]].info = '请选择餐饮类型!';
+                return;
+            }
+            if (!item.StockCount) {
+                $rootScope[position[2]].info = '请输入人头数量!';
+                return;
+            }
+            if (!item.UnitPrice) {
+                $rootScope[position[2]].info = '请输入单人价格!';
+                return;
+            }
+            catering.Type = item.Type;
+            catering.StockCount = item.StockCount;
+            catering.UnitPrice = item.UnitPrice;
+            param.Caterings.push(catering);
+        });
+
+        //旅游用品
+        param.TravelGoods = [];
+        $rootScope[position[2]].TravelGoods.forEach(function (item) {
+            var travelGood = {};
+            if (!item.Title && !item.StockCount && !item.UnitPrice) {
+            } else {
+                if (!item.Title) {
+                    $rootScope[position[2]].info = '请输入物品名称!';
+                    return;
+                }
+                if (!item.StockCount) {
+                    $rootScope[position[2]].info = '请输入物件数量!';
+                    return;
+                }
+                if (!item.UnitPrice) {
+                    $rootScope[position[2]].info = '请输入单间价格!';
+                    return;
+                }
+            }
+            travelGood.Title = item.Title;
+            travelGood.StockCount = item.StockCount;
+            travelGood.UnitPrice = item.UnitPrice;
+            param.TravelGoods.push(travelGood);
+        });
+
+        if ($rootScope[position[2]].editCost) {
+
+            $rootScope[position[2]].editCost.traffics.forEach(function (item) {
+                switch (item.Traffic) {
+                    case 1:
+                        var dBus = {};
+                        dBus.Destination = [];
+                        if (item.destination) {
+                            item.destination.forEach(function (item1) {
+                                dBus.Destination.push(item1.GADDRID.$id);
+                            });
+                        } else {
+                            $rootScope[position[2]].info = '请选择目的地!';
+                            break;
+                        }
+                        if (!item.SeatCount) {
+                            $rootScope[position[2]].info = '请输入座位总数!';
+                            break;
+                        }
+                        if (!item.UsedSeatCount) {
+                            $rootScope[position[2]].info = '请输入成交座位!';
+                            break;
+                        }
+                        if (!item.FightSeatCount) {
+                            $rootScope[position[2]].info = '请输入可拼座位!';
+                            break;
+                        }
+                        if (!item.GuideSeatCount) {
+                            $rootScope[position[2]].info = '请输入导游座位!';
+                            break;
+                        }
+                        if (!item.UnitPrice) {
+                            $rootScope[position[2]].info = '请输入座位单价!';
+                            break;
+                        }
+                        if (!item.StartTime) {
+                            $rootScope[position[2]].info = '请输入开车时间!';
+                            break;
+                        }
+                        if (!item.Carlocation) {
+                            $rootScope[position[2]].info = '请输入上车地点!';
+                            break;
+                        }
+                        dBus.SeatCount = item.SeatCount;
+                        dBus.UsedSeatCount = item.UsedSeatCount;
+                        dBus.FightSeatCount = item.FightSeatCount;
+                        dBus.GuideSeatCount = item.GuideSeatCount;
+                        dBus.UnitPrice = item.UnitPrice;
+                        dBus.StartTime = item.StartTime;
+                        dBus.Carlocation = item.Carlocation;
+                        param.Bus.push(dBus);
+                        break;
+                    case 2:
+                        var dPlane = {};
+                        dPlane.Destination = [];
+                        if (!item.destination && !item.Company && !item.Deposit) {
+                        } else {
+                            if (item.destination) {
+                                item.destination.forEach(function (item1) {
+                                    dPlane.Destination.push(item1.GADDRID.$id);
+                                });
+                            } else {
+                                $rootScope[position[2]].info = '请选择目的地!';
+                                break;
+                            }
+                            if (!item.Company) {
+                                $rootScope[position[2]].info = '请输入委托社!';
+                                break;
+                            }
+                            if (!item.Deposit) {
+                                $rootScope[position[2]].info = '请输入预支定金!';
+                                break;
+                            }
+                        }
+                        dPlane.Company = item.Company;
+                        dPlane.Deposit = item.Deposit;
+                        param.Plane.push(dPlane);
+                        break;
+                    case 3:
+                        var dCruise = {};
+                        dCruise.Destination = [];
+                        if (item.destination) {
+                            item.destination.forEach(function (item1) {
+                                dCruise.Destination.push(item1.GADDRID.$id);
+                            });
+                        } else {
+                            $rootScope[position[2]].info = '请选择目的地!';
+                            break;
+                        }
+                        if (!item.Type) {
+                            $rootScope[position[2]].info = '请选择舱房类型!';
+                            break;
+                        }
+                        if (!item.StockCount) {
+                            $rootScope[position[2]].info = '请输入房间数!';
+                            break;
+                        }
+                        if (!item.UnitPrice) {
+                            $rootScope[position[2]].info = '请输入单间价!';
+                            break;
+                        }
+                        dCruise.Type = item.Type;
+                        dCruise.StockCount = item.StockCount;
+                        dCruise.UnitPrice = item.UnitPrice;
+                        param.Cruise.push(dCruise);
+                        break;
+                    default:
+                }
+                //console.log(item.Traffic.id);
+                //params.traffics.push(hotel);
+            });
+            if ($rootScope[position[2]].info) {
+                return false;
+            }
+
+            $rootScope[position[2]].editCost.hotels.forEach(function (item) {
+                var hotel = {};
+                if (!item.Title) {
+                    $rootScope[position[2]].info = '请输入酒店名称!';
+                    return;
+                }
+                if (!item.HotelsType) {
+                    $rootScope[position[2]].info = '请选择酒店类型!';
+                    return;
+                }
+                if (!item.StockCount) {
+                    $rootScope[position[2]].info = '请输入房间数!';
+                    return;
+                }
+                if (!item.UnitPrice) {
+                    $rootScope[position[2]].info = '请输入单间价!';
+                    return;
+                }
+                if (!item.RoomType) {
+                    $rootScope[position[2]].info = '请选择房间类型!';
+                    return;
+                }
+                hotel.Title = item.Title;
+                hotel.HotelsType = item.HotelsType;
+                hotel.StockCount = item.StockCount;
+                hotel.UnitPrice = item.UnitPrice;
+                hotel.RoomType = item.RoomType;
+                param.Hotels.push(hotel);
+            });
+            if ($rootScope[position[2]].info) {
+                return false;
+            }
+            //console.log(params.hotels);
+
+
+            $rootScope[position[2]].editCost.tickets.forEach(function (item) {
+                var ticket = {};
+                if (!item.Type) {
+                    $rootScope[position[2]].info = '请选择景区级别!';
+                    return;
+                }
+                if (!item.Title) {
+                    $rootScope[position[2]].info = '请输入景区名称!';
+                    return;
+                }
+                if (!item.StockCount) {
+                    $rootScope[position[2]].info = '请输入门票数量!';
+                    return;
+                }
+                if (!item.UnitPrice) {
+                    $rootScope[position[2]].info = '请输入门票价格!';
+                    return;
+                }
+                ticket.Type = item.Type;
+                ticket.Title = item.Title;
+                ticket.StockCount = item.StockCount;
+                ticket.UnitPrice = item.UnitPrice;
+                param.Tickets.push(ticket);
+            });
+            if ($rootScope[position[2]].info) {
+                return false;
+            }
+            //console.log(params.tickets);
+
+            $rootScope[position[2]].editCost.caterings.forEach(function (item) {
+                var catering = {};
+                if (!item.Type) {
+                    $rootScope[position[2]].info = '请选择餐饮类型!';
+                    return;
+                }
+                if (!item.StockCount) {
+                    $rootScope[position[2]].info = '请输入人头数量!';
+                    return;
+                }
+                if (!item.UnitPrice) {
+                    $rootScope[position[2]].info = '请输入单人价格!';
+                    return;
+                }
+                catering.Type = item.Type;
+                catering.StockCount = item.StockCount;
+                catering.UnitPrice = item.UnitPrice;
+                param.Caterings.push(catering);
+            });
+            if ($rootScope[position[2]].info) {
+                return false;
+            }
+            //console.log(params.caterings);
+
+            $rootScope[position[2]].editCost.travelGoods.forEach(function (item) {
+                var travelGood = {};
+                if (!item.Title && !item.StockCount && !item.UnitPrice) {
+                } else {
+                    if (!item.Title) {
+                        $rootScope[position[2]].info = '请输入物品名称!';
+                        return;
+                    }
+                    if (!item.StockCount) {
+                        $rootScope[position[2]].info = '请输入物件数量!';
+                        return;
+                    }
+                    if (!item.UnitPrice) {
+                        $rootScope[position[2]].info = '请输入单间价格!';
+                        return;
+                    }
+                }
+                travelGood.Title = item.Title;
+                travelGood.StockCount = item.StockCount;
+                travelGood.UnitPrice = item.UnitPrice;
+                param.TravelGoods.push(travelGood);
+            });
+            if ($rootScope[position[2]].info) {
+                return false;
+            }
+
+        }
+
+        saveCostBaseInfo(param, function (response) {
+            console.log(response);
+            //$rootScope[position[2]].info = '修改成功!';
+
+            var id = $scope.detailData._id.$id;
+            //$scope.openItem();
+            //closeSubView();
+            $scope.hideSubHead();
+            addRefreshPageByID('purchaseCenter-Cost-detail-id-' + id);
+            addRefreshPageByID('purchaseCenter-Cost-edit-id-' + id);
+            addRefreshPageByID('purchaseCenter-Cost-list');
+            console.log($scope);
+            $scope.fetch('purchaseCenter/Cost/list', '');
+            $scope.openItem();
+            $scope.fetch('purchaseCenter/Cost/detail?id=' + id, '');
+            $scope.openItem();
+            //$scope.fetch('purchaseCenter/Cost/list?id=' + Math.random(), '');
+            //$scope.fetch('purchaseCenter/Cost/edit?id='+$scope.detailData._id.$id, '');
+            //addRefreshPageByID('purchaseCenter-Cost-edit-id-'+$scope.detailData._id.$id);
+        });
+
+        console.log(param);
+    };
+
+    $scope.addCost = function () {
+        var param = {};
+
+
+        if (!$rootScope[position[2]].Title) {
+            $rootScope[position[2]].info = '请输入成本名称!';
+            return;
+        }
+        param.Title = $rootScope[position[2]].Title;
+
+        if (!$rootScope[position[2]].PurchaseType) {
+            $rootScope[position[2]].info = '请选择采购类型!';
+            return;
+        }
+        param.PurchaseType = $rootScope[position[2]].PurchaseType;
+
+        param.ProductActivity = $rootScope[position[2]].ProductActivity;
+        param.SupplyMode = $rootScope[position[2]].SupplyMode;
+        param.Businesss = $rootScope[position[2]].Businesss;
+
+
+        if (!$scope.operate.batchAdd) {
+            $rootScope[position[2]].info = '请选择日期!';
+            return;
+        }
+
+        //酒店
+        //params.traffics=[];
+        param.Bus = [];
+        param.Plane = [];
+        param.Cruise = [];
+        $rootScope[position[2]].editCost.traffics.forEach(function (item) {
+
+            switch (item.Traffic) {
+                case 1:
+                    var dBus = {};
+                    dBus.Destination = [];
+                    if (item.destination) {
+                        item.destination.forEach(function (item1) {
+                            dBus.Destination.push(item1.GADDRID.$id);
+                        });
+                    } else {
+                        $rootScope[position[2]].info = '请选择目的地!';
+                        break;
+                    }
+                    if (!item.SeatCount) {
+                        $rootScope[position[2]].info = '请输入座位总数!';
+                        break;
+                    }
+                    if (!item.UsedSeatCount) {
+                        $rootScope[position[2]].info = '请输入成交座位!';
+                        break;
+                    }
+                    if (!item.FightSeatCount) {
+                        $rootScope[position[2]].info = '请输入可拼座位!';
+                        break;
+                    }
+                    if (!item.GuideSeatCount) {
+                        $rootScope[position[2]].info = '请输入导游座位!';
+                        break;
+                    }
+                    if (!item.UnitPrice) {
+                        $rootScope[position[2]].info = '请输入座位单价!';
+                        break;
+                    }
+                    if (!item.StartTime) {
+                        $rootScope[position[2]].info = '请输入开车时间!';
+                        break;
+                    }
+                    if (!item.Carlocation) {
+                        $rootScope[position[2]].info = '请输入上车地点!';
+                        break;
+                    }
+                    dBus.SeatCount = item.SeatCount;
+                    dBus.UsedSeatCount = item.UsedSeatCount;
+                    dBus.FightSeatCount = item.FightSeatCount;
+                    dBus.GuideSeatCount = item.GuideSeatCount;
+                    dBus.UnitPrice = item.UnitPrice;
+                    dBus.StartTime = item.StartTime;
+                    dBus.Carlocation = item.Carlocation;
+                    param.Bus.push(dBus);
+                    break;
+                case 2:
+                    var dPlane = {};
+                    dPlane.Destination = [];
+                    if (item.destination) {
+                        item.destination.forEach(function (item1) {
+                            dPlane.Destination.push(item1.GADDRID.$id);
+                        });
+                    } else {
+                        $rootScope[position[2]].info = '请选择目的地!';
+                        break;
+                    }
+                    if (!item.Company) {
+                        $rootScope[position[2]].info = '请输入委托社!';
+                        break;
+                    }
+                    if (!item.Deposit) {
+                        $rootScope[position[2]].info = '请输入预支定金!';
+                        break;
+                    }
+                    dPlane.Company = item.Company;
+                    dPlane.Deposit = item.Deposit;
+                    param.Plane.push(dPlane);
+                    break;
+                case 3:
+                    var dCruise = {};
+                    dCruise.Destination = [];
+                    if (item.destination) {
+                        item.destination.forEach(function (item1) {
+                            dCruise.Destination.push(item1.GADDRID.$id);
+                        });
+                    } else {
+                        $rootScope[position[2]].info = '请选择目的地!';
+                        break;
+                    }
+                    if (!item.Type) {
+                        $rootScope[position[2]].info = '请选择舱房类型!';
+                        break;
+                    }
+                    if (!item.StockCount) {
+                        $rootScope[position[2]].info = '请输入房间数!';
+                        break;
+                    }
+                    if (!item.UnitPrice) {
+                        $rootScope[position[2]].info = '请输入单间价!';
+                        break;
+                    }
+                    dCruise.Type = item.Type;
+                    dCruise.StockCount = item.StockCount;
+                    dCruise.UnitPrice = item.UnitPrice;
+                    param.Cruise.push(dCruise);
+                    break;
+                default:
+            }
+            if ($rootScope[position[2]].info) {
+                return false;
+            }
+            //console.log( $rootScope[position[2]].info);
+            //console.log(item.Traffic.id);
+            //params.traffics.push(hotel);
+        });
+        //console.log(param.Bus);
+        if ($rootScope[position[2]].info) {
+            return false;
+        }
+
+
+        //酒店
+        param.Hotels = [];
+        $rootScope[position[2]].editCost.hotels.forEach(function (item) {
+            var hotel = {};
+            if (!item.Title && !item.HotelsType && !item.StockCount && !item.UnitPrice && !item.RoomType) {
+            } else {
+                if (!item.Title) {
+                    $rootScope[position[2]].info = '请输入酒店名称!';
+                    return;
+                }
+                if (!item.HotelsType) {
+                    $rootScope[position[2]].info = '请选择酒店类型!';
+                    return;
+                }
+                if (!item.StockCount) {
+                    $rootScope[position[2]].info = '请输入房间数!';
+                    return;
+                }
+                if (!item.UnitPrice) {
+                    $rootScope[position[2]].info = '请输入单间价!';
+                    return;
+                }
+                if (!item.RoomType) {
+                    $rootScope[position[2]].info = '请选择房间类型!';
+                    return;
+                }
+            }
+            hotel.Title = item.Title;
+            hotel.HotelsType = item.HotelsType;
+            hotel.StockCount = item.StockCount;
+            hotel.UnitPrice = item.UnitPrice;
+            hotel.RoomType = item.RoomType;
+            param.Hotels.push(hotel);
+        });
+        if ($rootScope[position[2]].info) {
+            return false;
+        }
+        //console.log(params.hotels);
+
+        //门票
+        param.Tickets = [];
+        $rootScope[position[2]].editCost.tickets.forEach(function (item) {
+            var ticket = {};
+            if (!item.Type && !item.Title && !item.StockCount && !item.UnitPrice) {
+            } else {
+                if (!item.Type) {
+                    $rootScope[position[2]].info = '请选择景区级别!';
+                    return;
+                }
+                if (!item.Title) {
+                    $rootScope[position[2]].info = '请输入景区名称!';
+                    return;
+                }
+                if (!item.StockCount) {
+                    $rootScope[position[2]].info = '请输入门票数量!';
+                    return;
+                }
+                if (!item.UnitPrice) {
+                    $rootScope[position[2]].info = '请输入门票价格!';
+                    return;
+                }
+            }
+            ticket.Type = item.Type;
+            ticket.Title = item.Title;
+            ticket.StockCount = item.StockCount;
+            ticket.UnitPrice = item.UnitPrice;
+            param.Tickets.push(ticket);
+        });
+        if ($rootScope[position[2]].info) {
+            return false;
+        }
+        //console.log(params.tickets);
+
+        //餐饮
+        param.Caterings = [];
+        $rootScope[position[2]].editCost.caterings.forEach(function (item) {
+            var catering = {};
+            if (!item.Type && !item.StockCount && !item.UnitPrice) {
+            } else {
+                if (!item.Type) {
+                    $rootScope[position[2]].info = '请选择餐饮类型!';
+                    return;
+                }
+                if (!item.StockCount) {
+                    $rootScope[position[2]].info = '请输入人头数量!';
+                    return;
+                }
+                if (!item.UnitPrice) {
+                    $rootScope[position[2]].info = '请输入单人价格!';
+                    return;
+                }
+            }
+
+            catering.Type = item.Type;
+            catering.StockCount = item.StockCount;
+            catering.UnitPrice = item.UnitPrice;
+            param.Caterings.push(catering);
+        });
+        if ($rootScope[position[2]].info) {
+            return false;
+        }
+        //console.log(params.caterings);
+
+        //旅游用品
+        param.TravelGoods = [];
+        $rootScope[position[2]].editCost.travelGoods.forEach(function (item) {
+            var travelGood = {};
+            if (!item.Title && !item.StockCount && !item.UnitPrice) {
+            } else {
+                if (!item.Title) {
+                    $rootScope[position[2]].info = '请输入物品名称!';
+                    return;
+                }
+                if (!item.StockCount) {
+                    $rootScope[position[2]].info = '请输入物件数量!';
+                    return;
+                }
+                if (!item.UnitPrice) {
+                    $rootScope[position[2]].info = '请输入单间价格!';
+                    return;
+                }
+            }
+            travelGood.Title = item.Title;
+            travelGood.StockCount = item.StockCount;
+            travelGood.UnitPrice = item.UnitPrice;
+            param.TravelGoods.push(travelGood);
+        });
+        if ($rootScope[position[2]].info) {
+            return false;
+        }
+
+        //console.log(params);
+
+        //console.log($rootScope[position[2]].addCostDateList);
+        var key;
+        for (key in $rootScope[position[2]].addCostDateList) {
+            param.StartTime = $rootScope[position[2]].addCostDateList[key].getTime() / 1000;
+            //console.log(param);
+            addCostBaseInfo(param, function (response) {
+                console.log(response);
+                $rootScope[position[2]].info = '添加成功!';
+                //
+                //清除数据
+                $scope.clearAddData();
+                //$scope.hideSubHeadInList();
+                $scope.fetch('purchaseCenter/Cost/detail?id=' + response.data, '');
+                $scope.openItem();
+                //closeSubView();
+                //$scope.openItem();
+                addRefreshPageByID('purchaseCenter-Cost-list');
+                $scope.fetch('purchaseCenter/Cost/list?id=' + Math.random(), '');
+            });
+
+            //console.log(JSON.stringify(withoutFlaseKey(param)));
+        }
+
+
+        //console.log(param);
+    };
+
+    $scope.Type = 1;
+
+    $scope.clearAddData = function () {
+        addRefreshPageByID('purchaseCenter-Cost-add-id-addcost');
+        console.log('addRefreshPageByID');
+    };
+
+    //成本
+    $scope.totalCost = $rootScope[position[2]].CostTotal ? $rootScope[position[2]].CostTotal : 0;
+    $scope.changtotalCost = function () {
+
+        var total = 0;
+
+        $rootScope[position[2]].editCost.traffics.forEach(function (item) {
+            switch (item.Traffic) {
+                case 1:
+                    var SeatCount;
+                    var UnitPrice;
+                    SeatCount = item.SeatCount ? item.SeatCount : 0;
+                    UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+                    total += SeatCount * UnitPrice;
+                    break;
+                case 2:
+                    var Deposit;
+                    Deposit = item.Deposit ? item.Deposit : 0;
+                    total += Deposit;
+                    break;
+                case 3:
+                    var StockCount = item.StockCount ? item.StockCount : 0;
+                    var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+                    total += StockCount * UnitPrice;
+                    break;
+                default:
+            }
+        });
+
+
+        //酒店
+        $rootScope[position[2]].editCost.hotels.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+
+        //门票
+        $rootScope[position[2]].editCost.tickets.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+
+        //餐饮
+        $rootScope[position[2]].editCost.caterings.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+
+        //旅游用品
+        $rootScope[position[2]].editCost.travelGoods.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+
+        $scope.totalCost = total;
+    };
+
+
+    $scope.changEditTotalCost = function () {
+        editInit();
+        var total = 0;
+
+        //交通
+        $rootScope[position[2]].editCost.traffics.forEach(function (item) {
+            switch (item.Traffic) {
+                case 1:
+                    var SeatCount = item.SeatCount ? item.SeatCount : 0;
+                    var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+                    total += SeatCount * UnitPrice;
+                    break;
+                case 2:
+                    var Deposit = item.Deposit ? item.Deposit : 0;
+                    total += Deposit;
+                    break;
+                case 3:
+                    var StockCount = item.StockCount ? item.StockCount : 0;
+                    var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+                    total += StockCount * UnitPrice;
+                    break;
+                default:
+            }
+        });
+
+        $rootScope[position[2]].Traffics.Bus.forEach(function (item) {
+            var SeatCount = item.SeatCount ? item.SeatCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += SeatCount * UnitPrice;
+        });
+
+        $rootScope[position[2]].Traffics.Plane.forEach(function (item) {
+            var Deposit = item.Deposit ? item.Deposit : 0;
+            total += Deposit;
+        });
+
+        $rootScope[position[2]].Traffics.Cruise.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+
+
+        //酒店
+        $rootScope[position[2]].Hotels.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+        $rootScope[position[2]].editCost.hotels.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+
+
+        //门票
+        $rootScope[position[2]].Tickets.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+        $rootScope[position[2]].editCost.tickets.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+
+
+        //餐饮
+        $rootScope[position[2]].Caterings.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+        $rootScope[position[2]].editCost.caterings.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+
+
+        //旅游用品
+        $rootScope[position[2]].TravelGoods.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+        $rootScope[position[2]].editCost.travelGoods.forEach(function (item) {
+            var StockCount = item.StockCount ? item.StockCount : 0;
+            var UnitPrice = item.UnitPrice ? item.UnitPrice : 0;
+            total += StockCount * UnitPrice;
+        });
+
+
+        $scope.totalCost = total;
+    };
+
+
+    //修改交通类型
+    $scope.changeTraffic = function () {
+        console.log('change');
+    };
+
+    //切换交通 酒店 门票 餐饮 旅游用品
+    $scope.changeType = function (type) {
+        $scope.Type = type;
+    };
+
+    //目的地
+    $scope.switchDestination = function (destination) {
+        console.log(destination);
+    };
+
+    //旅游用品
+    $scope.newTravelGoods = function () {
+        console.log(position[2]);
+        editInit();
+        $rootScope[position[2]].editCost.travelGoods.push({});
+        console.log($rootScope[position[2]].editCost.travelGoods);
+    };
+
+    //餐饮
+    $scope.newCaterings = function () {
+        console.log(position[2]);
+        editInit();
+        $rootScope[position[2]].editCost.caterings.push({});
+        console.log($rootScope[position[2]].editCost.caterings);
+    };
+
+
+    //门票
+    $scope.newTickets = function () {
+        console.log(position[2]);
+        editInit();
+        $rootScope[position[2]].editCost.tickets.push({});
+        console.log($rootScope[position[2]].editCost.tickets);
+    };
+
+    //酒店
+    $scope.newHotels = function () {
+        console.log(position[2]);
+        editInit();
+        $rootScope[position[2]].editCost.hotels.push({});
+        console.log($rootScope[position[2]].editCost.hotels);
+    };
+
+    //交通
+    $scope.newTraffics = function () {
+        console.log(position[2]);
+        editInit();
+        $rootScope[position[2]].editCost.traffics.push({});
+        console.log($rootScope[position[2]].editCost.traffics);
+    };
+
+    function editInit() {
+        if (!$rootScope[position[2]].editCost) {
+            $rootScope[position[2]].editCost = {};
+            $rootScope[position[2]].editCost.travelGoods = [];
+            $rootScope[position[2]].editCost.caterings = [];
+            $rootScope[position[2]].editCost.tickets = [];
+            $rootScope[position[2]].editCost.hotels = [];
+            $rootScope[position[2]].editCost.traffics = [];
+        }
+    };
+
+    //取消日期
+    $scope.unChooseDate = function (day) {
+        $rootScope[position[2]].addCostDateList = _.without($rootScope[position[2]].addCostDateList, day);
+        $scope.operate.dateSelected[Date.parse(day)] = false;
+        console.log($scope.operate.dateSelected);
+        console.log($rootScope[position[2]].addCostDateList);
+    };
+
+    $scope.showCostDetail = function (day) {
+        if ($scope.operate.batchAdd) {
+            //console.log(day);
+            $rootScope[position[2]].addCostDateList = [];
+            //console.log($scope.operate.dateSelected);
+            var key;
+            for (key in $scope.operate.dateSelected) {
+                if ($scope.operate.dateSelected[key]) {
+                    var newDate = new Date();
+                    newDate.setTime(key);
+                    $rootScope[position[2]].addCostDateList.push(newDate);
+                }
+            }
+            console.log($scope.operate.dateSelected);
+            console.log('showCostDetail');
+            console.log($rootScope[position[2]].addCostDateList);
+            if ($rootScope[position[2]].addCostDateList.length == 0) {
+                $rootScope[position[2]].editCost = {};
+                $rootScope[position[2]].editCost.travelGoods = [];
+                $rootScope[position[2]].editCost.caterings = [];
+                $rootScope[position[2]].editCost.tickets = [];
+                $rootScope[position[2]].editCost.hotels = [];
+                $rootScope[position[2]].editCost.traffics = [];
+                console.log('no key');
+            }
+        } else {
+            console.log('else');
+            $scope.showDetail = true;
+        }
+        //console.log('showCostDetail');
+    };
+
+    $scope.operate = {
+        showCostDetail: function (costDetailId) {
+            if (this.showCostDetailId == costDetailId) {
+                this.showCostDetailId = "";
+            } else {
+                this.showCostDetailId = costDetailId;
+            }
+        },
+        showCostDetailId: "",
+        dateSelected: [],
+        batchAdd: false
+    };
+
+    $scope.batchAdd = function () {
+        $scope.showDetail = false;
+        $scope.operate.batchAdd = !$scope.operate.batchAdd;
+        console.log('batchAdd');
+        if (!$rootScope[position[2]].editCost) {
+            $rootScope[position[2]].editCost = {};
+            $rootScope[position[2]].editCost.travelGoods = [];
+            $rootScope[position[2]].editCost.caterings = [];
+            $rootScope[position[2]].editCost.tickets = [];
+            $rootScope[position[2]].editCost.hotels = [];
+            $rootScope[position[2]].editCost.traffics = [];
+        }
+    };
+
+    $scope.searchPro = function () {
+        $rootScope[position[1]].search = {
+            page: 1,
+            keyword: $rootScope[position[1]].keyword,
+            PurchaseType: $rootScope[position[1]].PurchaseType ? $rootScope[position[1]].PurchaseType.id : '',
+            DestinationId: $rootScope[position[1]].Destination ? $rootScope[position[1]].Destination.GADDRID.$id : '',
+        };
+        //console.log($rootScope[position[1]]);
+        Cost.list(function (response) {
+            $rootScope[position[1]].list = response.list;
+        }, $rootScope[position[1]].search);
+    };
+
+    //日历的配置
+    $scope.calendarOptions = {
+        calendarClass: "fullcalendar",
+        headClass: "calHead",
+        bodyClass: "calBody",
+        footClass: "calFoot",
+        headDateClass: "calHeadDate",
+
+        fillDay: function (day, date) {
+            //var dd=date.getTime() / 1000;
+            //console.log(dd);
+            //var index = findInnerObjIndex($rootScope[position[1]], ['StartTime', 'sec'], date.getTime() / 1000);
+            //console.log('abc'+index);
+            //var html = $filter('date')(date, 'dd');
+            var html = '<label class="label_inner"><div class="xc_l"></div><div class="f_r"><span>' + $filter('date')(date, 'dd') + '</span><input ng-show="operate.batchAdd" type="checkbox" ng-model="operate.dateSelected[' + Date.parse(date) + ']"  ng-true-value="true" ng-false-value="false" > </div></label>';
+            return html;
+        },
+
+        monthChange: function (datetime) {
+            console.log("monthChange");
+        }
+
+    };
+
+}
+
+app.filter("PurchaseType", function ($rootScope) {
+    return function (input) {
+
+        var PurchaseTypes = [{
+            id: 1,
+            value: '产品线路'
+        }, {
+            id: 2,
+            value: '采购2'
+        }, {
+            id: 3,
+            value: '采购3'
+        }];
+
+        var out = PurchaseTypes[input - 1] ? PurchaseTypes[input - 1].value : '';
+        return out;
+    }
+});
+
+app.filter("SupplyMode", function ($rootScope) {
+    return function (input) {
+
+        var SupplyMode = [{
+            id: 1,
+            value: '资源打包'
+        }, {
+            id: 2,
+            value: '供应测试'
+        }];
+
+        var out = SupplyMode[input - 1] ? SupplyMode[input - 1].value : '';
+        return out;
+    }
+});angular.module("HY").controller("PCDisneyTicketReservationController",PCDisneyTicketReservationController);
+function PCDisneyTicketReservationController(){
+	
+}/**
+ * PCDisneyTicketWarehouse 控制器 迪士尼门票库存管理
+ */
+angular.module("HY").controller("PCDisneyTicketWarehouseController", PCDisneyTicketWarehouseController);
+// PCDisneyTicketWarehouseController.$inject=['DTWGetList','$filter'];
+function PCDisneyTicketWarehouseController(sendDisneyMessage, updateAllotmentForAMonthFromAPI, updateProductPriceForADayFromAPI, showWarningBox, DTWchangeTicketDateToDisney, DTWchangeTicketDateToAPI,
+  DTWupdateAllotmentForADay, DTWCancelReservationToAPI, DTWCancelReservationToDisney, DTWsubmitReservationForFinalOrderToDisney, DTWsubmitReservationForFinalOrderToAPI,
+  DTWsubmitReservationToAPI, DTWsubmitReservationToDisney, DTWGetList, HyDate, DTWGetOrderHistory, DTWGetReservation, DTWGetList, $filter, $rootScope, $scope, DTWGetProducts, $window) {
+  var vm = this;
+  $scope.needTicketChangingTip = true;
+  vm.orderMax = 100;
+  vm.orderWithIDMax = 100;
+  vm.reservationType = true; // 可选值是 QR:false 和 ID:true
+  vm.editor = {};
+  vm.subContentID = 1;
+  vm.maxDateLength = 7;
+  vm.selectableDateLength = 0;
+  vm.products = [];
+  vm.cost = 0;
+  vm.GovernmentID = "";
+  $scope.detailData.orderHistory = [];
+  $scope.detailData.successReservationList = [];
+
+  vm.search = {
+    year: 2016,
+    month: 6,
+    unused: false,
+    count: false
+  };
+  vm.getAllotmentForAMonth = getAllotmentForAMonth;
+  vm.freshDayProductPrice = freshDayProductPrice;
+  vm.updateAllotmentForADay = updateAllotmentForADay;
+  vm.tips = [];
+  changeSubContentHeight();
+
+  function changeSubContentHeight() {
+    var w = angular.element($window);
+    $scope.getWindowDimensions = function() {
+      return {
+        'h': w.height(),
+        'w': w.width()
+      };
+    };
+    $scope.$watch($scope.getWindowDimensions, function(newValue, oldValue) {
+      $scope.windowHeight = newValue.h;
+      $scope.windowWidth = newValue.w;
+      vm.subContentHeight = newValue.h - 380;
+    }, true);
+    w.bind('resize', function() {
+      $scope.$apply();
+    });
+  }
+
+  vm.calendarRefill = false;
+  vm.unusedOptions = [{
+    value: false,
+    name: '无论是否有配额'
+  }, {
+    value: true,
+    name: '仅显示有配额'
+  }];
+  vm.countOptions = [{
+    value: false,
+    name: '无论是否有库存'
+  }, {
+    value: true,
+    name: '仅显示有库存'
+  }];
+  // ////////////////////////////
+  // links
+  // ////////////////////////////
+  vm.addLink = "purchaseCenter/PCDisneyTicketWarehouse/add";
+  vm.detailLink = 'purchaseCenter/PCDisneyTicketWarehouse/detail' + "?date=";
+  vm.viewPath = "/public/angularView/purchaseCenter/PCDisney/common/";
+  vm.purchaseTicketUrl = vm.viewPath + "purchaseTicket.html" + "?" + Math.random();
+  vm.stockInfoUrl = vm.viewPath + "stockInfo.html" + "?" + Math.random();
+  vm.reservationListUrl = vm.viewPath + "reservationList.html" + "?" + Math.random();
+  vm.ticketListUrl = vm.viewPath + "ticketList.html" + "?" + Math.random();
+  vm.tipsUrl = vm.viewPath + "tips.html" + "?" + Math.random();
+  // ////////////////////////////
+  // calendarOptions
+  // ////////////////////////////
+  vm.calendarOptions = {
+    calendarClass: "fullcalendar",
+    headClass: "calHead",
+    bodyClass: "calBody",
+    footClass: "calFoot",
+    headDateClass: "calHeadDate",
+    viewDate: HyDate.UTCDate("2016", "01", "01", 0, 0, 0, 0)
+  };
+  vm.calendarData = [];
+  vm.calendarOptions.fillDay = fillDay;
+  vm.calendarOptions.monthChange = monthChange;
+  vm.calculateCost = calculateCost;
+  vm.checkInput = checkInput;
+  vm.unChooseDate = unChooseDate;
+  vm.clearOrderNum = clearOrderNum;
+  vm.allDisabled = {
+    disable: false
+  };
+  vm.calendarSelectedDates = {};
+  vm.calendarOperationData = {
+    dateSelected: vm.calendarSelectedDates,
+    disableOverflow: disableOverflow,
+    allDisabled: vm.allDisabled
+  };
+  // ////////////////////////////
+  // Panel Actions
+  // ////////////////////////////
+  vm.showSubContent = showSubContent;
+  vm.activate = activate;
+  vm.getReservation = getReservation;
+  vm.getOrderHistory = getOrderHistory;
+  vm.downloadQRCode = downloadQRCode;
+  vm.downloadTicket = downloadTicket;
+  vm.changeTicketDate = changeTicketDate;
+  vm.cancelReservation = cancelReservation;
+  vm.notMoreThan100 = notMoreThan100;
+  vm.calculateCostAndAmount = calculateCostAndAmount;
+  vm.show = show;
+  vm.showInput = showInput;
+  vm.getNewList = showNewList;
+  vm.reservation = reservation;
+  vm.submitReservation = submitReservation;
+  vm.countTicketReserve = countTicketReserve;
+  // ////////////////////////////
+  // operations
+  // ////////////////////////////
+  activate();
+  // ////////////////////////////
+  // functions
+  // ////////////////////////////
+  function activate() {
+    DTWGetProducts({}, function(data) {
+      vm.products = data;
+      console.log(vm.products);
+    });
+  }
+
+  function showNewList() {
+    console.log("OK");
+    DTWGetList(vm.search, function(response) {
+      $scope.mainData.list = response.list;
+    })
+  }
+
+  $scope.$watch('mainData.list',function(value){
+    if(value){
+      countTicketReserve(value);
+    }
+  });
+
+  //计算统计各个类型票预订数
+  function countTicketReserve(response){
+    $scope.CountTicket={
+      adult:{
+        one_Day:0,
+        two_day:0
+      },
+      child:{
+        one_Day:0,
+        two_day:0
+      },
+      elder:{
+        one_Day:0,
+        two_day:0
+      }
+    }
+    response.forEach(function(data){
+      $scope.CountTicket.adult.one_Day += data.stock['adult'].one_day;
+      $scope.CountTicket.adult.two_day += data.stock['adult'].two_day;
+      $scope.CountTicket.child.one_Day += data.stock['child'].one_day;
+      $scope.CountTicket.child.two_day += data.stock['child'].two_day;
+      $scope.CountTicket.elder.one_Day += data.stock['elder'].one_day;
+      $scope.CountTicket.elder.two_day += data.stock['elder'].two_day;
+    });
+  }
+
+  function show() {
+    console.log($scope.detailData.orderHistory);
+    console.log($scope.detailData.orderHistory.length);
+  }
+
+  function showInput(name) {
+    console.log($scope.searchForm[name]);
+  }
+
+  function calculateCostAndAmount(orderLines) {
+    $scope.cost = 0;
+    $scope.totalTicketNumber = 0;
+    orderLines.forEach(function(item) {
+      $scope.cost += item.Amount;
+      $scope.totalTicketNumber += item.Quantity;
+    });
+  }
+  // ////////////////////////////
+  // Product Functions
+  // ////////////////////////////
+  /**
+   * 获取产品的类别、价格、是否可卖，每天的信息
+   */
+  function getProducts() {
+    /**
+     * 调用接口，获取所有的产品信息
+     */
+  }
+  // ////////////////////////////
+  // Booking Functions
+  // ////////////////////////////
+  /**
+   * 采购多张票
+   */
+  function booking() {
+    /**
+     * 步骤 ----------预定过程----------- 【1】拆分订单，保证每个订单都可以预定
+     * 【2】将所有预定，拆分好订单，一次性发送到API，获取所有orderID 【3】将预定请求，发送到DisneyAPI，进行预定
+     * 【4】将每次预定返回的内容保存到数据库，每个orderID绑定sessionID，将可以提交的订单，和错误的订单分开，并且提示错误信息
+     * ----------提交过程----------- 【5p1】将所有可以提交的订单，提交到API
+     * 【5p2】提交每个订单，到DisneyAPI 【6p1-5p2】获取【5p2】的状态，并且更新到scope中，以及提交到API中
+     */
+  }
+  /**
+   * 提交
+   */
+  function purchase() {
+
+  }
+  /**
+   * 更新一天的配额
+   */
+  function updateAllotmentForADay(middleDate, type) {
+    var days = [moment(middleDate).subtract(1, 'days').format('YYYY-MM-DD'), middleDate, moment(middleDate).add(1, 'days').format('YYYY-MM-DD')];
+    days.forEach(function(date) {
+      vm.detailTipInfo = "正在更新" + date + "的配额...";
+      vm.detailTipInfoType = "info";
+      DTWupdateAllotmentForADay({
+        date: date
+      }, updateToScope);
+
+      function updateToScope(response) {
+        vm.detailTipInfo = "已更新" + date + "的配额";
+        vm.detailTipInfoType = "info";
+        var allotment = response.Allotments[0];
+        $scope.detailData.Balance = allotment.Balance;
+        $scope.detailData.Locked = allotment.Locked;
+        $scope.detailData.Distributed = allotment.Distributed;
+        $scope.detailData.CutOff = allotment.CutOff;
+        $scope.detailData.Used = allotment.Used;
+        $scope.detailData.credit = response.credit;
+        var listItem = _.find($scope.mainData.list, function(item) {
+          return item.VisitDate == date;
+        });
+        listItem.Balance = allotment.Balance;
+        switch (type) {
+          case "reservation":
+            vm.subContentID = 2;
+            vm.showSubContent(2);
+            break;
+          case "purchase":
+            vm.subContentID = 3;
+            vm.showSubContent(3);
+            break;
+          default:
+            break;
+        }
+      }
+    });
+  }
+  // ////////////////////////////
+  // Reservation Functions
+  // ////////////////////////////
+  /**
+   * 预定多张票
+   */
+  function reservation(reservationType) {
+    var dates = getReservationDates();
+    var orders = createReservationBooking(dates);
+    $scope.totalTicketNumber = vm.totalOrderNum;
+    $scope.cost = vm.cost;
+    var submitFunc = submitAnReservationOrder;
+
+    // 身份证预定不能超过5张
+    if (vm.reservationType && vm.totalOrderNum > vm.orderWithIDMax) {
+      vm.detailTipInfo = "使用身份证的情况下，每次预定不能超过" + vm.orderWithIDMax + "张";
+      vm.detailTipInfoType = "info";
+      return;
+    }
+    // reservationType为0，预定；为1采购
+    if (reservationType) {
+      submitFunc = submitAnReservationOrderAndConfirm;
+      showWarningBox("确定不预定直接采购?直接采购的门票无法退票，信用金额会被直接扣除。", purchaseAllOrders);
+    } else {
+      purchaseAllOrders();
+    }
+
+    function purchaseAllOrders() {
+      if (reservationType) {
+        vm.submitLoading = orders.length;
+      } else {
+        vm.reservationLoading = orders.length;
+      }
+      orders.forEach(submitFunc);
+    }
+
+    function getReservationDates() {
+      vm.detailTipInfo = "正在为该日期构建订单...";
+      vm.detailTipInfoType = "info";
+      var dates = [];
+      if (vm.subPanel == "edit") {
+        dates.push($scope.detailData.VisitDate);
+      } else if (vm.subPanel == "add") {
+        dates = getSelectedDates();
+      }
+      return dates;
+
+      function getSelectedDates() {
+        var result = [];
+        angular.forEach(vm.calendarSelectedDates, function(v, k) {
+          if (v) {
+            result.push(k);
+          }
+        });
+        return result;
+      }
+    }
+  }
+
+  /**
+   * 从API获取某一天的预定
+   */
+  function getReservation(date) {
+    DTWGetReservation(date, function(response) {
+      $scope.detailData.successReservationList = response.data[0];
+      console.log($scope.detailData.successReservationList);
+    });
+  }
+  /**
+   * 取消预定
+   */
+  function cancelReservation(orderID, sessionID, ListItem) {
+    vm.detailTipInfo = "正在取消订单" + sessionID + "...";
+    vm.detailTipInfoType = "info";
+    ListItem.cancelLoading = true;
+    DTWCancelReservationToDisney({
+      SourceID: orderID,
+      SessionID: sessionID
+    }, function(response) {
+      vm.detailTipInfo = "正在提交到ERP系统";
+      vm.detailTipInfoType = "info";
+      ListItem.cancelLoading = false;
+      switch (response.Status) {
+        case 201:
+        case 202:
+        case 203:
+        case 0:
+          DTWCancelReservationToAPI({
+            SessionID: sessionID.toString()
+          }, function(response) {
+            vm.detailTipInfo = "已经取消订单" + sessionID;
+            vm.detailTipInfoType = "info";
+            if (response) {
+              var sindex = _.findIndex($scope.detailData.successReservationList.reservation, function(element) {
+                return element.SessionID == sessionID;
+              });
+              $scope.detailData.successReservationList.reservation[sindex].cancel = 1;
+              updateAllotmentForADay($scope.detailData.VisitDate);
+            }
+          });
+          break;
+        default:
+          showErrorInfo(response.Status, response.StatusText, sessionID, 4);
+          break;
+      }
+    });
+  }
+  /**
+   * 提交预定订单
+   */
+  function submitReservation(orderID, sessionID, ListItem,disneyOrderID) {
+    vm.detailTipInfo = "正在提交订单" + sessionID + "...";
+    vm.detailTipInfoType = "info";
+    ListItem.loading = true;
+    DTWsubmitReservationForFinalOrderToDisney({
+      SourceID: orderID,
+      SessionID: sessionID
+    }, function(response) {
+      vm.detailTipInfo = "已经提交订单" + sessionID;
+      vm.detailTipInfoType = "info";
+      var sindex = _.findIndex($scope.detailData.successReservationList.reservation, function(element) {
+        return element.SessionID == sessionID;
+      });
+      switch (response.Status) {
+        case 0:
+        case 201:
+        case 202:
+        case 203:
+          response.GovermentID = vm.GovernmentID;
+          response.customer_name = vm.customer_name;
+          response.customer_mobile = vm.customer_mobile;
+          response.submit_username = $rootScope.userinfo.FullName;
+          response.submit_userid = $rootScope.userinfo._id.$id;
+          DTWsubmitReservationForFinalOrderToAPI({
+            SessionID: sessionID,
+            TicketHistory: response,
+
+          }, function(response) {
+            vm.detailTipInfo = "正在提交订单" + sessionID + "到ERP系统...";
+            vm.detailTipInfoType = "info";
+            var message = {
+              OperationMobile: vm.customer_mobile,
+              OperationNotes: "尊敬的顾客" + vm.customer_name + "，您已经购买了" + $filter("date")($scope.detailData.VisitDate, "yyyy年M月d日") + "上海迪士尼乐园门票" + $scope.totalTicketNumber + "张" + "订单号" + disneyOrderID + "。",
+              OperationTypeID: 2, // 固定写2
+              OrderID: sessionID, // 订单ID
+              SMSOrderStatus: 3
+                // 【2暂留或预定，3提交或成交，4取消】
+            };
+            sendDisneyMessage(message, function() {});
+            if (response) {
+              vm.detailTipInfo = "成功采购订单" + sessionID + "";
+              vm.detailTipInfoType = "info";
+              if (sindex >= 0) {
+                $scope.detailData.successReservationList.reservation[sindex].submit = 1;
+                ListItem.loading = false;
+              }
+              $scope.detailData.stock = response;
+              var listItem = _.find($scope.mainData.list, function(item) {
+                return item.VisitDate == $scope.detailData.VisitDate;
+              });
+              listItem.stock = response;
+              if (vm.submitLoading) {
+                vm.submitLoading = vm.submitLoading - 1;
+                if (vm.submitLoading == 0) {
+                  vm.detailTipInfo = "采购已经全部完成";
+                  vm.detailTipInfoType = "info";
+                }
+              }
+              updateAllotmentForADay($scope.detailData.VisitDate, "purchase");
+            }
+          });
+          break;
+        default:
+          showErrorInfo(response.Status, response.StatusText, orderID, 3);
+          ListItem.loading = false;
+          if (vm.submitLoading) {
+            vm.submitLoading = vm.submitLoading - 1;
+          }
+          break;
+      }
+    });
+  }
+  /**
+   * 提交多个日期的预定
+   */
+  function createReservationBooking(dates) {
+    vm.detailTipInfo = "构建订单...";
+    vm.detailTipInfoType = "info";
+    var orders = [];
+    dates.forEach(function(date) {
+      orders = _.union(orders, createReservationBookingForADay(date));
+    });
+    return orders;
+  }
+  vm.createReservationBookingForADay = createReservationBookingForADay;
+  /**
+   * 生成某一天的预定
+   */
+  function createReservationBookingForADay(date) {
+    vm.detailTipInfo = "正在为" + date + "构建订单...";
+    vm.detailTipInfoType = "info";
+    var orders = [];
+    var order = {
+      SourceID: constructSourceID(),
+      VisitDate: date,
+      OrderItems: []
+    };
+    if (date == undefined) {
+      date = $scope.detailData.VisitDate;
+    }
+    if (vm.reservationType) {
+      order.GovernmentID = vm.GovernmentID;
+      vm.products.forEach(buildIDAgeOrdersForADay);
+      orders.push(order);
+    } else {
+      vm.products.forEach(buildAgeOrdersForADay);
+    }
+
+    return orders;
+    /**
+     * 构建订单ID
+     */
+    function constructSourceID() {
+      var orderType = vm.reservationType ? "ID" : "QR";
+      if (vm.subPanel == "edit") {
+        orderType += "NML";
+      } else if (vm.subPanel = "add") {
+        orderType += "BR";
+      }
+      var datetimeStr = new Date();
+      var memberID = parseInt($rootScope.userinfo._id.$id);
+      var random = getRandomInt(100, 999);
+      return orderType + $filter("date")(datetimeStr, "yyyyMMddHHmmss") + memberID + random;
+    }
+    /**
+     * 使用身份证的情况下，构建一天的订单
+     */
+    function buildIDAgeOrdersForADay(product, index) {
+      product.Products.forEach(buildIDTypeOrderForAnAge);
+
+      function buildIDTypeOrderForAnAge(productType, index) {
+        // 初始化一个新订单
+        var price = getPrice();
+        var orderItem = {
+          PLU: productType.PLU,
+          Price: price,
+          Quantity: productType.orderNum
+        };
+        if (productType.orderNum) {
+          order.OrderItems.push(orderItem);
+        }
+        /**
+         * 获取票的价格
+         */
+        function getPrice() {
+          var price = 0;
+          if (vm.subPanel == "edit") {
+            price = $scope.detailData.Price[product.age][productType.tag];
+          } else if (vm.subPanel == "add") {
+            var dateInfo = _.filter(vm.calendarData, function(e) {
+              return e.VisitDate == date;
+            });
+            price = dateInfo[0].Price[product.age][productType.tag];
+          }
+          return price;
+        }
+      }
+    }
+    /**
+     * 为某一天构建订单
+     */
+    function buildAgeOrdersForADay(product, index) {
+      var max = vm.orderMax;
+      if (vm.reservationType) {
+        max = vm.orderWithIDMax;
+      }
+      product.Products.forEach(buildTypeOrdersForAnAge);
+      // 方法
+
+      function buildTypeOrdersForAnAge(productType, index) {
+        // 初始化一个新订单
+        var order = {
+          SourceID: constructSourceID(),
+          VisitDate: date,
+          OrderItems: [],
+          age: product.age,
+          type: productType.tag,
+          name: productType.Name
+        };
+        var price = getPrice();
+
+        var orderItem = {
+          PLU: productType.PLU,
+          Price: price,
+          Quantity: max
+        };
+        /**
+         * 步骤： 将某一类预定的数量，分割成 x1/max 和 x2%max 部分
+         */
+        var fullOrderCount = Math.floor(productType.orderNum / max);
+        for (var i = 0; i < fullOrderCount; i++) {
+          var newOrder = angular.copy(order);
+          newOrder.OrderItems.push(orderItem);
+          orders.push(newOrder);
+        }
+        var lastOrder = productType.orderNum % max;
+        if (lastOrder) {
+          var newOrder = angular.copy(order);
+          newOrder.OrderItems.push({
+            PLU: productType.PLU,
+            Price: price,
+            Quantity: lastOrder
+          });
+          orders.push(newOrder);
+        }
+        /**
+         * 获取票的价格
+         */
+        function getPrice() {
+          var price = 0;
+          if (vm.subPanel == "edit") {
+            price = $scope.detailData.Price[product.age][productType.tag];
+          } else if (vm.subPanel == "add") {
+            var dateInfo = _.filter(vm.calendarData, function(e) {
+              return e.VisitDate == date;
+            });
+            price = dateInfo[0].Price[product.age][productType.tag];
+          }
+          return parseInt(price);
+        }
+      }
+    }
+  }
+
+  function submitAnReservationOrderAndConfirm(order) {
+    submitAnReservationOrder(order, submitReservation);
+  }
+  /**
+   * 执行一次预定
+   */
+  function submitAnReservationOrder(order, callback) {
+    vm.detailTipInfo = "正在占用订单" + order.SourceID + "...";
+    vm.detailTipInfoType = "info";
+    if (vm.reservationType) { // 使用身份证预定时，要执行的逻辑
+      DTWsubmitReservationToDisney(order, function(response) {
+        console.log(response);
+        // 更改loading状态
+        vm.reservationLoading = 0;
+        vm.detailTipInfo = "已经完成预定";
+        vm.detailTipInfoType = "info";
+        switch (response.Status) {
+          case 0:
+          case 202:
+          case 203:
+          case 201:
+            success();
+            break;
+          default:
+            showErrorInfo(response.Status, response.StatusText, order.SourceID, 2);
+            break;
+        }
+
+        function success() {
+          vm.detailTipInfo = "正在向ERP系统提交...";
+          vm.detailTipInfoType = "info";
+          var rsvt = {};
+          if (response) {
+            rsvt = response;
+          }
+          rsvt.user = {};
+          vm.products.forEach(function(ageProducts) {
+            ageProducts.Products.forEach(function(typeProduct) {
+              typeProduct.orderNum = 0;
+            });
+          });
+          vm.calculateCost();
+          rsvt.user.username = $rootScope.userinfo.FullName;
+          rsvt.user.id = $rootScope.userinfo._id.$id;
+          rsvt.VisitDate = response.VisitDate;
+          rsvt.GovermentID = vm.GovernmentID;
+          rsvt.customer_name = vm.customer_name;
+          rsvt.customer_mobile = vm.customer_mobile;
+          // 向disney提交成功，向ERP提交
+          DTWsubmitReservationToAPI(rsvt, function(response) {
+            var message = {
+              OperationMobile: vm.customer_mobile,
+              OperationNotes: "尊敬的顾客" + vm.customer_name + "，已经帮您预定了" + $filter("date")($scope.detailData.VisitDate, "yyyy年M月d日") + "上海迪士尼乐园门票" + $scope.totalTicketNumber + "张，" + "订单号" + rsvt.OrderID + "，订单将为您保留10分钟，请尽快完成付款。",
+              OperationTypeID: 2, // 固定写2
+              OrderID: rsvt.SessionID, // 订单ID
+              SMSOrderStatus: 2
+                // 【2暂留或预定，3提交或成交，4取消】
+            };
+            sendDisneyMessage(message, function() {});
+            vm.detailTipInfo = "已经更新到ERP";
+            vm.detailTipInfoType = "info";
+            if (vm.reservationLoading) {
+              vm.reservationLoading = vm.reservationLoading - 1;
+            }
+            if (typeof(callback) == "function") {
+              callback(rsvt.SourceID, rsvt.SessionID, {
+                loading: false
+              });
+            } else {
+              updateAllotmentForADay(order.VisitDate, 'reservation');
+            }
+          });
+        }
+
+      });
+    } else { // 不使用身份证时，要处理的逻辑
+      var index = _.findIndex(vm.products, function(item) {
+        return item.age == order.age;
+      });
+      var typeindex = _.findIndex(vm.products[index].Products, function(item) {
+        return item.tag == order.type;
+      });
+
+      if (!(vm.products[index].Products[typeindex].noTicket)) {
+        // 订单占用，到disney接口
+        DTWsubmitReservationToDisney(order, function(response) {
+          vm.detailTipInfo = "已占用订单" + order.Name + "...";
+          vm.detailTipInfoType = "info";
+          if (response.error) {
+            // 更改loading状态
+            if (vm.reservationLoading) {
+              vm.reservationLoading = vm.reservationLoading - 1;
+              if (vm.reservationLoading == 0) {
+                vm.detailTipInfo = "已经完成预定，请到预定列表进行取消或者提交";
+                vm.detailTipInfoType = "info";
+              }
+            }
+            switch (response.error) {
+              case 501:
+                vm.products[index].Products[typeindex].invalid = true;
+                vm.products[index].Products[typeindex].orderNum = 0;
+                vm.calculateCost();
+                break;
+              case 404: // 无票
+                vm.products[index].Products[typeindex].noTicket = true;
+                vm.products[index].Products[typeindex].orderNum = 0;
+                vm.calculateCost();
+                break;
+              case 1: // 对方接口错误
+                break;
+              default:
+                break;
+            }
+            vm.detailTipInfo = response.Tip;
+          } else {
+            vm.detailTipInfo = "正在向ERP系统提交...";
+            vm.detailTipInfoType = "info";
+            var rsvt = {};
+            if (response.response) {
+              rsvt = response.response;
+            }
+            rsvt.user = {};
+            vm.products[index].Products[typeindex].orderNum = 0;
+            vm.calculateCost();
+            rsvt.user.username = $rootScope.userinfo.FullName;
+            rsvt.user.id = $rootScope.userinfo._id.$id;
+            rsvt.VisitDate = response.order.VisitDate;
+            rsvt.GovermentID = vm.GovernmentID;
+            rsvt.customer_name = vm.customer_name;
+            rsvt.customer_mobile = vm.customer_mobile;
+            // 向disney提交成功，向ERP提交
+            DTWsubmitReservationToAPI(rsvt, function(response) {
+              vm.detailTipInfo = "已经更新到ERP";
+              vm.detailTipInfoType = "info";
+              if (vm.reservationLoading) {
+                vm.reservationLoading = vm.reservationLoading - 1;
+              }
+              if (typeof(callback) == "function") {
+                callback(rsvt.SourceID, rsvt.SessionID, {
+                  loading: false
+                });
+              } else {
+                updateAllotmentForADay(order.VisitDate);
+              }
+            });
+          }
+        });
+      }
+    }
+  }
+  // ////////////////////////////
+  // Ticket Functions
+  // ////////////////////////////
+  /**
+   * 获取票的列表
+   */
+  function getOrderHistory(date) {
+    DTWGetOrderHistory(date, function(response) {
+      $scope.detailData.orderHistory = response.data[0];
+      angular.forEach($scope.detailData.orderHistory.orderHistory, function(item, index, array) {
+        var sumPrice = 0;
+        var sumCount = 0;
+        angular.forEach(item.OrderLines, function(itm, idx) {
+          sumPrice += parseInt(itm.Amount);
+          sumCount += parseInt(itm.Quantity);
+        });
+        array[index].sumPrice = sumPrice;
+        array[index].sumCount = sumCount;
+      });
+    });
+
+  }
+  /**
+   * 下载票的二维码
+   */
+  function downloadQRCode(ticketID) {
+
+  }
+  /**
+   * 下载票
+   */
+  function downloadTicket(ticketID) {
+
+  }
+
+  /**
+   * 更改票的日期
+   */
+  function changeTicketDate(order, orderHistoryData) {
+
+    var ticketNo = order.TicketNo;
+    var date = order.newTargetDate;
+    order.newTargetDate = $filter("date")(date, "yyyy-MM-dd");
+    var targetDate = $filter("date")(date, "yyyy-MM-dd");
+    var info = "<div class='mb10'>确定要把票" + ticketNo + "改到日期" + targetDate + "?</div>";
+    var checkBox = "<div><label><input type='checkbox' model='needTicketChangingTip' ng-true-value='false' ng-false-value='true' />我知道了，别提示我了</label></div>";
+    var text = info + checkBox;
+    if ($scope.needTicketChangingTip) {
+      showWarningBox(text, changeTicketToDisney);
+    } else {
+      changeTicketToDisney();
+    }
+
+    function changeTicketToDisney() {
+      order.changingDate = true;
+      // 保存到Disney
+      DTWchangeTicketDateToDisney({
+        OrderID: orderHistoryData.OrderID,
+        TargetDate: order.newTargetDate
+      }, changeTicketDateToAPI);
+      // 保存到ERP方法
+      function changeTicketDateToAPI(response) {
+        function rebuildOrderHistoryData(orderHistoryData) {
+          var data = {};
+          var acceptKeys = ["OrderLines", "OrderTickets", "OTAId", "Timestamp", "Endorsement", "OrderDate", "VisitDate", "OrderID", "SourceID", "SessionID"];
+          angular.forEach(orderHistoryData, function(value, key) {
+            if (acceptKeys.indexOf(key) >= 0) {
+              data[key] = value;
+            }
+          });
+          data.OrderTickets.forEach(function(element, index) {
+            var ticket = {};
+            var acceptTicketKeys = ["PLU", "TicketNo", "Description", "Price"];
+            for (var keyName in acceptTicketKeys) {
+              ticket[acceptTicketKeys[keyName]] = element[acceptTicketKeys[keyName]];
+            }
+            data.OrderTickets[index] = ticket;
+          });
+          return data;
+        }
+
+        switch (response.Status) {
+          case 0:
+            // 保存到ERP
+            vm.detailTipInfo = "正在保存到ERP的API中...";
+            vm.detailTipInfoType = "info";
+            var params = {
+              ticketNo: order.TicketNo,
+              targetDate: order.newTargetDate,
+              orderHistory: rebuildOrderHistoryData(orderHistoryData),
+              userinfo: {
+                username: $rootScope.userinfo.FullName,
+                id: $rootScope.userinfo._id.$id
+              }
+            };
+            DTWchangeTicketDateToAPI(params, finishChangingDate);
+            order.removed = true;
+            order.dateChanged = true;
+            order.changingDate = false;
+            break;
+          case 1:
+            vm.detailTipInfo = "当天没有价格与类型相同的产品，无法替换";
+            vm.detailTipInfoType = "info";
+            order.removed = false;
+            order.dateChanged = false;
+            order.changingDate = false;
+            break;
+          default:
+            break;
+        }
+      }
+
+      function finishChangingDate(response) {
+        $scope.detailData.stock = response[$scope.detailData.VisitDate];
+        _.find($scope.mainData.list, function(element) {
+          return element.VisitDate == $scope.detailData.VisitDate;
+        })["stock"] = $scope.detailData.stock;
+        var targetIndex = _.findIndex($scope.mainData.list, function(element) {
+          return element.VisitDate == order.newTargetDate;
+        });
+        if (targetIndex >= 0) {
+          $scope.mainData.list[targetIndex].stock = response[order.newTargetDate];
+        }
+        updateAllotmentForADay($scope.detailData.VisitDate);
+      }
+    }
+  }
+  // ////////////////////////////
+  // Other Functions
+  // ////////////////////////////
+  function getAllotmentForAMonth(month) {
+    updateAllotmentForAMonthFromAPI(month, function(response) {
+      angular.forEach(response, function(item, index) {
+        var listItemIndex = _.findIndex($scope.mainData.list, function(itm) {
+          return itm.VisitDate == item.EntitlementDate;
+        });
+        if (listItemIndex > -1) {
+          angular.forEach(item, function(value, key) {
+            $scope.mainData.list[listItemIndex][key] = value;
+          });
+        }
+      });
+    });
+  }
+
+  function freshDayProductPrice(date) {
+    // var date = $scope.detailData.VisitDate;
+    updateProductPriceForADayFromAPI(date, function(response) {
+      $scope.detailData.Price = response;
+      var listItemIndex = _.findIndex($scope.mainData.list, function(item) {
+        return item.VisitDate == date;
+      });
+      console.log(listItemIndex);
+      console.log($scope.mainData.list[listItemIndex]);
+      $scope.mainData.list[listItemIndex].Price = response;
+    });
+  }
+  /**
+   * 更改标签页内容
+   */
+  function showSubContent(id) {
+    var date = $scope.detailData.VisitDate;
+    switch (id) {
+      case 2:
+        vm.getReservation({
+          date: $filter('date')(date, "yyyy-MM-dd")
+        });
+        break;
+      case 3:
+        vm.getOrderHistory({
+          date: $filter('date')(date, "yyyy-MM-dd")
+        });
+
+        break;
+      default:
+        break;
+    }
+    vm.subContentID = id;
+  }
+
+  function clearOrderNum() {
+    vm.totalOrderNum = 0;
+    vm.cost = 0;
+    angular.forEach(vm.products, function(v) {
+      angular.forEach(v.Products, function(value) {
+        value.orderNum = 0;
+      })
+    });
+    vm.typeNotAvailable = {
+      one_day: false,
+      two_day: false,
+      one_day_through: true,
+      two_day_through: true
+    };
+  }
+  /**
+   * 每次预定的票的数量不能多于100
+   */
+  function notMoreThan100(t) {
+    console.log(t);
+    vm.typeNotAvailable = {
+      one_day: false,
+      two_day: false,
+      one_day_through: true,
+      two_day_through: true
+    };
+    var max = 100;
+    if (vm.reservationType) {
+      max = vm.orderWithIDMax;
+    }
+    if (t.orderNum == undefined) {
+      t.orderNum = "";
+    } else if (t.orderNum > max) {
+      t.orderNum = 0;
+    } else if (t.orderNum < 0) {
+      t.orderNum = 0;
+    }
+    if (t.orderNum > 0) {
+      angular.forEach(vm.typeNotAvailable, function(flag, key) {
+        if (key != t.tag) {
+          console.log(key);
+          vm.typeNotAvailable[key] = true;
+        }
+      });
+    } else if (t.orderNum == 0) {
+      vm.typeNotAvailable = {
+        one_day: false,
+        two_day: false,
+        one_day_through: true,
+        two_day_through: true
+      };
+    }
+    vm.calculateCost();
+  }
+  /**
+   * 计算成本
+   */
+  function calculateCost() {
+    vm.cost = 0;
+    vm.totalOrderNum = 0;
+    angular.forEach(vm.products, function(v) {
+      angular.forEach(v.Products, function(value) {
+        if (vm.subPanel == 'edit') {
+          if (value.orderNum) {
+            var pp = $scope.detailData.Price[v.age][value.tag] * value.orderNum;
+            vm.cost += pp;
+            vm.totalOrderNum += value.orderNum;
+          }
+        } else if (vm.subPanel == "add") {
+
+        }
+      });
+    });
+  }
+  // ////////////////////////////
+  // Calendar Functions
+  // ////////////////////////////
+  function checkInput() {
+    console.log($scope.purchaseForm);
+  }
+  vm.showDate = function() {
+    console.log(vm.calendarSelectedDates);
+
+  }
+
+  function unChooseDate(date) {
+    vm.calendarSelectedDates[date] = false;
+    disableOverflow(vm.calendarOperationData);
+  }
+
+  function monthChange(datetime) {
+    DTWGetList({
+      year: $filter('date')(datetime, "yyyy"),
+      month: $filter("date")(datetime, "M")
+    }, function(response) {
+      vm.calendarData = response.list;
+      vm.calendarRefill = true;
+    });
+  }
+
+  function disableOverflow(obj) {
+    vm.selectableDateLength = $filter('onlyTrue')(obj.dateSelected).length;
+    if ($filter('onlyTrue')(obj.dateSelected).length == vm.maxDateLength) {
+      obj.allDisabled.disable = true;
+    } else {
+      obj.allDisabled.disable = false;
+    }
+    vm.calculateCost();
+  }
+
+  function fillDay(day, date, month) {
+    var calendarDay = $filter('date')(date, "yyyy-MM-dd");
+    var data = _.filter(vm.calendarData, function(item) {
+      return item.VisitDate == calendarDay;
+    });
+    var html = '<div class="cell_date">';
+    if (!(month == "old" || month == "new" || calendarDay < "2016-06-16")) {
+      html += '<input type="checkbox" ng-disabled="operate.allDisabled.disable&&(!operate.dateSelected[\'' + calendarDay + '\'])" ng-change="operate.disableOverflow(operate)" ng-true-value="true" ng-false-value="false" ng-model="operate.dateSelected[\'' + calendarDay + '\']"/>';
+    }
+    html += '<span>' + $filter('date')(calendarDay, 'dd') + '</span></div>';
+    if (data.length == 1 && !(month == "old" || month == "new")) {
+      html += '<div><font class="pink_txt">额</font><font class="">' + data[0].unused + ' </font>';
+      html += '<font>成</font><font>' + data[0].stock.adult.count + ' </font>';
+      html += '<font>儿</font><font>' + data[0].stock.child.count + ' </font>';
+      html += '<font>老</font><font>' + data[0].stock.elder.count + ' </font></div>';
+    }
+
+    return html;
+  }
+
+  function showErrorInfo(statusID, text, orderID, messageStatus) {
+    var disneyError = "迪士尼接口错误。";
+    var message = {
+      OperationMobile: '18618124986',
+      OperationNotes: "顾客" + vm.customer_name + "，订单号" + orderID + "出错。",
+      OperationTypeID: 2, // 固定写2
+      OrderID: orderID, // 订单ID
+      SMSOrderStatus: messageStatus ? messageStatus : 0
+        // 【2暂留或预定，3提交或成交，4取消】
+    };
+    vm.detailTipInfoType = "error";
+    switch (statusID) {
+      case 1:
+        vm.detailTipInfo = disneyError + text;
+        break;
+      case 2:
+        vm.detailTipInfo = disneyError + text;
+        break;
+      case 3:
+        vm.detailTipInfo = disneyError + "OTA用户ID为空";
+        break;
+      case 4:
+        vm.detailTipInfo = disneyError + "OTA用户ID无效";
+        break;
+      case 5:
+        vm.detailTipInfo = disneyError + "OTA用户ID为空";
+        break;
+      case 6:
+        vm.detailTipInfo = disneyError + "OTA用户ID没合作客户";
+        break;
+      case 10:
+        vm.detailTipInfo = "签名错误";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 15:
+        vm.detailTipInfo = "参数异常。" + text;
+        break;
+      case 50:
+        vm.detailTipInfo = disneyError + "底部系统对接异常。";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 51:
+        vm.detailTipInfo = disneyError + "底部系统联系异常";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 52:
+        vm.detailTipInfo = disneyError + "底部系统验证异常";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 103:
+        vm.detailTipInfo = disneyError + "合作客户ID未找到";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 104:
+        vm.detailTipInfo = disneyError + "合作客户ID未激活";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 105:
+        vm.detailTipInfo = disneyError + "合作客户未找到";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 204:
+        vm.detailTipInfo = disneyError + "订单未找到。";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 205:
+        vm.detailTipInfo = disneyError + "订单请求参数异常";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 206:
+        vm.detailTipInfo = disneyError + "订单产品数量为0或大于数量上限";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 207:
+        vm.detailTipInfo = disneyError + "订单访问日期为过去";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 210:
+        vm.detailTipInfo = disneyError + "订单号为空";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 211:
+        vm.detailTipInfo = disneyError + "门票号为空";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 212:
+        vm.detailTipInfo = disneyError + "门票未找到";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 213:
+        vm.detailTipInfo = disneyError + "SourceID为空";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 214:
+        vm.detailTipInfo = disneyError + "SessionID为空";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 216:
+        vm.detailTipInfo = disneyError + "兑换日期为空";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 223:
+        vm.detailTipInfo = disneyError + "Endorsement为空";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 224:
+        vm.detailTipInfo = disneyError + "GovermentID为空";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 225:
+        vm.detailTipInfo = disneyError + "GovermentID错误";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 226:
+        vm.detailTipInfo = disneyError + "GovermentID加密错误";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 240:
+        vm.detailTipInfo = disneyError + "ApplicationToken不存在";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 241:
+        vm.detailTipInfo = disneyError + "SessionID无效";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 242:
+        vm.detailTipInfo = disneyError + "SessionID不存在";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 360:
+        vm.detailTipInfo = disneyError + "PDF产生异常";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 361:
+        vm.detailTipInfo = disneyError + "PDF内部档案异常";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 400:
+        vm.detailTipInfo = disneyError + "总配额没设置";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 401:
+        vm.detailTipInfo = disneyError + "OTA配额没设置";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 402:
+        vm.detailTipInfo = disneyError + "配额已截止";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 403:
+        vm.detailTipInfo = disneyError + "配额已停卖";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 404:
+        vm.detailTipInfo = disneyError + "配额不足够";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 420:
+        vm.detailTipInfo = disneyError + "信用配额没设置";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 421:
+        vm.detailTipInfo = disneyError + "信用配额不足够";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 500:
+        vm.detailTipInfo = disneyError + "订单没产品";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 501:
+        vm.detailTipInfo = disneyError + "订单产品没找到";
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 502:
+        vm.detailTipInfo = disneyError + "订单有重复产品";
+        break;
+      case 503:
+        vm.detailTipInfo = disneyError + "订单产品价格不匹配。" + text;
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 504:
+        vm.detailTipInfo = disneyError + "订单产品类型不匹配。" + text;
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 505:
+        vm.detailTipInfo = disneyError + "订单产品没座位数据。" + text;
+        message.OperationNotes += vm.detailTipInfo;
+        sendDisneyMessage(message, function() {});
+        break;
+      case 600:
+        vm.detailTipInfo = disneyError + "OTA用户ID为空";
+        break;
+      case 601:
+        vm.detailTipInfo = disneyError + "OTA用户ID为空";
+        break;
+      default:
+        break;
+    }
+  }
+  /**
+   * 显示提交错误
+   */
+  function showConfirmOrderTip(status, text, type, error) {
+    var info = {
+      type: type,
+      text: text,
+      error: error,
+      time: Date.now()
+    };
+    switch (status) {
+      case 1:
+        info.text = "Disney系统接口错误，请稍后再试";
+        break;
+      case 205:
+        info.text = "订单ID在Disney系统中不存在,请联系信息中心";
+        break;
+      default:
+        break;
+    }
+    vm.detailTipInfo = info.text;
+    vm.tips.push(info);
+  }
+}
+
+function NumberLong(num) {
+  return num;
+}
+var disneyProducts = [{
+  "Type": NumberLong(5),
+  "Price": "250.00",
+  "Description": "狮子王演出区域302/ LKS SECTION 302",
+  "Name": "狮子王演出区域302（供应商渠道）",
+  "PLU": "SHTHBCWSN"
+}, {
+  "Type": NumberLong(5),
+  "Price": "160.00",
+  "Description": "狮子王演出区域301/ LKS SECTION 301",
+  "Name": "狮子王演出区域301（供应商渠道）",
+  "PLU": "SHTHBRWSN"
+}, {
+  "Type": NumberLong(5),
+  "Price": "160.00",
+  "Description": "狮子王演出区域303/ LKS SECTION 303",
+  "Name": "狮子王演出区域303（供应商渠道）",
+  "PLU": "SHTHBLWSN"
+}, {
+  "Type": NumberLong(5),
+  "Price": "330.00",
+  "Description": "狮子王演出区域203/ LKS SECTION 203",
+  "Name": "狮子王演出区域203（供应商渠道）",
+  "PLU": "SHTHPLWSN"
+}, {
+  "Type": NumberLong(5),
+  "Price": "330.00",
+  "Description": "狮子王演出区域201/ LKS SECTION 201",
+  "Name": "狮子王演出区域201（供应商渠道）",
+  "PLU": "SHTHPRWSN"
+}, {
+  "Type": NumberLong(5),
+  "Price": "420.00",
+  "Description": "狮子王演出区域202/ LKS SECTION 202",
+  "Name": "狮子王演出区域202（供应商渠道）",
+  "PLU": "SHTHPCWSN"
+}, {
+  "Type": NumberLong(5),
+  "Price": "770.00",
+  "Description": "狮子王演出区域102/ LKS SECTION 102",
+  "Name": "狮子王演出区域102（供应商渠道）",
+  "PLU": "SHTHOCWSN"
+}, {
+  "Type": NumberLong(5),
+  "Price": "600.00",
+  "Description": "狮子王演出区域101/ LKS SECTION 101",
+  "Name": "狮子王演出区域101（供应商渠道）",
+  "PLU": "SHTHORWSN"
+}, {
+  "Type": NumberLong(5),
+  "Price": "600.00",
+  "Description": "狮子王演出区域103/ LKS SECTION 103",
+  "Name": "狮子王演出区域103（供应商渠道）",
+  "PLU": "SHTHOLWSN"
+}, {
+  "Type": NumberLong(3),
+  "Price": "330.00",
+  "Description": "1日成人票/1 DAY ADULT EVENT",
+  "Name": "1日成人票（供应商渠道）",
+  "PLU": "SHTP01WSRET"
+}, {
+  "Type": NumberLong(3),
+  "Price": "250.00",
+  "Description": "1日儿童票/1 DAY CHILD EVENT",
+  "Name": "1日儿童票（供应商渠道）",
+  "PLU": "SHTP01WSCET"
+}, {
+  "Type": NumberLong(3),
+  "Price": "250.00",
+  "Description": "1日老年票/1 DAY SENIOR EVENT",
+  "Name": "1日老年票（供应商渠道）",
+  "PLU": "SHTP01WSSET"
+}, {
+  "Type": NumberLong(5),
+  "Price": "370.00",
+  "Description": "1 DAY ADULT EVENT (BO)",
+  "Name": "1日成人票",
+  "PLU": "SHTP01BOR"
+}, {
+  "Type": NumberLong(5),
+  "Price": "420.00",
+  "Description": "狮子王演出区域201/ LKS SECTION 201",
+  "Name": "狮子王演出区域201（供应商渠道）",
+  "PLU": "SHTHPRWSNP"
+}, {
+  "Type": NumberLong(5),
+  "Price": "330.00",
+  "Description": "狮子王演出区域202/ LKS SECTION 202",
+  "Name": "狮子王演出区域202（供应商渠道）",
+  "PLU": "SHTHPCWSNP"
+}, {
+  "Type": NumberLong(5),
+  "Price": "420.00",
+  "Description": "狮子王演出区域203/ LKS SECTION 203",
+  "Name": "狮子王演出区域203（供应商渠道）",
+  "PLU": "SHTHPLWSNP"
+}, {
+  "Type": NumberLong(5),
+  "Price": "600.00",
+  "Description": "狮子王演出区域103/ LKS SECTION 103",
+  "Name": "狮子王演出区域103（供应商渠道）",
+  "PLU": "SHTHOLWSNP"
+}, {
+  "Type": NumberLong(5),
+  "Price": "600.00",
+  "Description": "狮子王演出区域101/ LKS SECTION 101",
+  "Name": "狮子王演出区域101（供应商渠道）",
+  "PLU": "SHTHORWSNP"
+}, {
+  "Type": NumberLong(4),
+  "Price": "570.00",
+  "Description": "连续2日老年票/2 DAY SENIOR EVENT",
+  "Name": "连续2日老年票（供应商渠道）",
+  "PLU": "SHTPP2WSSET"
+}, {
+  "Type": NumberLong(4),
+  "Price": "755.00",
+  "Description": "连续2日成人票/2 DAY ADULT EVENT",
+  "Name": "连续2日成人票（供应商渠道）",
+  "PLU": "SHTPP2WSRET"
+}, {
+  "Type": NumberLong(4),
+  "Price": "570.00",
+  "Description": "连续2日儿童票/2 DAY CHILD EVENT",
+  "Name": "连续2日儿童票（供应商渠道）",
+  "PLU": "SHTPP2WSCET"
+}];

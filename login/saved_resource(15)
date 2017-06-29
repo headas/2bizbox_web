@@ -1,0 +1,570 @@
+administrationService.factory("getTravelGoodApplyList", function($http, showErrorInfo) {
+  var getTravelGoodApplyList = function(param, callBack) {
+    var param1 = _.extend({
+      "SearchInfo": param.SearchInfo,
+      "StartTime": param.StartTime,
+      "EndTime": param.EndTime,
+      "ApplyStatus": param.ApplyStatus,
+      "iPageIndex": param.iPageIndex,
+      "iPageSize": param.iPageSize
+    },param);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/GetTravelGoodApplyList",
+        data: param1,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTravelGoodApplyList;
+});
+
+administrationService.factory("getTravelGoodOrderList", function($http, showErrorInfo) {
+  var getTravelGoodOrderList = function(param, callBack) {
+    var param1 = _.extend({
+      "SearchInfo": param.SearchInfo,
+      "StartTime": param.StartTime,
+      "EndTime": param.EndTime,
+      "ApplyStatus": param.ApplyStatus,
+      "iPageIndex": param.iPageIndex,
+      "iPageSize": param.iPageSize
+    },param);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/GetTravelGoodOrderList",
+        data: param1,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTravelGoodOrderList;
+});
+
+administrationService.factory("addTravelGoodApply", function($http, showErrorInfo) {
+  var addTravelGoodApply = function(RequestData, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/SaveTravelGoodApply",
+        data: {RequestData:JSON.stringify(RequestData)},
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addTravelGoodApply;
+});
+administrationService.factory("getPersonDetail", function($http, showErrorInfo) {
+  var getPersonDetail = function(personID, callBack) {
+    var param = {
+      id: personID
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/User/getPersonDetail",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getPersonDetail;
+});
+
+administrationService.factory("lockPerson", function($http, showErrorInfo) {
+  var lockPerson = function(personID, callBack) {
+    var param = {
+      id: personID
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/user/lockPerson",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return lockPerson;
+});
+
+administrationService.factory("unlockPerson", function($http, showErrorInfo) {
+  var unlockPerson = function(personID, callBack) {
+    var param = {
+      id: personID
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/user/unlockPerson",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return unlockPerson;
+});
+
+administrationService.factory("setUserPassword", function($http, showErrorInfo) {
+  var unlockPerson = function(personID, password, callBack) {
+    var param = {
+      id: personID,
+      password: password
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/user/setUserPassword",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return unlockPerson;
+});
+
+
+administrationService.factory("getPersonLevel", function($http, showErrorInfo) {
+  var unlockPerson = function(callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/user/getPersonLevel",
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return unlockPerson;
+});
+
+administrationService.factory("createStaff", function($http, showErrorInfo) {
+  var createStaff = function(PersonInfo, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/user/createStaff",
+        data: {
+          PersonInfo: JSON.stringify(PersonInfo)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return createStaff;
+});
+
+administrationService.factory("updateStaff", function($http, showErrorInfo) {
+  var createStaff = function(PersonInfo, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/user/updateStaff",
+        data: {
+          PersonInfo: JSON.stringify(PersonInfo)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return createStaff;
+});
+
+administrationService.factory("getAllLabel", function($http, showErrorInfo) {
+  var createStaff = function(callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "Check_config/getAllLabel",
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return createStaff;
+});
+
+administrationService.factory("getMenuByUserID", function($http, showErrorInfo) {
+  var createStaff = function(userID, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "Menus/getMenuByUserID",
+        method: "POST",
+        data: {
+          userID: userID
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return createStaff;
+});
+
+administrationService.factory("savePersonPermission", function($http, showErrorInfo) {
+  var createStaff = function(data, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/User/savePersonPermission",
+        method: "POST",
+        data: {
+          data: JSON.stringify(data)
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return createStaff;
+});
+
+//检测账号是否可用
+administrationService.factory("checkAccountName", function($http, showErrorInfo) {
+  var createStaff = function(ID, accountName, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/User/checkAccountName",
+        method: "POST",
+        data: {
+          ID: ID,
+          accountName: accountName
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return createStaff;
+});
+
+//更改账号，密码
+administrationService.factory("setAccountAndPassword", function($http, showErrorInfo) {
+  var createStaff = function(ID, accountName, password, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/User/setAccountAndPassword",
+        method: "POST",
+        data: {
+          ID: ID,
+          accountName: accountName,
+          password: password
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          failCallBack(response.data.data);
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return createStaff;
+});
+
+//获取职员列表
+administrationService.factory("getPersonnelListOrderByPlLevel", function($http, showErrorInfo) {
+  var createStaff = function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/User/getPersonnelListOrderByPlLevel",
+        method: "POST",
+        data: param
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          failCallBack(response.data.data);
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return createStaff;
+});
+administrationService.factory("getStorageResult", function($http,showErrorInfo) {
+  var getStorageResult = function(param, callBack) {
+    var param1 = _.extend({
+      "ID": "",
+      "TravelGoodsSources": 1,
+      "iPageIndex": 1,
+      "iPageSize": 10
+    }, param);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/GetStorageResult",
+        data: param1,
+        method: "POST"
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getStorageResult;
+});
+
+//物品申请详情
+administrationService.factory("getTravelGoodApplyDetail", function($http,showErrorInfo) {
+  var getTravelGoodApplyDetail = function(id, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/GetTravelGoodApply",
+        data: {ID:id},
+        method: "POST"
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTravelGoodApplyDetail;
+});
+
+//订单出库详情
+administrationService.factory("getTravelGoodOrderDetail", function($http,showErrorInfo) {
+  var getTravelGoodOrderDetail = function(id, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/GetTravelGoodDetail",
+        data: {ID:id},
+        method: "POST"
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTravelGoodOrderDetail;
+});
+
+//物品出库
+administrationService.factory("travelGoodEntryOutInOP", function($http,showErrorInfo) {
+  var getStorageResult = function(id, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/TravelGoodEntryOutInOP",
+        data: {ID:id},
+        method: "POST"
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getStorageResult;
+});
+
+//物品退领
+administrationService.factory("travelGoodEntryBack", function($http,showErrorInfo) {
+  var getStorageResult = function(id, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/TravelGoodEntryBack",
+        data: {ID:id},
+        method: "POST"
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getStorageResult;
+});
+/**
+ * 获取公司部门列表
+ * @param  {[type]} "getDepartmentList" [description]
+ * @param  {[type]} function($http,     showErrorInfo [description]
+ * @return {[type]}                     [description]
+ */
+administrationService.factory("getDepartmentList", function($http, showErrorInfo) {
+  return function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/department/getDepartmentList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+administrationService.factory("getDepartmentDetail", function($http, showErrorInfo) {
+  return function(id, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/department/getDepartmentByID",
+        data: {DepartmentID: id},
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+administrationService.factory("delDepartmentByID", function($http, showErrorInfo) {
+  return function(id, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/department/delDepartmentByID",
+        data: {DepartmentID: id},
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+administrationService.factory("addNewDepartment", function($http, showErrorInfo) {
+  return function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/department/addDepartment",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+administrationService.factory("editDepartmentByID", function($http, showErrorInfo) {
+  return function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/department/editDepartment",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});

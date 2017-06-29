@@ -1,0 +1,2916 @@
+app.controller("counterpartsController", function($scope, _, $rootScope, counterparts, addCounterparts, delCounterparts,editCounterparts,lockAllAccount,unlockAllAccount,setCounterpartsAccount,addRefreshPageByID, showWarningBox,ngDialog,getCounterpartsDetail,closeSubView,checkCounterpartsName,checkCounterpartsNameEdit){
+
+
+//查询条件(用于列表页)
+ $scope.searchList = function(){
+ 
+      counterparts.list(function(data) {
+        $rootScope[position[1]].list = data.list;
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].search);
+    };
+ //列表页数据显示
+    $scope.loadCompanyListData = function(viewID){
+      if (!$rootScope[position[1]].search) {
+        $rootScope[position[1]].search = {
+          iPageIndex: 0
+        };
+      }
+      $rootScope[position[1]].search.iPageIndex += 1;
+      counterparts.list(function(data) {
+        $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].search);
+    };
+
+
+
+  //删除公司
+		$scope.delCounterparts = function(){
+		 showWarningBox('确认删除该公司吗？', function(){
+			delCompany($rootScope[position[2]]._id.$id, function(response){
+				counterparts.list(function(response) {
+					$rootScope[position[1]].list = response.list;
+					closeSubView();
+				}, $rootScope[position[1]].search);
+			});
+		});
+	};
+   //重置密码
+	$scope.ResetPassword = function() {
+			showWarningBox('确认重置密码？', function() {
+				var param = {
+					ID:$rootScope[position[2]]._id.$id,
+          AccountName : $rootScope[position[2]].AccountName,
+          Password :123456
+				};
+				setCounterpartsAccount(param,function(){
+          console.log("重置密码成功");
+				});
+			});
+	};
+
+	//冻结/解冻公司账号
+	$scope.lockAllAccount = function() {
+
+		if ($rootScope[position[2]].Lock === 0) {
+			showWarningBox('确认冻结该同行账号吗？', function() {
+				lockAllAccount($rootScope[position[2]]._id.$id, function(response) {
+					$rootScope[position[2]].Lock = 1; 
+				});
+			});
+		} else {
+			showWarningBox('确认解冻该同行账号吗？', function() {
+				unlockAllAccount($rootScope[position[2]]._id.$id, function(response) {
+						$rootScope[position[2]].Lock = 0;
+				});
+			});
+		}
+	};
+
+
+	//校验公司名称是否可用
+	$scope.checkBranchCompanyName = function() {
+		if ($rootScope[position[2]].CompanyInfo.CompanyName) {
+			var CompanyName = $rootScope[position[2]].CompanyInfo.CompanyName;
+			if ($rootScope[position[2]].isEditMode) {
+				checkCounterpartsNameEdit($rootScope[position[2]]._id.$id, CompanyName, function(response) {
+					$scope.isCheck = true;
+					if (response.message === '') {
+						$scope.checkName = "恭喜,该同行名称可用！";
+					} else {
+						$scope.checkName = response.message;
+					}
+
+				});
+			} else {
+				checkCounterpartsName(CompanyName, function(response) {
+					$scope.isCheck = true;
+					if (response.message === '') {
+						$scope.checkName = "恭喜,该同行名称可用！";
+					} else {
+						$scope.checkName = response.message;
+					}
+				});
+			}
+		}
+	};
+   $scope.clearCheck = function(){
+    $scope.isCheck = false;
+   };
+   //保存账号信息
+   $scope.saveEdit = function() {
+    var param = {
+      ID: $rootScope[position[2]]._id.$id,
+      AccountName: $rootScope[position[2]].AccountInfo.AccountName,
+      Password: $rootScope[position[2]].AccountInfo.Password
+    };
+    if ($rootScope[position[2]].AccountInfo.Password !== $rootScope[position[2]].AccountInfo.RepeatPassword) {
+      $rootScope[position[2]].isSame = true;
+    } else {
+      setCounterpartsAccount(param, function() {
+        $rootScope[position[2]].isSame = false;
+        addRefreshPageByID(($rootScope[switchType[2]].id));
+        closeSubView();
+      });
+    }
+  };
+  //点击编辑账号,对信息初始化
+  $scope.editPassword = function(){
+  	 $rootScope[position[2]].isSame = false;
+   if($rootScope[position[2]].AccountName){
+   	$rootScope[position[2]].AccountInfo = {};
+   	$rootScope[position[2]].AccountInfo.AccountName=$rootScope[position[2]].AccountName;
+   }
+ };
+	
+
+  //保存公司信息
+	$scope.saveCompany = function() {
+		$scope.isSubmit = true;
+		if (!$rootScope[position[2]].CompanyInfo.CompanyName){
+			$rootScope[position[2]].info = "请输入同行名称";
+			return;
+		}
+		var param = {
+			CompanyName: $rootScope[position[2]].CompanyInfo.CompanyName,
+			CompanyAddress: $rootScope[position[2]].CompanyInfo.CompanyAddress,
+			CompanyDefaultContact: $rootScope[position[2]].CompanyInfo.CompanyDefaultContact,
+			CompanyTel: $rootScope[position[2]].CompanyInfo.CompanyTel,
+			CompanyEmail: $rootScope[position[2]].CompanyInfo.CompanyEmail,
+			CompanyContent: $rootScope[position[2]].CompanyInfo.CompanyContent,
+			logo: $rootScope[position[2]].logo,
+			BusinessLicense: $rootScope[position[2]].BusinessLicense,
+			BusinessPermit: $rootScope[position[2]].BusinessPermit,
+			InsuranceQualification: $rootScope[position[2]].InsuranceQualification,
+			CooperationAgreement: $rootScope[position[2]].CooperationAgreement,
+			CompanyType: 4
+		};
+		if ($rootScope[position[2]].isEditMode) {
+			editCounterparts($rootScope[position[2]]._id.$id,param,function(response){
+		
+    addRefreshPageByID(($scope.subHead.url.id));
+    $scope.fetch($rootScope[position[2]].showUrl + '?id=' + $rootScope[position[2]]._id.$id);  
+			});
+		} else {
+			/*if($scope.isCheck!==true){
+				$rootScope[position[2]].info = "请校验证公司名称";
+				return;
+			}*/
+			addCounterparts(param, function(response) {
+				$scope.isSubmit = false;
+				addRefreshPageByID(($rootScope[switchType[2]].id));
+				closeSubView();
+				$rootScope[position[1]].search.iPageIndex = 1;
+        counterparts.list(function(data) {
+        $rootScope[position[1]].list = data.list;
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].search);
+			});
+		}
+	};
+//关闭页面
+	  $scope.closeSubView = function() {
+    $rootScope[activeStatus[2]] = [];
+    closeSubView();
+  };
+
+
+
+    $scope.openDialog = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {
+              $rootScope[position[2]].logo = data.url;
+            }
+          }
+        }
+      });
+  };
+
+ $scope.openDialogBusinessLicense = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {             
+              $rootScope[position[2]].BusinessLicense = data.url;
+            }
+          }
+        }
+      });
+  };
+
+
+ $scope.openDialogBusinessPermit = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {             
+              $rootScope[position[2]].BusinessPermit = data.url;
+            }
+          }
+        }
+      });
+  };
+
+
+  $scope.openDialogInsuranceQualification = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {             
+              $rootScope[position[2]].InsuranceQualification = data.url;
+            }
+          }
+        }
+      });
+  };
+
+  $scope.openDialogCooperationAgreement = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {             
+              $rootScope[position[2]].CooperationAgreement = data.url;
+            }
+          }
+        }
+      });
+  };
+
+
+
+
+});
+app.controller("systemPermissionController", function($scope, _, $rootScope, permission, getPermissionRoleType, delPermissionRoleMember,
+getPermissionTasksByMenu, addPermissionRole, addRefreshPageByID, updatePermissionRole, getPermissionRoleQuotee, showWarningBox,
+closeSubView){
+
+	$scope.referList = [];
+
+	$scope.loadPermissionListData = function(){
+		if (!$rootScope[position[1]].search) {
+			$rootScope[position[1]].search = {};
+		}
+		$rootScope[position[1]].search.page += 1;
+		permission.list(function(data) {
+			$rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+			$rootScope.isloadList = false;
+			$rootScope.showProcessBar = false;
+		}, $rootScope[position[1]].search);
+	};
+
+	$scope.getReferList = function(){
+		getPermissionRoleQuotee(function(response){
+			$scope.referList = response;
+		});
+	};
+
+	$scope.searchContent = function(){
+		$rootScope[position[1]].search = {
+			page: 1,
+			taskName: $rootScope[position[1]].taskName,
+			groupId: $rootScope[position[1]].roleGroupType ? $rootScope[position[1]].roleGroupType._id.$id : ''
+		};
+		permission.list(function(response) {
+			$rootScope[position[1]].list = response.list;
+		}, $rootScope[position[1]].search);
+	};
+
+	$scope.loadRoleGroupType = function(){
+		getPermissionRoleType(function(response){
+			console.log(response);
+			$rootScope[position[1]].roleGroupTypes = response;
+		});
+	};
+
+	$scope.delRoleMember = function(roleID){
+		 showWarningBox('确认删除该角色吗？', function(){
+			delPermissionRoleMember(roleID, function(response){
+				console.log(response);
+				permission.list(function(response) {
+					$rootScope[position[1]].list = response.list;
+					closeSubView();
+				}, $rootScope[position[1]].search);
+			});
+		});
+	};
+
+	$scope.classifyCommands = function(){
+		$rootScope[position[2]].classifiedCommands = [];
+		_.forEach($rootScope[position[2]].taskList, function(value, key){
+			if($rootScope[position[2]].classifiedCommands[value.menuID]){
+				$rootScope[position[2]].classifiedCommands[value.menuID].push(value);
+			}else{
+				$rootScope[position[2]].classifiedCommands[value.menuID] = [];
+				$rootScope[position[2]].classifiedCommands[value.menuID].push(value);
+			}
+		});
+	};
+
+	$scope.showMenuCommand = function(subMenu){
+		if(subMenu.menuID == $rootScope[position[2]].activeSubMenuID){
+			$rootScope[position[2]].activeSubMenuID = '';
+		}else{
+			$rootScope[position[2]].activeSubMenuID = subMenu.menuID;
+		}
+    if(subMenu.list.length > 0){
+      $rootScope[position[2]].activeCheckSubListMenuID = subMenu.list[0].menuID;
+    }
+	};
+
+	$scope.showSubMenuCommand = function(subMenu){
+		if(subMenu.menuID == $rootScope[position[2]].activeCheckSubListMenuID){
+			$rootScope[position[2]].activeCheckSubListMenuID = '';
+		}else{
+			$rootScope[position[2]].activeCheckSubListMenuID = subMenu.menuID;
+		}
+	};
+
+	$scope.showEditMenuCommand = function(menu, isSubMenu, pMenu){
+		if(isSubMenu){
+			if($rootScope[position[2]].activeSubListMenuID == menu.menuID){
+				$rootScope[position[2]].activeSubListMenuID = '';
+			}else{
+				$rootScope[position[2]].activeSubListMenuID = menu.menuID;
+				pMenu.selectMenuID = menu.menuID;
+			}
+		}else{
+			if($rootScope[position[2]].activeSubMenuID == menu.menuID){
+				$rootScope[position[2]].activeSubMenuID = '';
+			}else{
+				$rootScope[position[2]].activeSubMenuID = menu.menuID;
+			}
+      if(!menu.isChecked){
+        getPermissionTasksByMenu({menuID: menu.menuID}, function(response){
+          menu.menuCommands = response;
+          menu.isChecked = true;
+          menu.selectAll = true;
+          _.forEach(menu.menuCommands, function(value){
+            value.menuID = menu.menuID;
+            var index = _.findIndex($rootScope[position[2]].detail.taskList, {
+              taskID: value.taskID
+            });
+            if(-1 != index){
+              value.isSelect = true;
+              menu.isSelect = true;
+            }else{
+              menu.selectAll = false;
+            }
+          });
+        });
+      }
+		}
+	};
+
+	$scope.menuCommandChange = function(menu, command, isSubMenu){
+		if(command.isSelect){
+      menu.isSelect = true;
+      if(isSubMenu){
+        console.log(command);
+        command.menuID = $rootScope[position[2]].activeSubListMenuID;
+        menu[$rootScope[position[2]].activeSubListMenuID].selectAll = true;
+        menu[$rootScope[position[2]].activeSubListMenuID].menuCommands.forEach(function(item){
+          if(!item.isSelect){
+            menu[$rootScope[position[2]].activeSubListMenuID].selectAll = false;
+            return false;
+          }
+        });
+			}else{
+				command.menuID = menu.menuID;
+        menu.selectAll = true;
+        menu.menuCommands.forEach(function(item){
+          if(!item.isSelect){
+            menu.selectAll = false;
+            return false;
+          }
+        });
+			}
+		}else{
+			var index = -1;
+			if(isSubMenu){
+        menu[$rootScope[position[2]].activeSubListMenuID].selectAll = false;
+        _.forEach(menu[$rootScope[position[2]].activeSubListMenuID].list, function(value, key){
+          menu[value.menuID].menuCommands.forEach(function(comm, subKey){
+            if(value.isSelect){
+              index = key;
+              return false;
+            }
+          });
+          if(index !== -1){
+            return false;
+          }
+				});
+			}else{
+        menu.selectAll = false;
+        menu.menuCommands.forEach(function(value, key){
+          if(value.isSelect){
+            index = key;
+            return false;
+          }
+        });
+			}
+			if(-1 == index){
+				menu.isSelect = false;
+			}
+		}
+	};
+
+	$scope.showEditSubList = function(menu){
+		if($rootScope[position[2]].activeSubMenuID == menu.menuID){
+			$rootScope[position[2]].activeSubMenuID = '';
+		}else{
+			$rootScope[position[2]].activeSubMenuID = menu.menuID;
+		}
+    $rootScope[position[2]].activeSubListMenuID = menu.list[0].menuID;
+    var postData = {
+      isSubMenuList: true
+    };
+    postData.menuIDs = [];
+    menu.list.forEach(function(item){
+      postData.menuIDs.push(item.menuID);
+    });
+    if(!menu.isChecked){
+      getPermissionTasksByMenu(postData, function(response){
+        menu.isChecked = true;
+        menu.list.forEach(function(item){
+          menu[item.menuID] = {};
+          menu[item.menuID].menuCommands = response[item.menuID];
+          menu[item.menuID].selectAll = true;
+          _.forEach(menu[item.menuID].menuCommands, function(value){
+            value.menuID = item.menuID;
+            var index = _.findIndex($rootScope[position[2]].detail.taskList, {
+              taskID: value.taskID
+            });
+            if(-1 != index){
+              value.isSelect = true;
+              menu.isSelect = true;
+            }else{
+              menu[item.menuID].selectAll = false;
+            }
+          });
+        });
+      });
+    }
+	};
+
+	$scope.menuSelectAll = function(menu, isSubMenu){
+		if(isSubMenu){
+			var tmpTaskList = menu[$rootScope[position[2]].activeSubListMenuID].menuCommands;
+			if(menu[$rootScope[position[2]].activeSubListMenuID].selectAll){
+				menu.isSelect = true;
+				//将整个菜单加到任务列表中
+				_.forEach(tmpTaskList, function(value, key){
+					value.isSelect = true;
+				});
+			}else{
+				menu.isSelect = false;
+				//将整个菜单从任务列表中
+				_.forEach(tmpTaskList, function(value, key){
+					value.isSelect = false;
+				});
+			}
+		}else{
+			if(menu.selectAll){
+				menu.isSelect = true;
+				//将整个菜单加到任务列表中
+				_.forEach(menu.menuCommands, function(value, key){
+					value.isSelect = true;
+				});
+			}else{
+				menu.isSelect = false;
+				//将整个菜单从任务列表中
+				_.forEach(menu.menuCommands, function(value, key){
+					value.isSelect = false;
+				});
+			}
+		}
+	};
+
+	$scope.commitData = function(){
+    if(!$rootScope[position[2]].roleGroupType){
+      $rootScope[position[2]].info = "请选择分类";
+      return;
+    }
+    var taskTempList = [];
+    for(var attr in $rootScope[position[2]].allMenus.menu){
+      var navi = $rootScope[position[2]].allMenus.menu[attr];
+      navi.forEach(function(menu){
+        if(menu.list.length > 0){
+          menu.list.forEach(function(subMenu){
+            if(menu[subMenu.menuID] && menu[subMenu.menuID].menuCommands && menu[subMenu.menuID].menuCommands.length > 0){
+              menu[subMenu.menuID].menuCommands.forEach(function(item){
+                if(!item.isSelect){
+                  return true;
+                }
+                var taskTemp =  _.find($rootScope[position[2]].detail.taskList, function(task){
+                  return task.taskID === item.taskID;
+                });
+                if(undefined === taskTemp){
+                  $rootScope[position[2]].taskList.push(item);
+                }else{
+                  // taskTempList.push(item);
+                }
+                taskTempList.push(item);
+              });
+            }
+          });
+        }else{
+          if(menu.menuCommands && menu.menuCommands.length > 0){
+            menu.menuCommands.forEach(function(item){
+              if(!item.isSelect){
+                return true;
+              }
+              var taskTemp =  _.find($rootScope[position[2]].detail.taskList, function(task){
+                return task.taskID === item.taskID;
+              });
+              if(undefined === taskTemp){
+                $rootScope[position[2]].taskList.push(item);
+              }else{
+                // taskTempList.push(item);
+              }
+              taskTempList.push(item);
+            });
+          }
+        }
+      });
+    }
+    $rootScope[position[2]].detail.taskList.forEach(function(item){
+      var target = _.find(taskTempList, function(mm){
+        return mm.taskID === item.taskID;
+      });
+      if(undefined === target){
+        $rootScope[position[2]].removeTaskList.push(item);
+      }
+    });
+    // $rootScope[position[2]].removeTaskList = _.difference($rootScope[position[2]].detail.taskList, taskTempList);
+		var commitData = {
+			name: $rootScope[position[2]].name,
+			RoleGroup: $rootScope[position[2]].roleGroupType,
+			taskList: JSON.stringify($rootScope[position[2]].taskList)
+		};
+    console.log($rootScope[position[2]]);
+		if($rootScope[position[2]].isEditMode){
+      commitData.roleID = $rootScope[position[2]].detail._id.$id;
+      if($rootScope[position[2]].removeTaskList.length > 0){
+        commitData.removeTaskList = JSON.stringify($rootScope[position[2]].removeTaskList);
+      }
+      console.log(commitData);
+      // if($rootScope[position[2]].taskList.length + $rootScope[position[2]].removeTaskList.length > 0){
+        updatePermissionRole(commitData, function(response){
+          var listData = _.find($rootScope[position[1]].list, function(item){
+            return $rootScope[position[2]].detail._id.$id === item._id.$id;
+          });
+          listData.name = commitData.name;
+          listData.RoleGroup = commitData.RoleGroup;
+          listData.bref = "";
+          var listTaskTemp = $rootScope[position[2]].detail.taskList.concat($rootScope[position[2]].taskList);
+          listTaskTemp.forEach(function(item, index){
+            if(index < 6){
+              listData.bref += item.taskName + ",";
+            }else{
+              return false;
+            }
+          });
+          listData.bref = listData.bref.substr(0, listData.bref.length - 1);
+          $rootScope[position[2]].taskList = [];
+          $rootScope[position[2]].removeTaskList = [];
+          $scope.clearEditData();
+          $scope.clearDetailInfo();
+        });
+      // }else{
+      //   $rootScope[position[2]].taskList = [];
+      //   $rootScope[position[2]].removeTaskList = [];
+      //   $scope.clearDetailInfo();
+      // }
+		}else{
+			addPermissionRole(commitData, function(response){
+        commitData.bref = "";
+        $rootScope[position[2]].taskList.forEach(function(item, index){
+          if(index < 6){
+            commitData.bref += item.taskName + ",";
+          }else{
+            return false;
+          }
+        });
+        $rootScope[position[2]].taskList = [];
+        $rootScope[position[2]].removeTaskList = [];
+        commitData.bref = commitData.bref.substr(0, commitData.bref.length - 1);
+        commitData.showUrl = "system/permission/detail?id=" + response._id.$id;
+        commitData._id = {$id: response._id.$id};
+        $rootScope[position[1]].list.unshift(commitData);
+        $scope.clearAddData();
+        closeSubView();
+			});
+		}
+	};
+
+  $scope.clearDetailInfo = function() {
+    addRefreshPageByID('system-permission-detail-id-' + $rootScope[position[2]].detail._id.$id);
+    $scope.hideSubHead();
+    $scope.fetch($rootScope[position[2]].showUrl);
+  };
+
+  $scope.clearEditData = function() {
+    addRefreshPageByID('system-permission-edit-id-' + $rootScope[position[2]].detail._id.$id);
+  };
+
+  $scope.clearAddData = function() {
+    if (!$rootScope[position[2]].isEditMode) {
+      addRefreshPageByID('system-permission-add-id-systemPermissionAdd');
+    }
+  };
+
+});
+app.controller("experientialController", function($scope, _, $rootScope, experiential, addExperiential, delExperiential,editExperiential,lockAllAccount,unlockAllAccount,setExperientialAccount,addRefreshPageByID, showWarningBox,ngDialog,getExperientialDetail,closeSubView,checkExperientialName,checkExperientialNameEdit){
+
+
+//查询条件(用于列表页
+ $scope.searchList = function(){ 
+      experiential.list(function(data) {
+        $rootScope[position[1]].list = data.list;
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].search);
+    };
+ //列表页数据显示
+    $scope.loadCompanyListData = function(viewID){
+      if (!$rootScope[position[1]].search) {
+        $rootScope[position[1]].search = {
+          iPageIndex: 0
+        };
+      }
+      $rootScope[position[1]].search.iPageIndex += 1;
+      experiential.list(function(data) {
+        $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].search);
+    };
+
+
+
+  //删除体验店
+		$scope.delExperiential= function(){
+		 showWarningBox('确认删除该体验店吗？', function(){
+			delCompany($rootScope[position[2]]._id.$id, function(response){
+				experiential.list(function(response) {
+					$rootScope[position[1]].list = response.list;
+					closeSubView();
+				}, $rootScope[position[1]].search);
+			});
+		});
+	};
+   //重置密码
+	$scope.ResetPassword = function() {
+			showWarningBox('确认重置密码？', function() {
+				var param = {
+					ID:$rootScope[position[2]]._id.$id,
+          AccountName : $rootScope[position[2]].AccountName,
+          Password :123456
+				};
+				setExperientialAccount(param,function(){
+          console.log("重置密码成功");
+				});
+			});
+	};
+
+	//冻结/解冻体验店账号
+	$scope.lockAllAccount = function() {
+
+		if ($rootScope[position[2]].Lock === 0) {
+			showWarningBox('确认冻结该体验店账号吗？', function() {
+				lockAllAccount($rootScope[position[2]]._id.$id, function(response) {
+					$rootScope[position[2]].Lock = 1; 
+				});
+			});
+		} else {
+			showWarningBox('确认解冻该体验店账号吗？', function() {
+				unlockAllAccount($rootScope[position[2]]._id.$id, function(response) {
+						$rootScope[position[2]].Lock = 0;
+				});
+			});
+		}
+	};
+
+
+  //校验体验店名称是否可用
+  $scope.checkBranchCompanyName = function() {
+    if ($rootScope[position[2]].CompanyInfo.CompanyName) {
+      var CompanyName = $rootScope[position[2]].CompanyInfo.CompanyName;
+      if ($rootScope[position[2]].isEditMode) {
+        checkExperientialNameEdit($rootScope[position[2]]._id.$id, CompanyName, function(response) {
+          $scope.isCheck = true;
+          if (response.message === '') {
+            $scope.checkName = "恭喜,该体验店称可用！";
+          } else {
+            $scope.checkName = response.message;
+          }
+
+        });
+      } else {
+        checkExperientialName(CompanyName, function(response) {
+          $scope.isCheck = true;
+          if (response.message === '') {
+            $scope.checkName = "恭喜,该体验店名称可用！";
+          } else {
+            $scope.checkName = response.message;
+          }
+        });
+      }
+    }
+  };
+  $scope.clearCheck = function() {
+    $scope.isCheck = false;
+  };
+   //保存账号信息
+  $scope.saveEdit = function() {
+    var param = {
+      ID: $rootScope[position[2]]._id.$id,
+      AccountName: $rootScope[position[2]].AccountInfo.AccountName,
+      Password: $rootScope[position[2]].AccountInfo.Password
+    };
+    if ($rootScope[position[2]].AccountInfo.Password !== $rootScope[position[2]].AccountInfo.RepeatPassword) {
+      $rootScope[position[2]].isSame = true;
+    } else {
+      setExperientialAccount(param, function() {
+        $rootScope[position[2]].isSame = false;
+        addRefreshPageByID(($rootScope[switchType[2]].id));
+        closeSubView();
+      });
+    }
+  };
+//点击编辑账号,对信息初始化
+  $scope.editPassword = function() {
+    $rootScope[position[2]].isSame = false;
+    if ($rootScope[position[2]].AccountName) {
+      $rootScope[position[2]].AccountInfo = {};
+      $rootScope[position[2]].AccountInfo.AccountName = $rootScope[position[2]].AccountName;
+    }
+  };
+  //保存公司信息
+	$scope.saveCompany = function() {
+		$scope.isSubmit = true;
+		if (!$rootScope[position[2]].CompanyInfo.CompanyName){
+			$rootScope[position[2]].info = "请输入体验店名称";
+			return;
+		}
+		var param = {
+			CompanyName: $rootScope[position[2]].CompanyInfo.CompanyName,
+			CompanyAddress: $rootScope[position[2]].CompanyInfo.CompanyAddress,
+			CompanyDefaultContact: $rootScope[position[2]].CompanyInfo.CompanyDefaultContact,
+			CompanyTel: $rootScope[position[2]].CompanyInfo.CompanyTel,
+			CompanyEmail: $rootScope[position[2]].CompanyInfo.CompanyEmail,
+			CompanyContent: $rootScope[position[2]].CompanyInfo.CompanyContent,
+			logo: $rootScope[position[2]].logo,
+			BusinessLicense: $rootScope[position[2]].BusinessLicense,
+			BusinessPermit: $rootScope[position[2]].BusinessPermit,
+			InsuranceQualification: $rootScope[position[2]].InsuranceQualification,
+			CooperationAgreement: $rootScope[position[2]].CooperationAgreement,
+			CompanyType: 3
+		};
+		if ($rootScope[position[2]].isEditMode) {
+			editExperiential($rootScope[position[2]]._id.$id,param,function(response){
+		
+    addRefreshPageByID(($scope.subHead.url.id));
+    $scope.fetch($rootScope[position[2]].showUrl + '?id=' + $rootScope[position[2]]._id.$id);  
+			});
+		} else {
+			/*if($scope.isCheck!==true){
+				$rootScope[position[2]].info = "请校验证体验店名称";
+				return;
+			}*/
+			addExperiential(param, function(response) {
+				$scope.isSubmit = false;
+				addRefreshPageByID(($rootScope[switchType[2]].id));
+				closeSubView();
+				$rootScope[position[1]].search.iPageIndex = 1;
+        experiential.list(function(data) {
+        $rootScope[position[1]].list = data.list;
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].search);
+			});
+		}
+	};
+//关闭页面
+	  $scope.closeSubView = function() {
+    $rootScope[activeStatus[2]] = [];
+    closeSubView();
+  };
+
+
+
+    $scope.openDialog = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {
+              $rootScope[position[2]].logo = data.url;
+            }
+          }
+        }
+      });
+  };
+
+ $scope.openDialogBusinessLicense = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {             
+              $rootScope[position[2]].BusinessLicense = data.url;
+            }
+          }
+        }
+      });
+  };
+
+
+ $scope.openDialogBusinessPermit = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {             
+              $rootScope[position[2]].BusinessPermit = data.url;
+            }
+          }
+        }
+      });
+  };
+
+
+  $scope.openDialogInsuranceQualification = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {             
+              $rootScope[position[2]].InsuranceQualification = data.url;
+            }
+          }
+        }
+      });
+  };
+
+  $scope.openDialogCooperationAgreement = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {             
+              $rootScope[position[2]].CooperationAgreement = data.url;
+            }
+          }
+        }
+      });
+  };
+
+
+
+
+});
++ function() {
+  app.controller("basicDataCtrl", basicDataCtrl)
+    .controller("basicDataShopCtrl", basicDataShopCtrl)
+    .controller("basicDataTrafficCtrl", basicDataTrafficCtrl)
+    .controller("basicDataHotelCtrl", basicDataHotelCtrl)
+    .controller("basicDataCooperateCtrl", basicDataCooperateCtrl)
+    .controller("basicDataVisaMaterialCtrl", basicDataVisaMaterialCtrl)
+    .controller("basicDataTravelGoodsCtrl", basicDataTravelGoodsCtrl)
+    .controller("basicDataDestinationCtrl", basicDataDestinationCtrl)
+    .controller("basicDataShipCtrl", basicDataShipCtrl)
+
+  function basicDataCtrl($scope, $rootScope, getBasicData, getAddrData, getHotelStarType, getTravelGoodsType, getCooperateCompanyType, getSuitPeopleType) {
+    $scope.cur = -1;
+    $scope.curView = "";
+    $scope.curViewUrl = "";
+    $scope.cache = {};
+
+    $scope.basicData = {};
+
+    $scope.viewLists = [{
+      "title": "购物店",
+      "template": "shopList",
+      "status": ""
+    }, {
+      "title": "交通",
+      "template": "trafficList",
+      "status": ""
+    }, {
+      "title": "酒店",
+      "template": "hotelList",
+      "status": ""
+    }, {
+      "title": "物品管理",
+      "template": "travelGoodsList",
+      "status": ""
+    }, {
+      "title": "目的地",
+      "template": "destinationList",
+      "status": ""
+    }, {
+      "title": "签证材料",
+      "template": "visaList",
+      "status": ""
+    }, {
+      "title": "合作单位",
+      "template": "cooperateList",
+      "status": ""
+    }, {
+      "title": "邮轮品牌",
+      "template": "shipList",
+      "status": ""
+    }];
+
+    $scope.tab = function(index) {
+      if (index == $scope.cur || $rootScope.isloadList) return;
+
+      var oldView = "",
+        newView = "";
+
+      if ($scope.cur >= 0) {
+        $scope.viewLists[$scope.cur].status = "";
+        oldView = $scope.curView;
+      }
+
+      $scope.cur = index;
+      $scope.viewLists[$scope.cur].status = "active";
+
+      if ($scope.viewLists[$scope.cur].template)
+        $scope.curView = $scope.viewLists[$scope.cur].template;
+      else {
+        $scope.curView = "";
+        $scope.curViewUrl = "";
+      }
+
+      newView = $scope.curView;
+      $scope.switchView(newView, oldView);
+    };
+
+    $scope.loadList = function() {
+      $scope.basicData.search.iPageIndex += 1;
+
+      getBasicData[$scope.curView](function(data) {
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+        $scope.basicData.list.push.apply($scope.basicData.list, data.data.list);
+      }, $scope.basicData.search);
+    };
+
+    $scope.searchList = function() {
+      $rootScope.isloadList = true;
+      $rootScope.showProcessBar = true;
+
+      $scope.basicData.search.iPageIndex = 1;
+
+      getBasicData[$scope.curView](function(data) {
+        $scope.basicData.list = data.data.list;
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $scope.basicData.search);
+    };
+
+    $scope.detail = function(index) {
+      $rootScope.mainData.selectIndex = index;
+      $rootScope.mainData.curList = $scope.basicData.list;
+    };
+
+    $scope.updateView = function() {
+      $scope.searchList();
+    };
+
+    $scope.getCountries = function() {
+      getAddrData(function(response) {
+        $rootScope[position[1]].countries = response;
+      });
+    };
+    $scope.getCountries();
+
+    $scope.getRegions = function(country) {
+      $scope.basicData.regions = [];
+      $scope.basicData.cities = [];
+      $scope.basicData.search.Provinceid = "";
+      $scope.basicData.search.Cityid = "";
+
+      if (!country) return;
+      getAddrData(function(response) {
+        $scope.basicData.regions = response;
+      }, country);
+    };
+
+    $scope.getCities = function(region) {
+      $scope.basicData.cities = [];
+      $scope.basicData.search.Cityid = "";
+
+      if (!region) return;
+      getAddrData(function(response) {
+        $scope.basicData.cities = response;
+      }, region);
+    };
+
+    $scope.getTraffics = function() {
+      if ($scope.basicData.traffics) return;
+      getTrafficMethods(function(response) {
+        $scope.basicData.traffics = response.data.list;
+      });
+    };
+
+    $scope.getHotelStars = function() {
+      if ($scope.basicData.hotelStars) return;
+      getHotelStarType(function(response) {
+        $scope.basicData.hotelStars = response.list;
+      });
+    };
+
+    $scope.getGoodsType = function() {
+      if ($scope.basicData.goodsType) return;
+      getTravelGoodsType(function(response) {
+        $scope.basicData.goodsType = response.data;
+      });
+    };
+
+    $scope.getSuitPeople = function() {
+      if ($scope.basicData.suitPeople) return;
+      getSuitPeopleType(function(response) {
+        $scope.basicData.suitPeople = response;
+      });
+    };
+
+    $scope.getCompanyTypes = function() {
+      if ($scope.basicData.companyTypes) return;
+      getCooperateCompanyType(function(response) {
+        $scope.basicData.companyTypes = response.data.list;
+      });
+    };
+
+    $scope.switchView = function(newView, oldView) {
+      if (!newView) return;
+
+      if ($scope.cache[newView]) {
+        $scope.basicData = $scope.cache[newView];
+        $scope.curViewUrl = "/public/angularView/system/" + newView + ".html";
+      } else {
+        $scope.isLoading = true;
+        $scope.cache[newView] = {
+          list: {},
+          search: {
+            "SearchInfo": "",
+            "iPageIndex": 1,
+            "iPageSize": pageLimit,
+            "Countryid": "000000000000000000000001"
+          }
+        };
+
+        $scope.basicData = $scope.cache[newView];
+
+        if (getBasicData[newView]) {
+          $rootScope.showProcessBar = true;
+
+          getBasicData[newView](function(data) {
+            $scope.cache[newView].list = data.data.list;
+            $scope.curViewUrl = "/public/angularView/system/" + newView + ".html";
+            $rootScope.showProcessBar = false;
+            $scope.isLoading = false;
+          }, $scope.basicData.search);
+        } else {
+          $scope.basicData = $scope.cache[newView] = {};
+          $scope.isLoading = true;
+        }
+      }
+    };
+
+    $rootScope.mainData.updateView = $scope.updateView;
+    $scope.tab(0);
+  }
+
+  function basicDataShopCtrl($scope, $rootScope, getAddrData, getShopScore, addShopInfo, deleteShopInfo, showWarningBox, addRefreshPageByID, closeSubView, showErrorInfo) {
+    $scope.info = {};
+
+    $scope.reFormData = function() {
+      $scope.info.ID = $rootScope[position[2]].data.ID;
+      $scope.info.Title = $rootScope[position[2]].data.Name;
+      $scope.info.Score = $rootScope[position[2]].data.Score.Text;
+      $scope.info.SellProduct = $rootScope[position[2]].data.SellProduct;
+      $scope.info.Address = $rootScope[position[2]].data.Address;
+      $scope.info.Countryid = $rootScope[position[2]].data.Country && $rootScope[position[2]].data.Country.parentid;
+      $scope.info.Provinceid = $rootScope[position[2]].data.Province && $rootScope[position[2]].data.Province.parentid;
+      $scope.info.Cityid = $rootScope[position[2]].data.City && $rootScope[position[2]].data.City.parentid;
+    };
+
+    $scope.getRegions = function(countryId) {
+      $rootScope[position[2]].cities = [];
+      $rootScope[position[2]].data.Province = null;
+      $rootScope[position[2]].data.City = null;
+      if (!countryId) {
+        $rootScope[position[2]].regions = [];
+        return;
+      }
+      getAddrData(function(response) {
+        $rootScope[position[2]].regions = response;
+      }, countryId);
+    };
+
+    $scope.getCities = function(regionId) {
+      $rootScope[position[2]].data.City = "";
+      if (!regionId) {
+        $rootScope[position[2]].cities = [];
+        return;
+      }
+      getAddrData(function(response) {
+        $rootScope[position[2]].cities = response;
+      }, regionId);
+    };
+
+    $scope.add = function() {
+      $rootScope.isloadList = true;
+      $rootScope.showProcessBar = true;
+      $scope.reFormData();
+
+      addShopInfo(function(response) {
+        addRefreshPageByID($rootScope[switchType[2]].id);
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+        closeSubView();
+        showErrorInfo('添加成功');
+        $rootScope.mainData.updateView();
+      }, $scope.info);
+    };
+
+    $scope.delete = function(id) {
+      showWarningBox('是否确认删除？', function() {
+        $rootScope.isloadList = true;
+        $rootScope.showProcessBar = true;
+        var data = {
+          "ID": id
+        };
+        deleteShopInfo(function(response) {
+          var index = $rootScope.mainData.selectIndex;
+          $rootScope.mainData.curList.splice(index, 1);
+          $rootScope.showProcessBar = false;
+          $rootScope.isloadList = false;
+          closeSubView();
+        }, data);
+      });
+    };
+
+    $scope.update = function() {
+      $rootScope.isloadList = true;
+      $rootScope.showProcessBar = true;
+      $scope.reFormData();
+
+      addShopInfo(function(response) {
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+        addRefreshPageByID($scope.subHead.url.id);
+
+        var data = angular.extend({}, $rootScope[position[2]].data);
+        delete data.Score;
+        data.Score = $rootScope[position[2]].data.Score.Text;
+
+        var detailUrl = "system/basicData/shopDetail?ID=" + $rootScope[position[2]].data.ID;
+        $scope.hideSubHead();
+        $scope.fetch(detailUrl);
+        $rootScope.mainData.updateView();
+      }, $scope.info);
+    };
+
+    $scope.submit = function() {
+      if ($rootScope[position[2]].isEditMode)
+        $scope.update();
+      else
+        $scope.add();
+    };
+
+  }
+
+  function basicDataTrafficCtrl($scope, $rootScope, addTrafficCompany, deleteTrafficCompany, addTrafficInfo, deleteTrafficInfo, closeSubView, showWarningBox, addRefreshPageByID, getTrafficInfoList, showErrorInfo) {
+    $scope.addCompany = function(valid) {
+      addTrafficCompany(function(response) {
+        $rootScope.mainData.updateView();
+        if ($rootScope[position[2]].isEditMode) {
+          $scope.hideSubHead();
+          addRefreshPageByID($rootScope[switchType[2]].id);
+          $scope.fetch("system/basicData/trafficDetail?ID=" + $rootScope[position[2]].ID + "&Title=" + $rootScope[position[2]].Title + "&Content=" + $rootScope[position[2]].Content);
+        } else {
+          addRefreshPageByID($rootScope[switchType[2]].id);
+          if (valid) {
+            $scope.fetch("system/basicData/trafficDetail?ID=" + response.data.list._id + "&Title=" + response.data.list.Title + "&Content=" + response.data.list.Content + "&showPanel=true");
+          } else {
+            showErrorInfo('添加成功');
+            closeSubView();
+          }
+        }
+      }, {
+        ID: $rootScope[position[2]].ID,
+        Title: $rootScope[position[2]].Title || "",
+        Content: $rootScope[position[2]].Content || ""
+      });
+    };
+
+    $scope.deleteCompany = function(id) {
+      showWarningBox('是否删除该交通公司？', function() {
+        $rootScope.isloadList = true;
+        $rootScope.showProcessBar = true;
+        deleteTrafficCompany(function(response) {
+          $rootScope[position[2]].info = "删除成功";
+          closeSubView();
+          $rootScope.mainData.curList.splice($rootScope.mainData.selectIndex, 1);
+          $rootScope.showProcessBar = false;
+          $rootScope.isloadList = false;
+        }, {
+          "ID": id
+        });
+      });
+    };
+
+    $scope.addInfo = function(id) {
+      var data = $rootScope[position[2]].trafficInfo;
+
+      data.TrafficCompanyID = $rootScope[position[2]].ID;
+      data.ID = data.ID || "";
+
+      addTrafficInfo(function() {
+        $rootScope[position[2]].info = "添加成功";
+        addRefreshPageByID($rootScope[switchType[2]].id);
+        for (var i in $rootScope[position[2]].trafficInfo)
+          $rootScope[position[2]].trafficInfo[i] = "";
+
+        $rootScope[position[2]].showPanel = false;
+
+        $scope.updateInfoList($rootScope[position[2]].ID);
+      }, data);
+    };
+
+    $scope.deleteInfo = function(id, index) {
+      showWarningBox("确定要删除该条交通信息吗？", function() {
+        deleteTrafficInfo(function(response) {
+          $rootScope[position[2]].list.splice(index, 1);
+          $rootScope[position[2]].info = "删除成功";
+        }, {
+          "ID": id
+        });
+      });
+    };
+
+    $scope.editInfo = function(index) {
+      var data = $rootScope[position[2]].trafficInfo = {
+        TrafficTypeid: "000000000000000000000002"
+      };
+
+      $rootScope[position[2]].list.forEach(function(item) {
+        item.editMode = false;
+      });
+
+      $rootScope[position[2]].showPanel = false;
+
+      if (index === undefined) return;
+
+      var item = $rootScope[position[2]].list[index];
+      data.ID = item.ID;
+
+      for (var i = 0; i < $rootScope[position[2]].traffics.length; i++) {
+        if ($rootScope[position[2]].traffics[i].obj == item.TypeName) {
+          data.TrafficTypeid = $rootScope[position[2]].traffics[i].ID;
+          break;
+        }
+      }
+
+      data.Title = item.TrafficFlight;
+      data.TrafficModel = item.TrafficModel;
+      data.StartCityID = item.StartCityID;
+      data.StartAddress = item.StartAddress;
+      data.ArriveCityID = item.ArriveCityID;
+      data.ArriveAddress = item.ArriveAddress;
+      data.DepartureTime = item.DepartureTime;
+      data.ArriveTime = item.ArriveTime;
+      data.Notes = item.Notes;
+      data.StartCity = item.StartCity;
+      data.ArriveCity = item.ArriveCity;
+    };
+
+    $scope.updateInfoList = function(id) {
+      getTrafficInfoList(function(response) {
+        $rootScope[position[2]].list = response;
+      }, id);
+    };
+
+    $scope.posFormatter = function(data) {
+      return data.Title;
+    };
+
+    $scope.selectAddr = function(value, flag) {
+      $rootScope[position[2]].trafficInfo[flag] = value._id.$id;
+    };
+  }
+
+  function basicDataHotelCtrl($scope, $rootScope, ngDialog, addRefreshPageByID, addHotel, deleteHotel, closeSubView, showWarningBox, $timeout, showErrorInfo) {
+    addRefreshPageByID($rootScope[switchType[2]].id);
+    $scope.step = 1;
+    $scope.finishedSteps = 0;
+    if ($rootScope[position[2]].editMode) $scope.finishedSteps = 3;
+    $scope.backup = angular.copy($rootScope[position[2]], {});
+
+    $scope.picFilter = function(v) {
+      if ('PicPath' in v)
+        return true;
+    };
+
+    $scope.uploadPic = function(obj, callback) {
+      ngDialog.open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        className: 'ngdialog-theme-default w-500',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (obj) {
+              if (angular.isArray(obj)) {
+                obj.push({
+                  "Title": data.name.replace(/\.(?:png|jpg)$/i, ''),
+                  "PicPath": data.url,
+                });
+              } else if (angular.isObject(obj)) {
+                obj.Title = data.name.replace(/\.(?:png|jpg)$/i, '');
+                obj.PicPath = data.url;
+              }
+            } else $rootScope[position[2]].data.PicPath = data.url;
+
+            if (callback) callback();
+          }
+        }
+      });
+    };
+
+    $scope.deletePic = function(obj, index, callback) {
+      obj.splice(index, 1);
+      if (callback) callback();
+    };
+
+    $scope.switchStep = function(step) {
+      if ($scope.basicInfo.$invalid) {
+        $rootScope[position[2]].info = "请正确填写酒店基础信息";
+        return;
+      } else {
+        $scope.step = step;
+      }
+    };
+
+    $scope.nextStep = function(flag) {
+      if (flag) {
+        $rootScope[position[2]].info = "请正确填写表单";
+        return;
+      }
+
+      if ($scope.step > $scope.finishedSteps) $scope.finishedSteps++;
+      $scope.step++;
+    };
+
+    $scope.openRoomPanel = function(index) {
+      if (index >= 0) {
+        $rootScope[position[2]].roomInfo = angular.extend({}, $rootScope[position[2]].data.HotelRooms[index]);
+        $scope.editRoom = index;
+      } else {
+        $rootScope[position[2]].roomInfo = {
+          Pics: []
+        };
+      }
+    };
+
+    $scope.saveRoom = function(flag, form) {
+      if (flag) {
+        $rootScope[position[2]].info = "请正确填写房型";
+        return;
+      }
+
+      if ($scope.editRoom >= 0) {
+        $rootScope[position[2]].data.HotelRooms[$scope.editRoom] = $rootScope[position[2]].roomInfo;
+        $scope.editRoom = -1;
+      } else {
+        if ($rootScope[position[2]].data.HotelRooms === null)
+          $rootScope[position[2]].data.HotelRooms = [];
+        $rootScope[position[2]].data.HotelRooms.push($rootScope[position[2]].roomInfo);
+      }
+
+      $scope.save();
+      $rootScope[position[2]].showPanel = false;
+    };
+
+    $scope.deleteRoomInfo = function(index) {
+      $rootScope[position[2]].data.HotelRooms.splice(index, 1);
+      $scope.save();
+    };
+
+    $scope.cancel = function() {
+      $rootScope[position[2]] = angular.copy($scope.backup, $rootScope[position[2]]);
+    };
+
+    $scope.save = function() {
+      if ($rootScope.isloadList) return;
+
+      $rootScope.isloadList = true;
+      $rootScope.showProcessBar = true;
+
+      if ($scope.step == 1) {
+        $rootScope[position[2]].Pics = angular.copy($rootScope[position[2]].data.Pics);
+        for (var i in $rootScope[position[2]].facility) {
+          $rootScope[position[2]].data[i] = [];
+          for (var j = 0; j < $rootScope[position[2]].facility[i].length; j++) {
+            if ($rootScope[position[2]].facility[i][j].selected)
+              $rootScope[position[2]].data[i].push($rootScope[position[2]].facility[i][j]);
+          }
+        }
+      } else if ($scope.step == 3) {
+        $rootScope[position[2]].data.Pics = angular.copy($rootScope[position[2]].Pics);
+      }
+
+      $rootScope[position[2]].data.LocatedPosition = {
+        ID: $rootScope[position[2]].location.Value,
+        Name: $rootScope[position[2]].location.Text
+      };
+      $rootScope[position[2]].data.HotelStandard = {
+        ID: $rootScope[position[2]].standard.Value,
+        Name: $rootScope[position[2]].standard.Text
+      };
+
+      addHotel({
+        RequestData: angular.toJson($rootScope[position[2]].data)
+      }, function(response) {
+        $rootScope[position[2]].data.CreateTime = response.data.CreateTime;
+        $rootScope.mainData.updateView();
+        $scope.backup = angular.copy($rootScope[position[2]], $scope.backup);
+        $rootScope[position[2]].info = "操作成功";
+        if (response.data._id) $rootScope[position[2]].data._id = response.data._id;
+      }, function(response) {
+        $scope.cancel();
+      });
+    };
+
+    $scope.delete = function() {
+      showWarningBox("确认删除?", function() {
+        $rootScope.isloadList = true;
+        $rootScope.showProcessBar = true;
+        deleteHotel(function() {
+          showErrorInfo("删除成功");
+          $rootScope.mainData.curList.splice($rootScope.mainData.selectIndex, 1);
+          $rootScope.showProcessBar = false;
+          $rootScope.isloadList = false;
+          closeSubView();
+        }, {
+          ID: $rootScope[position[2]]._id
+        });
+      });
+    };
+  }
+
+  function basicDataCooperateCtrl($scope, $rootScope, getAddrData, addCooperateCompany, closeSubView, deleteCooperateCompany, addCooperateInfo, updateCooperateInfo, $timeout, showWarningBox, addRefreshPageByID, showErrorInfo) {
+    $scope.getRegions = function(countryId) {
+      getAddrData(function(response) {
+        $rootScope[position[2]].regions = response;
+      }, countryId);
+      $rootScope[position[2]].cities = [];
+      $rootScope[position[2]].data.Provinceid = "";
+      $rootScope[position[2]].data.Cityid = "";
+    };
+
+    $scope.getCities = function(regionId, pos) {
+      getAddrData(function(response) {
+        $rootScope[position[2]].cities = response;
+      }, regionId);
+      $rootScope[position[2]].data.Cityid = "";
+    };
+
+    $scope.reset = function() {
+      $rootScope[position[2]].countries = [];
+      $rootScope[position[2]].regions = [];
+      $rootScope[position[2]].cities = [];
+      for (var i in $rootScope[position[2]].data) {
+        $rootScope[position[2]].data[i] = "";
+      }
+    };
+
+    $scope.save = function(valid) {
+      var info = {
+        "ID": "",
+        "CompanyTypeid": "",
+        "Name": "",
+        "Address": "",
+        "Content": "",
+        "Countryid": "",
+        "Provinceid": "",
+        "Cityid": "",
+        "BusinessLicense": "",
+        "BusinessScope": ""
+      };
+
+      for (var i in info) {
+        info[i] = $rootScope[position[2]].data[i] || '';
+      }
+
+      addCooperateCompany(function(response) {
+        if ($rootScope[position[2]].editMode) {
+          $scope.hideSubHead();
+          addRefreshPageByID($scope.subHead.url.id);
+          $scope.fetch($scope.subHead.url.targetUrl);
+        } else {
+          addRefreshPageByID($rootScope[switchType[2]].id);
+          if(valid){
+            $scope.fetch('system/basicData/cooperateDetail?ID=' + response.data._id + '&editedItem=0');
+          }else {
+           showErrorInfo('添加成功');
+           closeSubView();
+          }
+
+        }
+        $rootScope.mainData.updateView();
+      }, info);
+    };
+
+    $scope.delete = function() {
+      showWarningBox("确认删除该合作单位？", function() {
+        deleteCooperateCompany(function() {
+          showErrorInfo('删除成功');
+          $rootScope.mainData.curList.splice($rootScope.mainData.selectIndex, 1);
+          closeSubView();
+        }, $rootScope[position[2]].ID);
+      });
+    };
+
+    $scope.saveInfo = function(invalid) {
+      if (invalid) {
+        $rootScope[position[2]].info = "请填写完整";
+        return;
+      }
+      var data = {
+        ID: $rootScope[position[2]].ID
+      };
+      data = angular.extend(data, $rootScope[position[2]].contact);
+      data.isDel = data.State;
+      delete(data.State);
+      $rootScope[position[2]].contact.isDel = $rootScope[position[2]].contact.State;
+      if ($rootScope[position[2]] > 0) {
+        updateCooperateInfo(function() {
+          $rootScope[position[2]].info = "联系人编辑成功";
+          $rootScope[position[2]].AccountList[$rootScope[position[2]].editedItem - 1] = angular.extend($rootScope[position[2]].AccountList[$rootScope[position[2]].editedItem - 1], $rootScope[position[2]].contact);
+          $scope.closeEditPanel();
+        }, data);
+      } else {
+        addCooperateInfo(function() {
+          $rootScope[position[2]].info = "联系人添加成功";
+          $rootScope[position[2]].AccountList.push($rootScope[position[2]].contact);
+          $scope.closeEditPanel();
+        }, data);
+      }
+    };
+
+    $scope.addInfo = function() {
+      $rootScope[position[2]].editedItem = 0;
+      $rootScope[position[2]].contact = {
+        State: 0
+      };
+    };
+
+    $scope.editInfo = function(index) {
+      $rootScope[position[2]].contact = angular.extend({}, $rootScope[position[2]].AccountList[index]);
+      $rootScope[position[2]].editedItem = index + 1;
+    };
+
+    $scope.closeEditPanel = function() {
+      $rootScope[position[2]].editedItem = -1;
+      $rootScope[position[2]].contact = {};
+    };
+
+  }
+
+  function basicDataVisaMaterialCtrl($scope, $rootScope, delVisaMaterial, addRefreshPageByID, saveVisaMaterial, closeSubView, showWarningBox,
+    uploadFile, showErrorInfo) {
+
+    $scope.Stencil = {};
+    $scope.Sample = {};
+    $scope.isUploading = false;
+
+    $scope.commitVisaMaterialData = function() {
+      if ($scope.isUploading) {
+        $rootScope[position[2]].info = "还在上传文件";
+        return;
+      }
+      var data = $rootScope[position[2]];
+      var commitData = {};
+      if ("_id" in data) {
+        commitData._id = data._id;
+      }
+      commitData.Title = data.Title;
+      commitData.Notes = data.Notes;
+      commitData.Stencil = data.StencilData.url;
+      commitData.Sample = data.SampleData.url;
+      commitData.VisaMaterialTypes = [];
+      data.materialTypes.forEach(function(type) {
+        if (type.isSelected) {
+          commitData.VisaMaterialTypes.push({
+            Name: type.Name,
+            DelStatus: 0,
+            ForeignKeyID: type.ID
+          });
+        }
+      });
+      saveVisaMaterial(function(response) {
+        $scope.refreshList();
+        if ($rootScope[position[2]].isEditMode) {
+          $scope.hideSubHead();
+          addRefreshPageByID($scope.subHead.url.id);
+          $scope.fetch($scope.subHead.url.targetUrl);
+        } else {
+          addRefreshPageByID($rootScope[switchType[2]].id);
+          showErrorInfo('添加成功');
+          closeSubView();
+        }
+      }, JSON.stringify(commitData));
+    };
+
+    $scope.refreshList = function() {
+      $rootScope.mainData.updateView();
+    };
+
+    $scope.delVisaMaterial = function(id) {
+      showWarningBox('是否要删除该签证材料？', function() {
+        delVisaMaterial(function(response) {
+          console.log(response);
+          closeSubView();
+          $scope.refreshList();
+        }, {
+          ID: id
+        });
+      });
+    };
+
+    $scope.fileUpLoad = function(file, resultData) {
+      var uploadData = "";
+      $scope.isUploading = true;
+      uploadData += "FileName=" + file.name;
+      uploadData += "&FileType=" + 2;
+      var reader = new FileReader();
+      reader.onload = function() {
+        var str = this.result.substring(this.result.indexOf(",") + 1);
+        uploadData += "&FileStream=" + str;
+        uploadFile(uploadData, function(response) {
+          $rootScope[position[2]].info = "文件上传完成";
+          $scope.isUploading = false;
+          $scope.fileUpLoadComplete(response, resultData);
+        });
+      };
+      reader.readAsDataURL(file);
+    };
+
+    $scope.fileUpLoadComplete = function(response, resultData) {
+      resultData.url = response.data;
+      resultData.name = /[^\/]*$/.exec(resultData.url)[0];
+    };
+
+  }
+
+  function basicDataTravelGoodsCtrl($scope, $rootScope, addRefreshPageByID, closeSubView, showWarningBox,
+    saveTravelGoods, delTravelGoods, travelGoodsStorageLog, Pagination, uploadFile, saveTravelGoodType,
+    updateTravelGoodType, delTravelGoodType, getTravelGoodsType, travelGoodsEntry, showErrorInfo) {
+    $scope.storage = {};
+    $scope.isAddNewStorage = false;
+    $scope.isUploading = false;
+    $scope.isEditGoodType = false;
+    $scope.isAddGoodType = false;
+    $scope.goodTypeName = "";
+    $scope.outStatus = 1;
+    $scope.deptSearch = {
+      TravelGoodsSources: 1,
+      iPageIndex: 1,
+      iPageSize: 10
+    };
+    $scope.orderSearch = {
+      TravelGoodsSources: 2,
+      iPageIndex: 1,
+      iPageSize: 10
+    };
+
+    $scope.commitTravelGoodsData = function(valid) {
+      if ($scope.isUploading) {
+        $rootScope[position[2]].info = "还在上传文件";
+        return;
+      }
+      var data = $rootScope[position[2]];
+      var commitData = {};
+      if ("_id" in data) {
+        commitData._id = data._id;
+      }
+      commitData.TravelGoodName = data.TravelGoodName;
+      commitData.TravelGoodUnit = data.TravelGoodUnit;
+      commitData.TravelGoodDesc = data.TravelGoodDesc;
+      commitData.TravelGoodType = {
+        ForeignKeyID: data.TravelGoodType.ID
+      };
+      commitData.TravelGoodUrl = data.TravelGoodPic.url;
+      saveTravelGoods(function(response) {
+        $scope.refreshList();
+        if ($rootScope[position[2]].isEditMode) {
+          $scope.hideSubHead();
+          addRefreshPageByID($scope.subHead.url.id);
+          $scope.fetch($scope.subHead.url.targetUrl);
+        } else {
+          addRefreshPageByID($rootScope[switchType[2]].id);
+          if (valid) {
+            var detailUrl = 'system/basicData/travelGoodsDetail?ID=' + response.data._id + '&isAddStorage=true';
+            $scope.fetch(detailUrl);
+          } else {
+            showErrorInfo('添加成功');
+            closeSubView();
+          }
+
+        }
+      }, JSON.stringify(commitData));
+    };
+
+    $scope.refreshList = function() {
+      $rootScope.mainData.updateView();
+    };
+
+    $scope.fileUpLoad = function(file, resultData) {
+      var uploadData = "";
+      $scope.isUploading = true;
+      uploadData += "FileName=" + file.name;
+      uploadData += "&FileType=" + 2;
+      var reader = new FileReader();
+      reader.onload = function() {
+        var str = this.result.substring(this.result.indexOf(",") + 1);
+        uploadData += "&FileStream=" + str;
+        uploadFile(uploadData, function(response) {
+          $rootScope[position[2]].info = "文件上传完成";
+          $scope.isUploading = false;
+          $scope.fileUpLoadComplete(response, resultData);
+        });
+      };
+      reader.readAsDataURL(file);
+    };
+
+    $scope.fileUpLoadComplete = function(response, resultData) {
+      resultData.url = response.data;
+    };
+
+    $scope.changeTravelGoodsStatus = function(detail) {
+      showWarningBox('是否要改变物品出库状态？', function() {
+        detail.TravelGoodStatus = !detail.TravelGoodStatus;
+        var param = {};
+        param.ID = detail._id;
+        param.TravelGoodStatus = detail.TravelGoodStatus;
+        changeTravelGoodsStatus(function(response) {
+          console.log(response);
+        }, param);
+      });
+    };
+
+    $scope.delTravelGoods = function(id) {
+      showWarningBox('是否要删除该物品？', function() {
+        delTravelGoods(function(response) {
+          console.log(response);
+          closeSubView();
+          $scope.refreshList();
+        }, {
+          ID: id
+        });
+      });
+    };
+
+    $scope.addStorage = function() {
+      var commitData = {};
+      commitData.BusinessTypeID = 3;
+      commitData.TravelGood = {
+        TravelGoodName: $rootScope[position[2]].detail.TravelGoodName,
+        ForeignKeyID: $rootScope[position[2]].detail._id
+      };
+      commitData.OrderTravelGoodsCostPrice = $scope.storage.price;
+      commitData.OrderTravelGoodsInOutStockCount = -$scope.storage.count;
+      commitData.OrderTravelGoodsDesc = $scope.storage.note;
+      if ('_id' in $scope.storage) {
+        commitData._id = $scope.storage._id;
+      }
+      console.log(commitData);
+      $scope.storage = {};
+      $rootScope[position[2]].isAddStorage = false;
+    };
+
+    $scope.cancelAddStorage = function() {
+      $rootScope[position[2]].isAddStorage = false;
+    };
+
+    $scope.changeOutStatus = function(status) {
+      $scope.outStatus = status;
+      if (status == 1) {
+        $scope.orderSearch.ID = $rootScope[position[2]].detail._id;
+        travelGoodsStorageLog(function(response) {
+          $rootScope[position[2]].orderExport = response.data;
+          var myPage = new Pagination(parseInt(response.data.count), 1, 10);
+          $rootScope[position[2]].Pagination.order = myPage;
+        }, $scope.orderSearch);
+      } else if (status == 2) {
+        $scope.deptSearch.ID = $rootScope[position[2]].detail._id;
+        travelGoodsStorageLog(function(response) {
+          $rootScope[position[2]].deptOut = response.data;
+          var myPage = new Pagination(parseInt(response.data.count), 1, 10);
+          $rootScope[position[2]].Pagination.dept = myPage;
+        }, $scope.deptSearch);
+      }
+    };
+
+    $scope.selectStorePage = function(page) {
+      if (!page) {
+        page = 1;
+      }
+      var param = {
+        iPageSize: 10,
+        TravelGoodsSources: 3,
+        iPageIndex: page,
+        ID: $rootScope[position[2]].detail ? $rootScope[position[2]].detail._id : ''
+      };
+      travelGoodsStorageLog(function(response) {
+        $rootScope[position[2]].store = response.data;
+        var myPage = new Pagination(parseInt(response.data.count), page, 10);
+        $rootScope[position[2]].Pagination.store = myPage;
+      }, param);
+    };
+
+    $scope.selectOrderPage = function(page) {
+      if (!page) {
+        page = 1;
+      }
+      var param = {
+        iPageSize: 10,
+        TravelGoodsSources: 2,
+        iPageIndex: page,
+        ID: $rootScope[position[2]].detail ? $rootScope[position[2]].detail._id : ''
+      };
+      travelGoodsStorageLog(function(response) {
+        $rootScope[position[2]].orderExport = response.data;
+        var myPage = new Pagination(parseInt(response.data.count), page, 10);
+        $rootScope[position[2]].Pagination.order = myPage;
+      }, param);
+    };
+
+    $scope.selectDeptPage = function(page) {
+      if (!page) {
+        page = 1;
+      }
+      var param = {
+        iPageSize: 10,
+        TravelGoodsSources: 1,
+        iPageIndex: page,
+        ID: $rootScope[position[2]].detail ? $rootScope[position[2]].detail._id : ''
+      };
+      travelGoodsStorageLog(function(response) {
+        $rootScope[position[2]].deptOut = response.data;
+        var myPage = new Pagination(parseInt(response.data.count), page, 10);
+        $rootScope[position[2]].Pagination.dept = myPage;
+      }, param);
+    };
+
+    $scope.saveTravelGoodType = function(type) {
+      if (type) {
+        updateTravelGoodType(function(response) {
+          console.log(response);
+          getTravelGoodsType(function(types) {
+            $rootScope[position[2]].goodsType = types.data;
+          });
+        }, {
+          ID: type.ID,
+          TrafficType: type.Name
+        });
+      } else {
+        saveTravelGoodType(function(response) {
+          console.log(response);
+
+        }, {
+          TrafficType: $scope.goodTypeName
+        });
+        $scope.isAddGoodType = false;
+      }
+    };
+
+
+    $scope.delTravelGoodType = function(type) {
+      showWarningBox("确定要删除该类型吗？", function() {
+        delTravelGoodType(function(response) {
+          console.log(response);
+          getTravelGoodsType(function(types) {
+            $rootScope[position[2]].goodsType = types.data;
+          });
+        }, {
+          ID: type.ID
+        });
+      });
+    };
+
+    $scope.editStoreInfo = function(store) {
+      $scope.storage.price = store.CostPrice;
+      $scope.storage.count = store.StorageCount;
+      $scope.storage.note = store.Notes;
+      $scope.storage._id = store.ID;
+      $rootScope[position[2]].isAddStorage = true;
+      $scope.addStorage();
+    };
+
+    $scope.confirmStoreIn = function(store) {
+      store.InOutStatus = '已出入库';
+      travelGoodsEntry(function(response) {
+        console.log(response);
+      }, {
+        ID: store.ID
+      });
+    };
+
+    $scope.delStoreInfo = function(store) {
+      showWarningBox('确认要删除该入库信息吗？', function() {
+        travelGoodsStorageDel(function(response) {
+          console.log(response);
+        }, {
+          ID: store.ID
+        });
+      });
+    };
+
+  }
+
+  function basicDataDestinationCtrl($scope, $rootScope, addRefreshPageByID, showWarningBox, deleteDestination, addDestination, closeSubView, getDestination, ngDialog, getAddrData, showErrorInfo) {
+    $scope.items = [];
+    $scope.addDialog = "";
+    $scope.strategyDialog = "";
+    $scope.eidtDialog = "";
+    $scope.curItem = -1;
+
+    $scope.uploadFlag = function() {
+      ngDialog.open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        className: 'ngdialog-theme-default w-500',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            $rootScope[position[2]].data.NationalFlagUrl = data.url;
+          }
+        }
+      });
+    };
+
+    $scope.openAddDialog = function() {
+      $scope.addDialog = $rootScope[position[2]].Type;
+    };
+
+    $scope.closeAddDialog = function() {
+      $scope.addDialog = '';
+      $scope.items = [];
+    };
+
+    $scope.openStrategyDialog = function(id, title) {
+      getDestination(function(response) {
+        $rootScope[position[2]].data = response.data;
+        $scope.strategyDialog = title;
+
+        $rootScope[position[2]].detailType.forEach(function(item) {
+          item.selected = false;
+          item.Notes = "";
+        });
+
+        if ($rootScope[position[2]].data.GADDRDetails) {
+          $rootScope[position[2]].data.GADDRDetails.forEach(function(ele, index) {
+            for (var i = 0; i < $rootScope[position[2]].detailType.length; i++) {
+              if ($rootScope[position[2]].detailType[i].Name == ele.DetailType.Name) {
+                $rootScope[position[2]].detailType[i].selected = true;
+                $rootScope[position[2]].detailType[i].Notes = ele.Notes;
+              }
+            }
+          });
+        }
+      }, {
+        ID: id
+      });
+    };
+
+    $scope.closeStrategyDialog = function() {
+      $scope.strategyDialog = "";
+      $rootScope[position[2]].detailType.forEach(function(ele) {
+        ele.selected = false;
+        ele.Notes = "";
+      });
+    };
+
+    $scope.openEditDialog = function(id, index) {
+      getDestination(function(response) {
+        $rootScope[position[2]].data = response.data;
+        $scope.curItem = index;
+      }, {
+        ID: id
+      });
+    };
+
+    $scope.getCityDetail = function(id, title) {
+      $rootScope[position[2]] = $rootScope[position[2]];
+      $rootScope.fetch("system/basicData/destinationDetail?ID=" + id + "&Title=" + title + "&Type=城市");
+    };
+
+    $scope.delete = function(id, index) {
+      showWarningBox("确定删除吗?", function() {
+        deleteDestination(function(response) {
+          showErrorInfo('删除成功');
+          if (typeof index === "number")
+            $rootScope[position[2]].list.splice(index, 1);
+          else {
+            closeSubView();
+            $rootScope.mainData.updateView();
+          }
+        }, {
+          ID: id
+        });
+      });
+    };
+
+    $scope.fillItem = function(e) {
+      if (e && e.keyCode == 13) {
+        var str = e.target.value.replace(/\|$/, "");
+        if (str === "") {
+          if ($scope.items.length > 0)
+            $scope.saveItem();
+          return;
+        }
+        $scope.items = $scope.items.concat(str.split("|"));
+        e.target.value = "";
+      }
+    };
+
+    $scope.deleteItem = function(index) {
+      $scope.items.splice(index, 1);
+    };
+
+    $scope.saveCountry = function(valid) {
+      addDestination(function(response) {
+        if ($rootScope[position[2]].isEditMode) {
+          addRefreshPageByID($scope.subHead.url.id);
+          var detailUrl = 'system/basicData/destinationDetail?ID=' + $rootScope[position[2]].data._id + '&Title=' + $rootScope[position[2]].data.Title + '&Type=省份';
+
+          $scope.fetch(detailUrl);
+        } else {
+          addRefreshPageByID($rootScope[switchType[2]].id);
+          if (valid) {
+            var detailUrl = 'system/basicData/destinationDetail?ID=' + response.data._id + '&Title=' + response.data.Title + '&Type=省份';
+
+            $scope.fetch(detailUrl);
+          } else {
+            showErrorInfo('添加成功');
+            closeSubView();
+          }
+        }
+        $rootScope.mainData.updateView();
+      }, {
+        "RequestData": angular.toJson($rootScope[position[2]].data)
+      });
+    };
+
+    $scope.saveItem = function() {
+      $rootScope.isloadList = true;
+      $rootScope.showWarningBox = true;
+      var requestNum = $scope.items.length,
+        requestStep = 0;
+
+      function add() {
+        requestStep++;
+        if (requestStep >= requestNum) {
+          $rootScope[position[2]].info = "添加成功";
+          $rootScope.isloadList = false;
+          $rootScope.showWarningBox = false;
+          $scope.addDialog = "";
+          $scope.items = [];
+          getAddrData(function(response) {
+            $rootScope[position[2]].list = response;
+          }, $rootScope[position[2]].ID);
+        }
+      }
+
+      for (var i = 0; i < $scope.items.length; i++) {
+        addDestination(add, {
+          "RequestData": angular.toJson({
+            Title: $scope.items[i],
+            parentid: $rootScope[position[2]].ID,
+            NationalFlagUrl: ""
+          })
+        });
+      }
+    };
+
+    $scope.saveStrategy = function() {
+      if ($rootScope.isloadList) return;
+
+      $rootScope.isloadList = true;
+      $rootScope.showProcessBar = true;
+      var arr = [];
+      for (var i = 0; i < $rootScope[position[2]].detailType.length; i++) {
+        if ($rootScope[position[2]].detailType[i].Notes) {
+          arr.push({
+            "DetailType": {
+              "Name": $rootScope[position[2]].detailType[i].Name,
+              "ForeignKeyID": $rootScope[position[2]].detailType[i].ID,
+            },
+            "Notes": $rootScope[position[2]].detailType[i].Notes
+          });
+        }
+      }
+      $rootScope[position[2]].data.GADDRDetails = arr;
+
+
+      var obj = _.find($rootScope[position[2]].list, {
+        ID: $rootScope[position[2]].data._id
+      });
+      if (obj) obj.strategy = false;
+      else $rootScope[position[2]].strategy = false;
+
+      addDestination(function() {
+        $rootScope[position[2]].info = "保存成功";
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, {
+        "RequestData": angular.toJson($rootScope[position[2]].data)
+      });
+    };
+
+    $scope.saveEdit = function() {
+      addDestination(function() {
+        $rootScope[position[2]].info = "修改成功";
+        $scope.editDialog = "";
+        $rootScope[position[2]].list[$scope.curItem].Title = $rootScope[position[2]].data.Title;
+        $rootScope[position[2]].list[$scope.curItem].edit = false;
+      }, {
+        "RequestData": angular.toJson($rootScope[position[2]].data)
+      });
+    };
+  }
+
+  function basicDataShipCtrl($scope, $rootScope, deleteShipInfo, showWarningBox, ngDialog, addShipInfo, getShipInfoList, getShipDetail, addShipCompany, $timeout, closeSubView, deleteShipCompany, addShipEq, addShipEqPic, deleteShipEqPic, addShipSpace, addShipDeck, showErrorInfo, addRefreshPageByID, saveCruiseLines) {
+    $rootScope[position[2]].showPanel = {};
+
+    $scope.uploadPic = function(obj, index, callback, width, height) {
+      ngDialog.open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        className: 'ngdialog-theme-default w-500',
+        data: {
+          imgRatio: width? height / width : 1,
+          resImgWidth: width || 200,
+          resImgHight: height || 200,
+          uploadPicCallBack: function(data) {
+            if (angular.isArray(obj) || !obj) {
+              var pic = {
+                Title: data.name.replace(/\.(?:png|jpg)$/i, ""),
+                PicPath: data.url
+              };
+
+              if (obj) obj.push(pic);
+              if (callback) callback(pic);
+            } else if (angular.isObject(obj) && index === null) {
+              obj.Title = data.name.replace(/\.(?:png|jpg)$/i, "");
+              obj.PicPath = data.url;
+              if (callback) callback(obj);
+            } else {
+              obj[index] = data.url;
+            }
+          }
+        }
+      });
+    };
+
+    $scope.deleteShip = function(id, index) {
+      showWarningBox("是否确认删除", function() {
+        $rootScope.isloadList = true;
+        $rootScope.showProcessBar = true;
+        deleteShipInfo(function(response) {
+          $rootScope.isloadList = false;
+          $rootScope.showProcessBar = false;
+          $rootScope[position[2]].info = "删除成功";
+          $rootScope[position[2]].list.splice(index, 1);
+        }, {
+          ID: id
+        });
+      });
+    };
+
+    $scope.saveShip = function() {
+      if($rootScope[position[2]].isLoading) return;
+      $rootScope[position[2]].isLoading = true;
+      var data = angular.extend({}, $rootScope[position[2]].data);
+      if (data._id) {
+        data = {
+          ID: data._id,
+          Title: data.Title,
+          FirstDate: data.FirstDate,
+          Tonnage: data.Tonnage,
+          EatDeepWater: data.EatDeepWater,
+          Capacity: data.Capacity,
+          CrewNumber: data.CrewNumber,
+          TotalCabins: data.TotalCabins,
+          DeckFloor: data.DeckFloor,
+          Length: data.Length,
+          Width: data.Width,
+          MaximumSpeed: data.MaximumSpeed,
+          AverageSpeed: data.AverageSpeed,
+          Video: data.Video,
+          Explain: data.Explain,
+          LinerPics: data.LinerPics
+        };
+      } else {
+        data.CruiseCompanyID = $rootScope[position[2]].ID;
+      }
+
+      data.LinerPics = angular.toJson(data.LinerPics);
+      addShipInfo(function() {
+        $rootScope[position[2]].info = "操作成功";
+        $rootScope[position[2]].showBasicInfoPanel = false;
+        getShipInfoList(function(response) {
+          $rootScope[position[2]].list = response.data.list;
+          $rootScope[position[2]].isLoading = false;
+        }, {
+          ID: $rootScope[position[2]].ID,
+          iPageSize: $rootScope[position[2]].iPageSize,
+          iPageIndex: $rootScope[position[2]].iPageIndex
+        });
+      }, data);
+    };
+
+    $scope.openShipPanel = function(ship) {
+      $rootScope[position[2]].showBasicInfoPanel = true;
+      if (ship) {
+        $rootScope.isloadList = true;
+        $rootScope.showProcessBar = true;
+        getShipDetail(function(response) {
+          $rootScope[position[2]].data = response.data;
+          $rootScope[position[2]].data.LinerPics = $rootScope[position[2]].data.Pics;
+          delete $rootScope[position[2]].data.Pics;
+          $rootScope.isloadList = false;
+          $rootScope.showProcessBar = false;
+        }, {
+          ID: ship._id
+        });
+      } else {
+        $rootScope[position[2]].data = {
+          LinerPics: []
+        };
+      }
+    };
+
+    $scope.saveShipCompany = function(valid) {
+      $rootScope.isloadList = true;
+      $rootScope.showProcessBar = true;
+
+      addShipCompany(function(response) {
+        $rootScope.mainData.updateView();
+        if ($rootScope[position[2]].isEditMode) {
+          $scope.hideSubHead();
+          addRefreshPageByID($scope.subHead.url.id);
+          $scope.fetch("system/basicData/shipCompanyDetail?ID=" + $rootScope[position[2]].data.ID + "&Title=" + $rootScope[position[2]].data.CompanyName_ZH + "&companyInfo=" + encodeURIComponent(JSON.stringify({
+            ID: $rootScope[position[2]].data.ID,
+            CompanyName_ZH: $rootScope[position[2]].data.CompanyName_ZH,
+            CompanyName_EN: $rootScope[position[2]].data.CompanyName_EN,
+            Logo: $rootScope[position[2]].data.Logo,
+            Mem: $rootScope[position[2]].data.Mem
+          })));
+        } else {
+          addRefreshPageByID($rootScope[switchType[2]].id);
+          if (valid) {
+            $scope.fetch("system/basicData/shipCompanyDetail?ID=" + response.data._id + "&Title=" + response.data.CompanyName_ZH + "&companyInfo=" + encodeURIComponent(JSON.stringify({
+              ID: response.data._id,
+              CompanyName_ZH: response.data.CompanyName_ZH,
+              CompanyName_EN: response.data.CompanyName_EN,
+              Logo: response.data.Logo,
+              Mem: response.data.Mem
+            })) + "&showBasicInfoPanel=true");
+          } else {
+            showErrorInfo('添加成功');
+            closeSubView();
+          }
+        }
+
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+
+      }, $rootScope[position[2]].data);
+    };
+
+    $scope.deleteShipCompany = function() {
+      showWarningBox("是否确认该邮轮公司", function() {
+        deleteShipCompany(function() {
+          showErrorInfo("删除成功");
+          var index = $rootScope.mainData.selectIndex;
+          $rootScope.mainData.curList.splice(index, 1);
+          closeSubView();
+        }, {
+          ID: $rootScope[position[2]].ID
+        });
+      });
+    };
+
+    $scope.openEqPanel = function(title, editedItem) {
+      if (editedItem) {
+        $scope.eqData = {
+          Title: editedItem.Title,
+          Deck: editedItem.Deck,
+          ForeignKeyID: editedItem.ForeignKeyID,
+          Content: editedItem.Content
+        };
+      } else $scope.eqData = {};
+
+      $scope.eqType = title == "娱乐" ? 'Entertainments' : 'Restaurants';
+    };
+
+    $scope.saveShipEq = function() {
+      if($rootScope[position[2]].isLoading) return;
+
+      $rootScope[position[2]].isLoading = true;
+      addShipEq(function(response) {
+        $rootScope[position[2]].isLoading = false;
+        $rootScope[position[2]].data = response.data;
+        $rootScope[position[2]].info = "保存成功";
+
+        $rootScope[position[2]].showPanel.fun = false;
+        $rootScope[position[2]].showPanel.res = false;
+      }, {
+        ID: $rootScope[position[2]].ID,
+        CruiseEq: angular.toJson($scope.eqData),
+        Type: $scope.eqType
+      });
+    };
+
+    $scope.deleteShipEq = function(id, type) {
+      showWarningBox('是否确认删除', function() {
+        addShipEq(function(response) {
+          $rootScope[position[2]].data = response.data;
+          $rootScope[position[2]].info = "删除成功";
+        }, {
+          ID: $rootScope[position[2]].ID,
+          CruiseEq: JSON.stringify({
+            ForeignKeyID: id,
+            DelStatus: 1
+          }),
+          Type: type
+        });
+      });
+    };
+
+    $scope.openShipSpacePanel = function(editedItem) {
+      $scope.eqData = {};
+      if (editedItem) {
+        $scope.eqData = angular.extend($scope.eqData, editedItem);
+        delete $scope.eqData.Pics;
+        if ($scope.eqData.ShippingSpaceType)
+          for (var i = 0; i < $rootScope[position[2]].shipSpaceType.length; i++) {
+            if ($rootScope[position[2]].shipSpaceType[i].Text == $scope.eqData.ShippingSpaceType.Name) {
+              $scope.eqData.ShippingSpaceType = $rootScope[position[2]].shipSpaceType[i];
+            }
+          }
+      }
+    };
+
+    $scope.saveShipSpace = function() {
+      $rootScope[position[2]].isLoading = true;
+
+      var data = angular.extend({}, $scope.eqData, {
+        ShippingSpaceType: $scope.eqData.ShippingSpaceType && {
+          ID: $scope.eqData.ShippingSpaceType.Value,
+          Name: $scope.eqData.ShippingSpaceType.Text
+        } || "",
+        MinNumber: 1,
+        MaxNumber: +$scope.eqData.MaxNumber || 1
+      });
+
+      addShipSpace(function(response) {
+        $rootScope[position[2]].info = "保存成功";
+        $rootScope[position[2]].data = response.data;
+        $rootScope[position[2]].isLoading = false;
+        $rootScope[position[2]].showPanel.shipSpace = false;
+      }, {
+        ID: $rootScope[position[2]].ID,
+        CruiseEq: angular.toJson(data)
+      });
+
+    };
+
+    $scope.deleteShipSpace = function(id) {
+      addShipSpace(function(response) {
+        $rootScope[position[2]].data = response.data;
+        $rootScope[position[2]].info = "删除成功";
+      }, {
+        ID: $rootScope[position[2]].ID,
+        CruiseEq: JSON.stringify({
+          ForeignKeyID: id,
+          DelStatus: 1
+        })
+      });
+    };
+
+    $scope.openPicPanel = function(type, index) {
+      if($scope.eqData && angular.isNumber($scope.eqData.index)){
+        $rootScope[position[2]].data[$scope.eqData.Type][$scope.eqData.index].pic = false;
+      }
+
+      $scope.eqData = {
+        CruiseEqGuid: $rootScope[position[2]].data[type][index].ForeignKeyID,
+        index: index,
+        Type: type,
+        Pics: $rootScope[position[2]].data[type][index].Pics
+      };
+    };
+
+    $scope.saveEqPic = function(img) {
+      var data = {
+        CruiseEqGuid: $scope.eqData.CruiseEqGuid,
+        Type: $scope.eqData.Type,
+        ID: $rootScope[position[2]].ID,
+        Pic: angular.toJson(img)
+      };
+
+      addShipEqPic(function(response) {
+        angular.extend($rootScope[position[2]].data[$scope.eqData.Type][$scope.eqData.index],response.data[$scope.eqData.Type][$scope.eqData.index]);
+        
+        $scope.eqData.Pics = $rootScope[position[2]].data[$scope.eqData.Type][$scope.eqData.index].Pics;
+      }, data);
+    };
+
+    $scope.deleteEqPic = function(img) {
+      var data = {
+        ID: $rootScope[position[2]].ID,
+        CruiseEqGuid: $scope.eqData.CruiseEqGuid,
+        PicID: img.ForeignKeyID,
+        Type: $scope.eqData.Type
+      };
+      $rootScope.isloadList = true;
+      $rootScope.showProcessBar = true;
+      deleteShipEqPic(function(response) {
+        $rootScope[position[2]].data = response.data;
+        $scope.eqData.Pics = $rootScope[position[2]].data[$scope.eqData.Type][$scope.eqData.index].Pics;
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, data);
+    };
+
+    $scope.saveShipDeck = function(img) {
+      var pic = {
+        Title: img.Title,
+        PicPath: img.PicPath
+      };
+
+      if (img.ForeignKeyID) pic.ForeignKeyID = img.ForeignKeyID;
+
+      addShipDeck(function(response) {
+        $rootScope[position[2]].data = response.data;
+       }, {
+        ID: $rootScope[position[2]].ID,
+        DeckPics: angular.toJson(img)
+      });
+    };
+
+    $scope.deleteShipDeck = function(img) {
+      addShipDeck(function(response) {
+        $rootScope[position[2]].data = response.data;
+        $rootScope[position[2]].info = "删除成功";
+      }, {
+        ID: $rootScope[position[2]].ID,
+        DeckPics: angular.toJson({
+          ForeignKeyID: img.ForeignKeyID,
+          DelStatus: 1
+        })
+      });
+    };
+
+    $scope.openShipLinePanel = function(editedItem){
+      $scope.eqData = {};
+      if(editedItem){
+        $scope.eqData = angular.extend($scope.eqData, editedItem);
+      }
+    };
+
+    $scope.saveShipLine = function(){
+      $rootScope[position[2]].isLoading = true;
+      saveCruiseLines(function(response){
+        $rootScope[position[2]].info = "保存成功";
+        $rootScope[position[2]].data = response.data;
+        $rootScope[position[2]].showPanel.line = false;
+        $rootScope[position[2]].isLoading = false;
+      }, {
+        ID: $rootScope[position[2]].ID,
+        CruiseLine: angular.toJson($scope.eqData),
+        Type: "Entertainments"
+      });
+    };
+
+    $scope.deleteShipLine = function(ForeignKeyID){
+      showWarningBox('是否确定删除', function(){
+        saveCruiseLines(function(response){
+          $rootScope[position[2]].info = "删除成功";
+          $rootScope[position[2]].data = response.data;
+        }, {
+          ID: $rootScope[position[2]].ID,
+          CruiseLine: angular.toJson({
+            ForeignKeyID: ForeignKeyID,
+            DelStatus: 1
+          }),
+          Type: "Entertainments"
+        });  
+      });
+    };
+  }
+}();app.controller("branchCompanyController", function($scope, _, $rootScope, branchCompany, addCompany, delCompany,editCompany,lockAllAccount,unlockAllAccount,setCompanyAccount,addRefreshPageByID, showWarningBox,ngDialog,getCompanyDetail,closeSubView,checkCompanyName,checkCompanyNameEdit){
+
+//查询条件(用于列表页)
+ $scope.searchList = function(){
+      branchCompany.list(function(data) {
+        $rootScope[position[1]].list = data.list;
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].search);
+    };
+ //列表页数据显示
+    $scope.loadCompanyListData = function(viewID){
+      if (!$rootScope[position[1]].search) {
+        $rootScope[position[1]].search = {
+          iPageIndex: 0
+        };
+      }
+      $rootScope[position[1]].search.iPageIndex += 1;
+      branchCompany.list(function(data) {
+        $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].search);
+    };
+
+
+
+  //删除公司
+		$scope.delBranchCompany = function(){
+		 showWarningBox('确认删除该公司吗？', function(){
+			delCompany($rootScope[position[2]]._id.$id, function(response){
+				branchCompany.list(function(response) {
+					$rootScope[position[1]].list = response.list;
+					closeSubView();
+				}, $rootScope[position[1]].search);
+			});
+		});
+	};
+   //重置密码
+	$scope.ResetPassword = function() {
+			showWarningBox('确认重置密码？', function() {
+				var param = {
+					ID:$rootScope[position[2]]._id.$id,
+          AccountName : $rootScope[position[2]].AccountName,
+          Password :123456
+				};
+				setCompanyAccount(param,function(){
+          console.log("重置密码成功");
+				});
+			});
+	};
+
+	//冻结/解冻公司账号
+	$scope.lockAllAccount = function() {
+		if ($rootScope[position[2]].Lock === 0) {
+			showWarningBox('确认冻结该公司账号吗？', function() {
+				lockAllAccount($rootScope[position[2]]._id.$id, function(response) {
+					$rootScope[position[2]].Lock = 1; 
+				});
+			});
+		} else {
+			showWarningBox('确认解冻该公司账号吗？', function() {
+				unlockAllAccount($rootScope[position[2]]._id.$id, function(response) {
+						$rootScope[position[2]].Lock = 0;
+				});
+			});
+		}
+	};
+
+
+	//校验公司名称是否可用
+	$scope.checkBranchCompanyName = function() {
+		if ($rootScope[position[2]].CompanyInfo.CompanyName) {
+			var CompanyName = $rootScope[position[2]].CompanyInfo.CompanyName;
+			if ($rootScope[position[2]].isEditMode) {
+				checkCompanyNameEdit($rootScope[position[2]]._id.$id, CompanyName, function(response) {
+					$scope.isCheck = true;
+					if (response.message === '') {
+						$scope.checkName = "恭喜,该公司名称可用！";
+					} else {
+						$scope.checkName = response.message;
+					}
+
+				});
+			} else {
+				checkCompanyName(CompanyName, function(response) {
+					$scope.isCheck = true;
+					if (response.message === '') {
+						$scope.checkName = "恭喜,该公司名称可用！";
+					} else {
+						$scope.checkName = response.message;
+					}
+				});
+			}
+		}
+	};
+   $scope.clearCheck = function(){
+    $scope.isCheck = false;
+   };
+  //保存账号信息
+  $scope.saveEdit = function() {
+    var param = {
+      ID: $rootScope[position[2]]._id.$id,
+      AccountName: $rootScope[position[2]].AccountInfo.AccountName,
+      Password: $rootScope[position[2]].AccountInfo.Password
+    };
+    if ($rootScope[position[2]].AccountInfo.Password !== $rootScope[position[2]].AccountInfo.RepeatPassword) {
+      $rootScope[position[2]].isSame = true;
+    } else {
+      setCompanyAccount(param, function() {
+        $rootScope[position[2]].isSame = false;
+        addRefreshPageByID(($rootScope[switchType[2]].id));
+        closeSubView();
+      });
+    }
+  };
+  //点击编辑账号,对信息初始化
+  $scope.editPassword = function() {
+    $rootScope[position[2]].isSame = false;
+    $rootScope[position[2]].AccountInfo = {};
+    if ($rootScope[position[2]].AccountName) {
+      $rootScope[position[2]].AccountInfo.AccountName = $rootScope[position[2]].AccountName;
+    }
+  };
+	
+  //保存公司信息
+  $scope.saveCompany = function() {
+    $scope.isSubmit = true;
+    if (!$rootScope[position[2]].CompanyInfo.CompanyName) {
+      $rootScope[position[2]].info = "请输入公司名称";
+      return;
+    }
+    var param = {
+      CompanyName: $rootScope[position[2]].CompanyInfo.CompanyName,
+      CompanyAddress: $rootScope[position[2]].CompanyInfo.CompanyAddress,
+      CompanyDefaultContact: $rootScope[position[2]].CompanyInfo.CompanyDefaultContact,
+      CompanyTel: $rootScope[position[2]].CompanyInfo.CompanyTel,
+      CompanyEmail: $rootScope[position[2]].CompanyInfo.CompanyEmail,
+      CompanyContent: $rootScope[position[2]].CompanyInfo.CompanyContent,
+      logo: $rootScope[position[2]].logo,
+      BusinessLicense: $rootScope[position[2]].BusinessLicense,
+      BusinessPermit: $rootScope[position[2]].BusinessPermit,
+      InsuranceQualification: $rootScope[position[2]].InsuranceQualification,
+      CooperationAgreement: $rootScope[position[2]].CooperationAgreement,
+      CompanyType: 2
+    };
+
+    
+    if ($rootScope[position[2]].isEditMode) {
+      //编辑
+      editCompany($rootScope[position[2]]._id.$id, param, function(response) {
+        addRefreshPageByID(($scope.subHead.url.id));
+        $scope.fetch($rootScope[position[2]].showUrl + '?id=' + $rootScope[position[2]]._id.$id);
+      });
+    } else {
+      //新建
+      addCompany(param, function(response) {
+        $scope.isSubmit = false;
+        addRefreshPageByID(($rootScope[switchType[2]].id));
+        closeSubView();
+        $rootScope[position[1]].search.iPageIndex = 1;
+        branchCompany.list(function(data) {
+          $rootScope[position[1]].list = data.list;
+          $rootScope.isloadList = false;
+          $rootScope.showProcessBar = false;
+        }, $rootScope[position[1]].search);
+      });
+    }
+  };
+  //关闭页面
+  $scope.closeSubView = function() {
+    $rootScope[activeStatus[2]] = [];
+    closeSubView();
+  };
+
+
+  //添加logo
+  $scope.openDialog = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {
+              $rootScope[position[2]].logo = data.url;
+            }
+          }
+        }
+      });
+  };
+  //添加营业执照
+  $scope.openDialogBusinessLicense = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {
+              $rootScope[position[2]].BusinessLicense = data.url;
+            }
+          }
+        }
+      });
+  };
+
+//添加经营许可证
+  $scope.openDialogBusinessPermit = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {
+              $rootScope[position[2]].BusinessPermit = data.url;
+            }
+          }
+        }
+      });
+  };
+
+//添加保险资质证
+  $scope.openDialogInsuranceQualification = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {
+              $rootScope[position[2]].InsuranceQualification = data.url;
+            }
+          }
+        }
+      });
+  };
+//添加合作协议
+  $scope.openDialogCooperationAgreement = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            if (item) {
+              item.PicPath = data.url;
+              item.Title = data.name;
+            } else {
+              $rootScope[position[2]].CooperationAgreement = data.url;
+            }
+          }
+        }
+      });
+  };
+});

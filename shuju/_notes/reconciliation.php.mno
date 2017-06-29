@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_Recordset1" value="name:ar;datatype:string,name:name;datatype:string,name:id;datatype:string,name:sum(ar.ar_total);datatype:real,name:sum(ar.due);datatype:real,name:so;datatype:string,name:ar_total;datatype:real,name:due;datatype:real" />
+</info>

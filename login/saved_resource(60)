@@ -1,0 +1,368 @@
+/**
+ * Created by li on 2016/3/15.
+ * 业务员提成明细列表 控制器
+ */
+app.controller('ICommissionOperateController', function($scope, $filter, $rootScope,
+  GetSalesCommissionList,
+  GetSalesCommissionFinancesList,
+  GetSalesCommissionOrderList,
+  SalesCommissionApply) {
+  var view = this;
+  $scope.detailData.template = {};
+  $scope.detailData.template.baseUrl = "/public/angularView/finances/salesmanCommission/";
+  $scope.detailData.template.ApplyCommission = $scope.detailData.template.baseUrl + "apply.html";
+  $scope.detailData.popStatus = {
+    IsShowPop: false
+  };
+
+  view.openDatePicker = openDatePicker;
+  $scope.detailData.status = {
+    ExtractStartTime: false,
+    ExtractEndTime: false,
+    CensusStartTime: false,
+    CensusEndTime: false
+  };
+  if ($scope.detailData.StartTime) {
+    $scope.detailData.CensusStartTime = new Date($scope.detailData.StartTime);
+  }
+  if ($scope.detailData.EndTime) {
+    $scope.detailData.CensusEndTime = new Date($scope.detailData.EndTime);
+  }
+  $scope.detailData.ExtractStartTime = null;
+  $scope.detailData.ExtractEndTime = null;
+
+  view.loadBasicExtractData = loadBasicExtractData;
+  view.loadBasicCensusData = loadBasicCensusData;
+  view.submitApply = submitApply;
+  view.cancelApply = cancelApply;
+  view.changePayMode = changePayMode;
+  view.changeStatus = changeStatus;
+  $scope.detailData.btnIsdisable = false;
+
+  $scope.detailData.filters = {
+    censussearch: {},
+    extractsearch: {}
+  };
+
+  $scope.detailData.edits = {};
+  $scope.detailData.verification = {
+    titleStatus: false,
+    priceStatus: false,
+    typeStatus: false,
+  };
+
+  $scope.detailData.detailTipInfo = "";
+  $scope.detailData.detailTipInfoType = "";
+
+  function openDatePicker($event, type) {
+    $scope.detailData.status[type] = true;
+  }
+
+  function changeStatus(type) {
+    $scope.detailData.verification[type] = false;
+  }
+
+  //提成提取记录
+  function loadBasicExtractData($event) {
+    var bIsPass = false;
+    if ($event) {
+      switch ($event.keyCode) {
+        case 13: // Enter
+          bIsPass = true;
+          break;
+      }
+    } else {
+      bIsPass = true;
+    }
+    if (bIsPass) {
+      $scope.detailData.filters.extractsearch.EmployeeID = $scope.detailData.EmployeeID;
+      $scope.detailData.filters.extractsearch.DepartmentID = $scope.detailData.DepartmentID;
+      $scope.detailData.filters.extractsearch.StartTime = $filter("date")($scope.detailData.ExtractStartTime, "yyyy-MM-dd");
+      $scope.detailData.filters.extractsearch.EndTime = $filter("date")($scope.detailData.ExtractEndTime, "yyyy-MM-dd");
+      GetSalesCommissionFinancesList($scope.detailData.filters.extractsearch, function(response) {
+        $scope.detailData.CommissionRecord = response;
+        var dTotalCommissionMoney = 0;
+        for (var i = 0; i < response.length; i++) {
+          var item = response[i];
+          dTotalCommissionMoney += item.ChangePrice;
+        }
+        $scope.detailData.TotalCommissionMoney = dTotalCommissionMoney;
+        $scope.detailData.CommissionCount = response.length;
+      });
+    }
+  }
+
+  //订单记录
+  function loadBasicCensusData($event) {
+    var bIsPass = false;
+    if ($event) {
+      switch ($event.keyCode) {
+        case 13: // Enter
+          bIsPass = true;
+          break;
+      }
+    } else {
+      bIsPass = true;
+    }
+    if (bIsPass) {
+      $scope.detailData.filters.censussearch.EmployeeID = $scope.detailData.EmployeeID;
+      $scope.detailData.filters.censussearch.DepartmentID = $scope.detailData.DepartmentID;
+      $scope.detailData.filters.censussearch.StartTime = $filter("date")($scope.detailData.CensusStartTime, "yyyy-MM-dd");
+      $scope.detailData.filters.censussearch.EndTime = $filter("date")($scope.detailData.CensusEndTime, "yyyy-MM-dd");
+      GetSalesCommissionOrderList($scope.detailData.filters.censussearch, function(response) {
+        $scope.detailData.OrderRecord = response;
+        var dTotalOrderPrice = 0;
+        for (var i = 0; i < response.length; i++) {
+          var item = response[i];
+          dTotalOrderPrice += item.OrderMoney;
+        }
+        $scope.detailData.OrderPrice = dTotalOrderPrice;
+        $scope.detailData.OrderCount = response.length;
+      });
+    }
+  }
+
+  //切换支付类型时，进行数据对象的绑定
+  function changePayMode() {
+    var PayModeObjectIndex = _.findIndex($rootScope.FinancesType.paymodeList, function(item) {
+      return item._id == $scope.detailData.edits.PayModeValue;
+    });
+    $scope.detailData.edits.PayMode = $rootScope.FinancesType.paymodeList[PayModeObjectIndex];
+  }
+
+  //提交提成申请
+  function submitApply() {
+    if (checkInput()) {
+      var data = {
+        EmployeeID: $scope.detailData.EmployeeID,
+        DepartmentID: $scope.detailData.DepartmentID,
+        SalesCommissionTitle: "",
+        PayPrice: $scope.detailData.edits.PayPrice,
+        Notes: $scope.detailData.edits.Notes
+      };
+      if ($scope.detailData.edits.PayMode) {
+        data.PayModeID = $scope.detailData.edits.PayMode._id;
+        data.PayModeName = $scope.detailData.edits.PayMode.Name;
+      }
+      var pars = {
+        SalesCommission: JSON.stringify(data)
+      };
+      $scope.detailData.btnIsdisable = true;
+      $scope.detailData.popStatus.IsShowPop = false;
+      SalesCommissionApply(pars, refreshPage,function(){
+        $scope.detailData.btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData.verification.titleStatus = false;
+      $scope.detailData.verification.priceStatus = false;
+      $scope.detailData.verification.typeStatus = false;
+
+      /*if (!$scope.detailData.edits.SalesCommissionTitle) {
+        $scope.detailData.detailTipInfo = "提取名称为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.titleStatus = true;
+        return false;
+      }*/
+
+      if (!$scope.detailData.edits.PayPrice) {
+        $scope.detailData.detailTipInfo = "提取金额为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.priceStatus = true;
+        return false;
+      }
+
+      if (!_.isNumber($scope.detailData.edits.PayPrice)) {
+        $scope.detailData.detailTipInfo = "提取金额格式错误";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.priceStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData.edits.PayPrice <= 0) {
+        $scope.detailData.detailTipInfo = "提取金额不能小于等于0";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.priceStatus = true;
+        return false;
+      }
+
+      if (!$scope.detailData.edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择支付类型";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.typeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData.edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择支付类型";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData.verification.typeStatus = true;
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }
+
+  //刷新界面并关闭当前的Pop界面
+  function refreshPage(data) {
+    var record = {
+      FinanceID: data,
+      FinancialTime: Date.now(),
+      Title: $scope.detailData.edits.SalesCommissionTitle,
+      ChangePrice: $scope.detailData.edits.PayPrice,
+      PayModeID: $scope.detailData.edits.PayMode._id,
+      PayModeName: $scope.detailData.edits.PayMode.Name,
+      CreateUserName: $rootScope.userinfo.FullName
+    };
+    $scope.detailData.CommissionRecord.push(record);
+    $scope.detailData.TotalPayPrice += $scope.detailData.edits.PayPrice;
+    $scope.detailData.TotalSurplusCommissionPrice = $scope.detailData.TotalCommissionMoney - $scope.detailData.TotalPayPrice;
+    $scope.detailData.TotalChangePrice += $scope.detailData.edits.PayPrice;
+    $scope.detailData.CommissionCount += 1;
+    initStatus();
+    $scope.detailData.btnIsdisable = false;
+    reflashCommissionList();
+  }
+
+  //初始化数据状态
+  function initStatus() {
+    $scope.detailData.edits.SalesCommissionTitle = "";
+    $scope.detailData.edits.PayPrice = "";
+    $scope.detailData.edits.Notes = "";
+    $scope.detailData.detailTipInfo = "";
+    $scope.detailData.detailTipInfoType = "";
+  }
+
+  //取消提成申请
+  function cancelApply() {
+    $scope.detailData.popStatus.IsShowPop = false;
+    initStatus();
+    $scope.detailData.edits.PayMode = {};
+    $scope.detailData.verification.titleStatus = false;
+    $scope.detailData.verification.priceStatus = false;
+    $scope.detailData.verification.typeStatus = false;
+  }
+
+  function reflashCommissionList() {
+    $rootScope[position[1]].maxPage = false;
+    $rootScope[position[1]].isLoading = true;
+    $rootScope[position[1]].filters.search.PageIndex = 1;
+    $rootScope[position[1]].filters.search.PageSize = $rootScope.pageLimit;
+    GetSalesCommissionList($rootScope[position[1]].filters.search, function(response) {
+      $rootScope[position[1]].isLoading = false;
+      $rootScope[position[1]].list = response.list;
+      var pageCount = Math.ceil(response.count / response.limit);
+      if (1 == pageCount) {
+        $rootScope[position[1]].maxPage = true;
+      }
+    });
+  }
+});
+/**
+ * Created by li on 2016/3/15.
+ * 业务员提成列表 控制器
+ */
+app.controller('ICommissionViewController', function($scope, $rootScope, $filter, salesmanCommission) {
+
+  var view = this;
+  $scope.mainData.showDetailUrl = 'financeCenter/salesmanCommission/detail?';
+  view.openDatePicker = openDatePicker;
+  var status = $rootScope[position[1]].status;
+  if (typeof status == "undefined") {
+    $rootScope[position[1]].status = {
+      StartTime: false,
+      EndTime: false
+    };
+  }
+  var filters = $rootScope[position[1]].filters;
+  if (typeof filters == "undefined") {
+    $rootScope[position[1]].filters = {};
+  }
+  var search = $rootScope[position[1]].filters.search;
+  if (typeof search == "undefined") {
+    $rootScope[position[1]].filters.search = {};
+  }
+
+  function openDatePicker($event, type) {
+    $rootScope[position[1]].status[type] = true;
+  }
+
+  view.loadBasicData = loadBasicData;
+  view.addNewData = addNewData;
+  view.refreshPage = refreshPage;
+
+  function loadBasicData($event) {
+    var bIsPass = false;
+    if ($event) {
+      switch ($event.keyCode) {
+        case 13: // Enter
+          bIsPass = true;
+          break;
+      }
+    } else {
+      bIsPass = true;
+    }
+    if (bIsPass) {
+      $rootScope[position[1]].maxPage = false;
+      $scope.isLoading = true;
+      $rootScope[position[1]].filters.search.PageIndex = 1;
+      $rootScope[position[1]].filters.search.PageSize = $rootScope.pageLimit;
+      $rootScope[position[1]].filters.search.StartTime = $filter("date")($rootScope[position[1]].filters.search.StartTime, "yyyy-MM-dd");
+      $rootScope[position[1]].filters.search.EndTime = $filter("date")($rootScope[position[1]].filters.search.EndTime, "yyyy-MM-dd");
+      salesmanCommission.list(function(response) {
+        $scope.isLoading = false;
+        $scope.mainData.list = response.list;
+        var pageCount = Math.ceil(response.count / response.limit);
+        if (1 == pageCount) {
+          $rootScope[position[1]].maxPage = true;
+        }
+      }, $rootScope[position[1]].filters.search);
+    }
+  }
+
+  //打开明细页控制方法
+  function addNewData(sEmployeeID, sDepartmentID) {
+    var sStartTime = $filter('date')($rootScope[position[1]].search.StartTime, 'yyyy-MM-dd');
+    var sEndTime = $filter('date')($rootScope[position[1]].search.EndTime, 'yyyy-MM-dd');
+    var viewUrl = $scope.mainData.showDetailUrl + 'EmployeeID=' + sEmployeeID + '&DepartmentID=' + sDepartmentID;
+    if (sStartTime && sStartTime.length > 0) {
+      viewUrl += '&StartTime=' + sStartTime;
+    }
+    if (sEndTime && sEndTime.length > 0) {
+      viewUrl += '&EndTime=' + sEndTime;
+    }
+    $scope.fetch(viewUrl);
+    $scope.openItem();
+  }
+
+  //加载新的数据到当前列表数据中
+  function refreshPage(iDefaultIndex) {
+    if ($rootScope[position[1]].maxPage !== true) {
+      var iPIndex = iDefaultIndex ? iDefaultIndex : 1;
+      if (!$rootScope[position[1]].filters.search) {
+        $rootScope[position[1]].filters.search = {
+          PageIndex: iDefaultIndex ? iDefaultIndex : 1,
+          PageSize: pageLimit
+        };
+      }
+      $rootScope[position[1]].filters.search.PageIndex += 1;
+      salesmanCommission.list(function(data) {
+        $scope.mainData.list = _.union($scope.mainData.list, data.list);
+        var pageCount = Math.ceil(data.count / data.limit);
+        if (iPIndex == pageCount) {
+          $rootScope[position[1]].maxPage = true;
+        }
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].filters.search);
+    }
+    else {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }
+  }
+});

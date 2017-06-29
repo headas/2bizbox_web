@@ -1,0 +1,1103 @@
+app.controller("informationOrderCenterController", function($http, $scope, $rootScope, _, confirmInformationOrderRefund,
+  backInformationOrderRefund, showWarningBox, confirmInformationOrderTransfer, backInformationOrderTransfer,
+  confirmInformationOrderChangeDate, backInformationOrderChangeDate, confirmInformationOrderDelay, backInformationOrderDelay,
+  confirmInformationOrderQuitTeam, backInformationOrderQuitTeam, changeInformationStatus, addRefreshPageByID) {
+
+  var refreshPages = function() {
+    var target = _.find($rootScope[position[2]].list, function(item){
+      return item._id.$id === $rootScope[position[2]].itemID;
+    });
+    if(undefined !== target){
+      $rootScope[position[2]].list = _.without($rootScope[position[2]].list, target);
+    }
+    addRefreshPageByID($rootScope[switchType[2]].id);
+    addRefreshPageByID($rootScope[switchType[1]].id);
+    // $scope.fetch($rootScope[switchType[1]].targetUrl);
+    $scope.reFetchDetail($rootScope[switchType[2]].targetUrl);
+  };
+
+
+  $scope.confirmOrderRefund = function() {
+    showWarningBox("确认通过该申请吗", function() {
+      var param = {
+        RecordID: $rootScope[position[2]].recordID,
+        Notes: '同意'
+      };
+      confirmInformationOrderRefund(param, function(response) {
+        $rootScope[position[2]].showMenu = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "通过申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+  $scope.returnOrderRefund = function() {
+    showWarningBox("确认退回该申请吗", function() {
+      var param = {
+        RecordID: $rootScope[position[2]].recordID,
+        Notes: '不同意'
+      };
+      backInformationOrderRefund(param, function(response) {
+        $rootScope[position[2]].showMenu = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "退回申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+  $scope.confirmOrderTrans = function() {
+    showWarningBox("确认通过该申请吗", function() {
+      var param = {};
+      param.RecordID = $rootScope[position[2]].remindId;
+      param.Notes = "同意";
+      confirmInformationOrderTransfer(param, function(response) {
+        $rootScope[position[2]].showButton = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "通过申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+  $scope.returnOrderTrans = function() {
+    showWarningBox("确认退回该申请吗", function() {
+      var param = {};
+      param.RecordID = $rootScope[position[2]].remindId;
+      param.Notes = "不同意";
+      backInformationOrderTransfer(param, function(response) {
+        $rootScope[position[2]].showButton = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "退回申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+  $scope.confirmOrderChangeDate = function() {
+    showWarningBox("确认通过该申请吗", function() {
+      var param = {
+        OrderTimeAdjustmentRecordID: $rootScope[position[2]].ID,
+        AgreeReason: "同意"
+      };
+      confirmInformationOrderChangeDate(param, function(response) {
+        $rootScope[position[2]].showMenu = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "通过申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+  $scope.returnOrderChangeDate = function() {
+    showWarningBox("确认退回该申请吗", function() {
+      var param = {
+        OrderTimeAdjustmentRecordID: $rootScope[position[2]].ID,
+        RefuseReason: "不同意"
+      };
+      backInformationOrderChangeDate(param, function(response) {
+        $rootScope[position[2]].showMenu = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "退回申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+  $scope.confirmOrderDelay = function() {
+    showWarningBox("确认通过该申请吗", function() {
+      var param = {};
+      param.OrderTimeAdjustmentRecordID = $rootScope[position[2]].remindId;
+      param.AgreeReason = "同意";
+      confirmInformationOrderDelay(param, function(response) {
+        $rootScope[position[2]].showMenu = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "通过申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+  $scope.returnOrderDelay = function() {
+    showWarningBox("确认退回该申请吗", function() {
+      var param = {};
+      param.OrderTimeAdjustmentRecordID = $rootScope[position[2]].remindId;
+      param.RefuseReason = "不同意";
+      backInformationOrderDelay(param, function(response) {
+        $rootScope[position[2]].showMenu = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "退回申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+  $scope.confirmOrderQuitTeam = function() {
+    showWarningBox("确认通过该申请吗", function() {
+      var param = {};
+      param.OrderExitTeamRecordID = $rootScope[position[2]].remindId;
+      param.AgreeReason = "同意";
+      confirmInformationOrderQuitTeam(param, function(response) {
+        $rootScope[position[2]].showMenu = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "通过申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+  $scope.returnOrderQuitTeam = function() {
+    showWarningBox("确认退回该申请吗", function() {
+      var param = {};
+      param.OrderExitTeamRecordID = $rootScope[position[2]].remindId;
+      param.RefuseReason = "不同意";
+      backInformationOrderQuitTeam(param, function(response) {
+        $rootScope[position[2]].showMenu = false;
+        changeInformationStatus({
+          remindId: $rootScope[position[2]].itemID,
+          isRead: true,
+          isDisplay: false,
+          isHandled: true
+        }, function(response) {
+          var target = _.find($rootScope.notice, function(item) {
+            return item._id == $rootScope[position[2]].itemID;
+          });
+          if (undefined !== target) {
+            $rootScope.notice = _.without($rootScope.notice, target);
+          }
+          $rootScope[position[2]].info = "退回申请";
+          refreshPages();
+        });
+      });
+    });
+  };
+
+});
+app.controller('ICRemindController',function($scope,$rootScope,informationCenterRemind,$filter){
+
+  $scope.status = {};
+
+  $scope.searchList = function(){
+    $rootScope.isloadList = true;
+    $rootScope.showProcessBar = true;
+
+    $rootScope[position[1]].search.startDate = $filter('date')($rootScope[position[1]].search.startDateTime,"yyyy-MM-dd");
+    $rootScope[position[1]].search.page = 1;
+
+    informationCenterRemind.remindList(function(data){
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+      $rootScope[position[1]].list = data.list;
+    },$rootScope[position[1]].search);
+  };
+
+  $scope.loadList = function(){
+    $rootScope[position[1]].search.page += 1;
+    informationCenterRemind.remindList(function(data){
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    },$rootScope[position[1]].search);
+  };
+});
+app.controller("ERPIndexController", function(finalConfirmAnOrder, changeInformationStatus, getInformationTypes,
+  getInformationList, $scope, $rootScope, $filter) {
+  var vm = this;
+  vm.searchList = searchList;
+  // vm.changeSubTypes = changeSubTypes;
+  vm.keyPressSearch = keyPressSearch;
+  vm.fetchDetailPage = fetchDetailPage;
+  vm.changeRemindType = changeRemindType;
+  // $rootScope[position[1]].filter = {
+  //   page: 1,
+  //   limit: 25,
+  //   messageType:5,
+  //   type:14
+  // };
+  vm.maxPage = false;
+
+  activate();
+
+  function activate() {
+    setListMax();
+    // setType();
+    getBasicData();
+    // changeSubTypes();
+  }
+
+  $scope.status = {};
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  function fetchDetailPage(id, subType, targetID, sender, state, bussinessID) {
+    $rootScope.currentICListItemID = id;
+    $rootScope.currentSender = sender;
+    $rootScope.currentHandleStatus = state;
+    IHaveReadThisItem(id, sender);
+    $rootScope.ICSubType = subType;
+    $scope.fetch(getDetailUrl(id, subType, targetID, bussinessID), id);
+    $scope.openItem();
+  }
+  /**
+   * 已读
+   */
+  function IHaveReadThisItem(itemID, sender) {
+    if ($scope.userinfo._id.$id == sender) {
+      return;
+    }
+    var data = {
+      isRead: true,
+      remindId: itemID
+    };
+    changeInformationStatus(data, function(response) {
+      var itemIndex = _.findIndex($scope.mainData.list, function(i) {
+        return i._id.$id == itemID;
+      });
+      $scope.mainData.list[itemIndex].isRead = true;
+    });
+  }
+  /**
+   * 已处理
+   */
+  function IHaveDealtWithThisItem(itemID) {
+    var data = {
+      isHandled: true,
+      remindId: itemID
+    };
+    changeInformationStatus(data, function(response) {
+      var itemIndex = _.findIndex($scope.mainData.list, function(i) {
+        return i._id.$id == itemID;
+      });
+      $scope.mainData.list[itemIndex].isHandled = true;
+    });
+  }
+
+  function changeRemindType() {
+    if ($rootScope[position[1]].filter.remindType == 1) {
+      $rootScope[position[1]].filter.messageType = [1];
+      $rootScope[position[1]].filter.type = '';
+    } else {
+      $rootScope[position[1]].filter.messageType = [1, 5];
+      $rootScope[position[1]].filter.type = $rootScope[position[1]].filter.remindType;
+    }
+    vm.searchList();
+  }
+
+  function getDetailUrl(itemID, subType, targetID, bussinessID) {
+    var url = "";
+    switch (subType) {
+      case 2: //成本结算
+        {
+          url = "financeCenter/PurchaseBill/Info?BillID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 3: //导游报账
+        {
+          url = "financeCenter/financeGuideReim/Info?GuideReimID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 4: //导游预领
+        {
+          url = "financeCenter/financeGuidePreCollar/Info?FinanceID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 5: //订单退款
+        {
+          url = "informationCenter/financeCenter/orderRefundDetail?RecordID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 6: //订单预付款
+        {
+          url = "financeCenter/financeOrderAdvance/financeOrderAdvanceInfo?id=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 7: //订单暂借款
+        {
+          url = "financeCenter/financeOrderAdvance/financeOrderAdvanceInfo?id=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 8: //其他支出
+        {
+          url = "financeCenter/notBussiness/otherOutDetail?RecordID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 9: //三清单
+        {
+          $rootScope.OPtype = "Audit";
+          url = "financeCenter/Census/Detail?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 12: //订单改期
+        {
+          url = "informationCenter/orderCenter/changeDate?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 13: //订单取消
+        {
+          url = "informationCenter/orderCenter/cancel?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 15: //游客退团
+        {
+          url = "informationCenter/orderCenter/quitTeam?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 16: //订单延期
+        {
+          url = "informationCenter/orderCenter/delay?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 27: //订单转让
+        {
+          url = "informationCenter/orderCenter/trans?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 45:
+      case 19:
+      case 20:
+        {
+          $rootScope.listType = "informationList";
+          url = "intentionCustomer/ICOrder/detail?recordID=" + targetID;
+        }
+        break;
+      case 35: //订单管理组团游
+        {
+          url = 'orderManagement/OMteamtour/detail?id=' + targetID;
+        }
+        break;
+      case 36: //订单管理邮轮游
+        {
+          url = 'orderManagement/OMCruise/detail?id=' + targetID;
+        }
+        break;
+      case 37: //订单管理自助游
+        {
+          url = 'orderManagement/OMFreeTour/detail?id=' + targetID;
+        }
+        break;
+      case 38: //订单管理定制游
+        {
+          url = 'orderManagement/OMCustomTour/detail?ID=' + targetID;
+        }
+        break;
+      case 39: //订单管理自驾游
+        {
+          url = 'orderManagement/OMDriveTour/detail?id=' + targetID;
+        }
+        break;
+      case 40: //订单管理景点门票
+        {
+          url = 'orderManagement/OMAttractionTicket/detail?id=' + targetID;
+        }
+        break;
+      case 41: //订单管理签证
+        {
+          url = 'orderManagement/OMVisa/detail?id=' + targetID;
+        }
+        break;
+      case 42: //订单管理机票
+        {
+          url = 'orderManagement/OMPlaneTicket/detail?OrderID=' + targetID;
+        }
+        break;
+      case 43: //订单管理一团一议
+        {
+          url = 'orderManagement/OMOneTeam/detail?id=' + targetID;
+        }
+        break;
+      case 44: //订单管理地接
+        {
+          url = 'orderManagement/OMPickUp/detail?id=' + targetID;
+        }
+        break;
+      case 17: //回访转移
+        {
+          url = "customerCenter/returnVisit/detail?id=" + targetID + "&itemID=" + itemID;
+        }
+        break;
+        case 18: //客户投诉
+          {
+            url = "customerCenter/returnVisit/detail?id=" + targetID + "&itemID=" + itemID;
+          }
+          break;
+          case 23: //客户投诉_处理人
+            {
+              url = "customerCenter/imComplaint/detail?id=" + targetID + "&itemID=" + itemID + "&subType=23";
+            }
+            break;
+        case 24: //客户投诉_责任人
+          {
+            url = "customerCenter/imComplaint/detail?id=" + targetID + "&itemID=" + itemID + "&subType=24";
+          }
+          break;
+      case 25: //客户投诉_投诉赔偿
+        {
+          url = "customerCenter/imComplaint/detail?id=" + targetID + "&itemID=" + itemID + "&subType=25";
+        }
+        break;
+      default:
+        break;
+    }
+    url += "&source=notice";
+    return url;
+  }
+
+
+  function getBasicData() {
+    if (!global.InformationCenter.RemindTypes) {
+      getInformationTypes(function(response) {
+        if (response.code >= 700 && response.code < 800) {
+          global.InformationCenter.RemindTypes = response.data;
+          $rootScope.InformationCenter.RemindTypes = response.data;
+        }
+      });
+    }
+  }
+
+  function setType() {
+    // "informationCenter-informationCenterTasks-FinanceList"
+    var strs = $rootScope.currentMian.split("-");
+    var str = strs[strs.length - 1];
+    switch (str) {
+      case "IntentionCustomerList":
+        vm.filter.type = 4;
+        break;
+      case "FinanceList":
+        vm.filter.type = 1;
+        break;
+      case "OrderList":
+        vm.filter.type = 2;
+        break;
+      case "ServerList":
+        vm.filter.type = 3;
+        break;
+      default:
+        vm.filter.type = 0;
+        break;
+    }
+  }
+
+  function setListMax() {
+    var count = $scope.mainData.count;
+    var page = $scope.mainData.page;
+    var limit = $scope.mainData.limit;
+    var maxPage = Math.ceil(count / limit);
+    vm.maxPage = (page >= maxPage) ? true : false;
+  }
+
+  function readAnItem() {
+
+  }
+
+  function doneWithAnItem() {
+
+  }
+
+  function keyPressSearch(event) {
+    if (event.which == 13) {
+      searchList();
+    }
+  }
+
+  function searchList(scrolling) {
+    if (scrolling) { // 如果是下拉
+      console.log(vm.maxPage);
+      if (vm.maxPage) {
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+        return; // 已经是最大页，不再拉取数据
+      } else { // 如果不是最大页，页码+1
+        $rootScope[position[1]].filter.page += 1;
+      }
+    } else { // 如果不是下拉，重置为页码为1
+      $rootScope[position[1]].filter.page = 1;
+      $scope.mainData.list = [];
+    }
+    vm.LoadingStatus = true;
+    vm.maxPage = false;
+    $rootScope[position[1]].filter.startDate = $filter("date")($rootScope[position[1]].filter.startDate, "yyyy-MM-dd HH:mm:ss");
+    getInformationList($rootScope[position[1]].filter, changeScope);
+
+    function changeScope(response) {
+      if (response.code >= 700 && response.code < 800) {
+        vm.LoadingStatus = false;
+
+        response.data.list.forEach(function(item) {
+          if (item.messageType == 5) {
+            item.jsonContent = angular.fromJson(item.content);
+          }
+        });
+
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+
+        if (scrolling) {
+          $scope.mainData.list = _.union($scope.mainData.list, response.data.list);
+          $scope.mainData.page = response.data.page;
+          $scope.mainData.count = response.data.count;
+          setListMax();
+        } else {
+          $scope.mainData.list = response.data.list;
+          setListMax();
+        }
+      }
+    }
+
+  }
+});
+angular.module("HY").controller("InformationCenterController", InformationCenterController);
+
+function InformationCenterController(finalConfirmAnOrder, changeInformationStatus, getInformationTypes,
+  getInformationList, $scope, $rootScope, $filter, getInfomationPageConfig, getPersonnel, getInformationSubtypeUnhandle) {
+  var vm = this;
+  vm.searchList = searchList;
+  vm.changeSubTypes = changeSubTypes;
+  vm.keyPressSearch = keyPressSearch;
+  vm.fetchDetailPage = fetchDetailPage;
+  vm.changeRemindType = changeRemindType;
+  vm.getPageConfig = getPageConfig;
+  vm.changeSubTypeByHead = changeSubTypeByHead;
+  vm.getAllPerson = getAllPerson;
+  vm.filter = {
+    page: 1,
+    limit: 25,
+    isForMe: 1,
+    messageType: 1,
+    subType: '',
+    isHandled: false
+  };
+  vm.queryEQType = {
+    PayPrice: true,
+    TotalPureProfit: true,
+    ReimVerificationMoney: true,
+    RealReimMoney: true
+  };
+  vm.maxPage = false;
+
+  activate();
+
+  function activate() {
+    setListMax();
+    setType();
+    getBasicData();
+    changeSubTypes();
+    getPageConfig(vm.filter.subType);
+  }
+
+  $scope.status = {};
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  function changeSubTypeByHead(subType){
+    vm.filter.subType = subType.ID;
+    vm.getPageConfig(true)
+  }
+
+  function fetchDetailPage(id, subType, targetID, sender, state, bussinessID) {
+    $rootScope.currentICListItemID = id;
+    $rootScope.currentSender = sender;
+    $rootScope.currentHandleStatus = state;
+    IHaveReadThisItem(id, sender);
+    $rootScope.ICSubType = subType;
+    $scope.fetch(getDetailUrl(id, subType, targetID, bussinessID), id);
+    $scope.openItem();
+  }
+  /**
+   * 已读
+   */
+  function IHaveReadThisItem(itemID, sender) {
+    if ($scope.userinfo._id.$id == sender) {
+      return;
+    }
+    var data = {
+      isRead: true,
+      remindId: itemID
+    };
+    changeInformationStatus(data, function(response) {
+      var itemIndex = _.findIndex($scope.mainData.list, function(i) {
+        return i._id.$id == itemID;
+      });
+      $scope.mainData.list[itemIndex].isRead = true;
+    });
+  }
+  /**
+   * 已处理
+   */
+  function IHaveDealtWithThisItem(itemID) {
+    var data = {
+      isHandled: true,
+      remindId: itemID
+    };
+    changeInformationStatus(data, function(response) {
+      var itemIndex = _.findIndex($scope.mainData.list, function(i) {
+        return i._id.$id == itemID;
+      });
+      $scope.mainData.list[itemIndex].isHandled = true;
+    });
+  }
+
+  function getPageConfig(isChange) {
+    $rootScope[position[1]].pageConfig = getInfomationPageConfig(vm.filter.subType);
+    if ($rootScope[position[1]].pageConfig.search.list.length > 0) {
+      vm.filter.queryType = $rootScope[position[1]].pageConfig.search.list[0].value;
+    } else {
+      vm.filter.queryType = '';
+    }
+    if(isChange){
+      vm.searchList();
+    }
+  }
+
+  function changeRemindType() {
+    if (vm.filter.remindType == 1) {
+      vm.filter.messageType = [1];
+      vm.filter.type = '';
+    } else {
+      vm.filter.messageType = [1, 5];
+      vm.filter.type = vm.filter.remindType;
+    }
+    vm.searchList();
+  }
+
+  function getAllPerson() {
+    getPersonnel({
+      lock: 0,
+      limit: 999999
+    }, function(result) {
+      vm.allPerson = result.list;
+    });
+  }
+
+  function getDetailUrl(itemID, subType, targetID, bussinessID) {
+    var url = "";
+    switch (subType) {
+      case 2: //成本结算
+        {
+          url = "financeCenter/PurchaseBill/Info?BillID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 3: //导游报账
+        {
+          url = "financeCenter/financeGuideReim/Info?GuideReimID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 4: //导游预领
+        {
+          url = "financeCenter/financeGuidePreCollar/Info?FinanceID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 5: //订单退款
+        {
+          url = "informationCenter/financeCenter/orderRefundDetail?RecordID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 6: //订单预付款
+        {
+          url = "financeCenter/financeOrderAdvance/financeOrderAdvanceInfo?id=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 7: //订单暂借款
+        {
+          url = "financeCenter/financeOrderAdvance/financeOrderAdvanceInfo?id=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 8: //其他支出
+        {
+          url = "financeCenter/notBussiness/otherOutDetail?RecordID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID + "&OPtype=Audit";
+        }
+        break;
+      case 9: //三清单
+        {
+          $rootScope.OPtype = "Audit";
+          url = "financeCenter/Census/Detail?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 12: //订单改期
+        {
+          url = "informationCenter/orderCenter/changeDate?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 13: //订单取消
+        {
+          url = "informationCenter/orderCenter/cancel?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 15: //游客退团
+        {
+          url = "informationCenter/orderCenter/quitTeam?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 16: //订单延期
+        {
+          url = "informationCenter/orderCenter/delay?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 27: //订单转让
+        {
+          url = "informationCenter/orderCenter/trans?ID=" + bussinessID + "&targetID=" + targetID + "&subType=" + subType + "&itemID=" + itemID;
+        }
+        break;
+      case 45:
+      case 19:
+      case 20:
+        {
+          $rootScope.listType = "informationList";
+          url = "intentionCustomer/ICOrder/detail?recordID=" + targetID;
+        }
+        break;
+      case 35: //订单管理组团游
+        {
+          url = 'orderManagement/OMteamtour/detail?id=' + targetID;
+        }
+        break;
+      case 36: //订单管理邮轮游
+        {
+          url = 'orderManagement/OMCruise/detail?id=' + targetID;
+        }
+        break;
+      case 37: //订单管理自助游
+        {
+          url = 'orderManagement/OMFreeTour/detail?id=' + targetID;
+        }
+        break;
+      case 38: //订单管理定制游
+        {
+          url = 'orderManagement/OMCustomTour/detail?ID=' + targetID;
+        }
+        break;
+      case 39: //订单管理自驾游
+        {
+          url = 'orderManagement/OMDriveTour/detail?id=' + targetID;
+        }
+        break;
+      case 40: //订单管理景点门票
+        {
+          url = 'orderManagement/OMAttractionTicket/detail?id=' + targetID;
+        }
+        break;
+      case 41: //订单管理签证
+        {
+          url = 'orderManagement/OMVisa/detail?id=' + targetID;
+        }
+        break;
+      case 42: //订单管理机票
+        {
+          url = 'orderManagement/OMPlaneTicket/detail?OrderID=' + targetID;
+        }
+        break;
+      case 43: //订单管理一团一议
+        {
+          url = 'orderManagement/OMOneTeam/detail?id=' + targetID;
+        }
+        break;
+      case 44: //订单管理地接
+        {
+          url = 'orderManagement/OMPickUp/detail?id=' + targetID;
+        }
+        break;
+      case 17: //回访转移
+        {
+          url = "customerCenter/returnVisit/detail?id=" + targetID + "&itemID=" + itemID;
+        }
+        break;
+        case 18: //客户投诉
+          {
+            url = "customerCenter/returnVisit/detail?id=" + targetID + "&itemID=" + itemID;
+          }
+          break;
+          case 23: //客户投诉_处理人
+            {
+              url = "customerCenter/imComplaint/detail?id=" + targetID + "&itemID=" + itemID + "&subType=23";
+            }
+            break;
+        case 24: //客户投诉_责任人
+          {
+            url = "customerCenter/imComplaint/detail?id=" + targetID + "&itemID=" + itemID + "&subType=24";
+          }
+          break;
+      case 25: //客户投诉_投诉赔偿
+        {
+          url = "customerCenter/imComplaint/detail?id=" + targetID + "&itemID=" + itemID + "&subType=25";
+        }
+        break;
+      default:
+        break;
+    }
+    url += "&source=notice";
+    return url;
+  }
+
+
+  function getBasicData() {
+    if (!global.InformationCenter.RemindTypes) {
+      getInformationTypes(function(response) {
+        if (response.code >= 700 && response.code < 800) {
+          global.InformationCenter.RemindTypes = response.data;
+          $rootScope.InformationCenter.RemindTypes = response.data;
+        }
+      });
+    }
+  }
+
+  function setType() {
+    // "informationCenter-informationCenterTasks-FinanceList"
+    var strs = $rootScope.currentMian.split("-");
+    var str = strs[strs.length - 1];
+    switch (str) {
+      case "IntentionCustomerList":
+        vm.filter.type = 4;
+        break;
+      case "FinanceList":
+        vm.filter.type = 1;
+        break;
+      case "OrderList":
+        vm.filter.type = 2;
+        break;
+      case "ServerList":
+        vm.filter.type = 3;
+        break;
+      default:
+        vm.filter.type = 0;
+        break;
+    }
+  }
+
+  function setListMax() {
+    var count = $scope.mainData.count;
+    var page = $scope.mainData.page;
+    var limit = $scope.mainData.limit;
+    var maxPage = Math.ceil(count / limit);
+    vm.maxPage = (page >= maxPage) ? true : false;
+  }
+
+  function readAnItem() {
+
+  }
+
+  function doneWithAnItem() {
+
+  }
+
+  function keyPressSearch(event) {
+    if (event.which == 13) {
+      searchList();
+    }
+  }
+
+  function changeSubTypes() {
+    var subTypesIndex = _.findIndex($rootScope.InformationCenter.RemindTypes, function(item) {
+      return item.ID == vm.filter.type;
+    });
+    if (subTypesIndex < 0) return;
+    vm.SubTypes = $rootScope.InformationCenter.RemindTypes[subTypesIndex].subTypes;
+    var param = {
+      type: vm.filter.type
+    };
+    getInformationSubtypeUnhandle(param, function(mResponse){
+      if (mResponse.code >= 700 && mResponse.code < 800) {
+        vm.SubTypesCountAll = mResponse.data;
+        vm.SubTypesCountAll.forEach(function(subTypeCount){
+          var target = _.find(vm.SubTypes, function(subType){
+            return subType.ID == subTypeCount._id;
+          });
+          if(undefined !== target){
+            target.unhandleCount = subTypeCount.count;
+          }
+        });
+      }
+    });
+  }
+
+  function searchList(scrolling) {
+    if (scrolling) { // 如果是下拉
+      console.log(vm.maxPage);
+      if (vm.maxPage) {
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+        return; // 已经是最大页，不再拉取数据
+      } else { // 如果不是最大页，页码+1
+        vm.filter.page += 1;
+      }
+    } else { // 如果不是下拉，重置为页码为1
+      vm.filter.page = 1;
+      $scope.mainData.list = [];
+    }
+    vm.LoadingStatus = true;
+    vm.maxPage = false;
+    vm.filter.startDate = $filter("date")(vm.filter.startDate, "yyyy-MM-dd");
+    vm.filter.dataQueryInfo = {};
+    vm.filter.query = '';
+    if (vm.filter.queryType && vm.filter.dataQuery) {
+      if (vm.queryEQType[vm.filter.queryType]) {
+        if (!isNaN(parseFloat(vm.filter.dataQuery))) {
+          vm.filter.dataQueryInfo = {
+            'eq': [{
+              key: vm.filter.queryType,
+              value: parseFloat(vm.filter.dataQuery)
+            }]
+          };
+        } else {
+          vm.filter.dataQueryInfo = {
+            'eq': [{
+              key: vm.filter.queryType,
+              value: vm.filter.dataQuery
+            }]
+          };
+        }
+      } else {
+        vm.filter.dataQueryInfo = {
+          'like': [{
+            key: vm.filter.queryType,
+            value: vm.filter.dataQuery
+          }]
+        };
+      }
+    }
+    if (!vm.filter.queryType && vm.filter.dataQuery) {
+      vm.filter.query = vm.filter.dataQuery;
+    }
+    getInformationList(vm.filter, changeScope);
+
+    function changeScope(response) {
+      if (response.code >= 700 && response.code < 800) {
+        vm.LoadingStatus = false;
+
+        response.data.list.forEach(function(item) {
+          if (item.messageType == 5) {
+            item.jsonContent = angular.fromJson(item.content);
+          }
+        });
+
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+
+        if (scrolling) {
+          $scope.mainData.list = _.union($scope.mainData.list, response.data.list);
+          $scope.mainData.page = response.data.page;
+          $scope.mainData.count = response.data.count;
+          setListMax();
+        } else {
+          $scope.mainData.list = response.data.list;
+          $scope.mainData.page = response.data.page;
+          $scope.mainData.count = response.data.count;
+          setListMax();
+        }
+      }
+    }
+
+  }
+
+}

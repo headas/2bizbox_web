@@ -1,0 +1,1091 @@
+systemRoute.factory("basicData", function($http, getShopScore, getTrafficMethods, getHotelStarType, getHotelLocation, getHotelStandard, getCooperateCompanyType, getAddrData, getDestination, getDestinationDetailType, getShipInfoList, getShipDetail, getShipSpaceType,
+  visaMaterialBasicData, travelGoodsStockDetail, getTravelGoodsDetail, travelGoodsStorageLog, travelGoodsBasicData, Pagination, _, showErrorInfo, getShoppingDatas, $timeout) {
+  var basicData = {};
+
+  basicData.list = function(callback, param) {
+    $timeout(function(){
+      callback(param);
+    });
+  };
+
+  basicData.shopAdd = function(callback, param) {
+    var requestStep = 0,
+      requestNum = 2;
+
+    function requestOver() {
+      requestStep += 1;
+      if (requestStep >= requestNum)
+        callback(param);
+    }
+
+    getShopScore(function(response) {
+      param.scores = response.data;
+      requestOver();
+    });
+
+    getAddrData(function(response) {
+      param.countries = response;
+      requestOver();
+    });
+  };
+
+  basicData.shopDetail = function(callback, param) {
+    var data = null;
+    getShoppingDatas({
+      ID:param.ID
+    }, function(response){
+      data = {
+        Name: response.data.Title,
+        ID: param.ID,
+        Score: response.data.Score,
+        SellProduct: response.data.SellProduct,
+        Address: response.data.Address
+      }
+
+      if(response.data.ShopingGADDR.Parents.length>0){
+        if(response.data.ShopingGADDR.Parents[0]){
+          data.Country = {
+            Name: response.data.ShopingGADDR.Parents[0].Name,
+            parentid: response.data.ShopingGADDR.Parents[0].parentid
+          }
+        }
+        if(response.data.ShopingGADDR.Parents[1]){
+          data.Province = {
+            Name: response.data.ShopingGADDR.Parents[1].Name,
+            parentid: response.data.ShopingGADDR.Parents[1].parentid
+          }
+        }
+        if(response.data.ShopingGADDR.Parents[2]){
+          data.City = {
+            Name: response.data.ShopingGADDR.Parents[2].Name,
+            parentid: response.data.ShopingGADDR.Parents[2].parentid
+          }
+        }
+      }
+      angular.extend(param, data);
+      param.editUrl = "system/basicData/shopEdit?data=" + encodeURIComponent(JSON.stringify(data));
+      callback(param);
+    });
+  };
+
+  basicData.shopEdit = function(callback, param) {
+    param.data = JSON.parse(decodeURIComponent(param.data));
+
+    var requestStep = 0,
+      requestNum = 2;
+
+    function requestOver() {
+      requestStep += 1;
+      if (requestStep >= requestNum)
+        callback(param);
+    }
+
+    if (param.data.Country) {
+      requestNum++;
+      getAddrData(function(response) {
+        param.regions = response;
+        requestOver();
+      }, param.data.Country.parentid);
+    }
+
+    if (param.data.Province) {
+      requestNum++;
+      getAddrData(function(response) {
+        param.cities = response;
+        requestOver();
+      }, param.data.Province.parentid);
+    }
+
+    getAddrData(function(response) {
+      param.countries = response;
+      requestOver();
+    });
+
+    getShopScore(function(response) {
+      param.scores = response.data;
+      param.isEditMode = 1;
+      for (var i = 0; i < param.scores.length; i++) {
+        if (param.scores[i].Text == param.data.Score) {
+          param.data.Score = param.scores[i];
+          break;
+        }
+      }
+      requestOver();
+    });
+  };
+
+  basicData.trafficAdd = function(callback, param) {
+    callback(param);
+  };
+
+  basicData.trafficEdit = function(callback, param) {
+    param.isEditMode = 1;
+    callback(param);
+  };
+
+  basicData.trafficDetail = function(callback, param) {
+    var data = {
+      "ID": "",
+      "iPageIndex": 1,
+      "iPageSize": pageLimit
+    };
+
+    if (param)
+      for (var i in data)
+        if (param[i])
+          data[i] = param[i];
+
+    HYhttp($http, {
+      url: dreamFlyUrl + "BasicData/TrafficData/TrafficListDatas",
+      method: "POST",
+      data: data
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        var query = "";
+        for (var i in param)
+          query += "&" + i + "=" + param[i];
+
+        param.list = response.data.data.list;
+        param.editUrl = "system/basicData/trafficEdit?" + query.slice(1);
+        param.trafficInfo = {};
+        getTrafficMethods(function(response) {
+          param.traffics = response.data.list;
+          callback(param);
+        });
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+
+  basicData.hotelAdd = function(callback, param) {
+    var requestNum = 3,
+      requestStep = 0;
+
+    function requestOver() {
+      requestStep += 1;
+      if (requestStep >= requestNum)
+        callback(param);
+    }
+
+    param.facility = {
+      "BusinessAffairs": [{
+        "ID": 1,
+        "Name": "会议室"
+      }, {
+        "ID": 2,
+        "Name": "商务中心"
+      }],
+      "Entertainment": [{
+        "ID": 1,
+        "Name": "KTV"
+      }, {
+        "ID": 2,
+        "Name": "棋牌室"
+      }, {
+        "ID": 3,
+        "Name": "桑拿"
+      }],
+      "LeisureTime": [{
+        "ID": 1,
+        "Name": "泳池"
+      }, {
+        "ID": 2,
+        "Name": "健身房"
+      }, {
+        "ID": 3,
+        "Name": "美容美发"
+      }, {
+        "ID": 4,
+        "Name": "SPA"
+      }, {
+        "ID": 5,
+        "Name": "球场"
+      }],
+      "Restaurant": [{
+        "ID": 1,
+        "Name": "中餐"
+      }, {
+        "ID": 2,
+        "Name": "西餐"
+      }, {
+        "ID": 3,
+        "Name": "宴会厅"
+      }, {
+        "ID": 4,
+        "Name": "酒吧"
+      }],
+      "RoomSocialSecurity": [{
+        "ID": 1,
+        "Name": "空调"
+      }, {
+        "ID": 2,
+        "Name": "WIFI"
+      }, {
+        "ID": 3,
+        "Name": "冰柜"
+      }, {
+        "ID": 4,
+        "Name": "洗漱用品"
+      }, {
+        "ID": 5,
+        "Name": "吹风机"
+      }, {
+        "ID": 6,
+        "Name": "水壶"
+      }, {
+        "ID": 7,
+        "Name": "电熨斗"
+      }]
+    };
+
+    param.roomInfo = {
+      Pics: []
+    };
+    param.data = {
+      HotelRooms: [],
+      Pics: []
+    };
+    param.otherPics = [];
+
+    getHotelStarType(function(response) {
+      param.hotelStars = response.list;
+      requestOver();
+    });
+
+    getHotelLocation(function(response) {
+      param.hotelLocations = response;
+      requestOver();
+    });
+
+    getHotelStandard(function(response) {
+      param.hotelStandards = response;
+      requestOver();
+    });
+  };
+
+  basicData.hotelDetail = function(callback, param) {
+    var data = null;
+
+    HYhttp($http, {
+      url: dreamFlyUrl + "BasicData/BasicsHotel/BasicsHotelDetailData",
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        data = response.data.data;
+        data.editUrl = "system/basicData/hotelEdit?ID=" + param.ID;
+        callback(data);
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+
+  basicData.hotelEdit = function(callback, param) {
+    var requestNum = 4,
+      requestStep = 0;
+    param.editMode = 1;
+    param.facility = {
+      "BusinessAffairs": [{
+        "ID": 1,
+        "Name": "会议室"
+      }, {
+        "ID": 2,
+        "Name": "商务中心"
+      }],
+      "Entertainment": [{
+        "ID": 1,
+        "Name": "KTV"
+      }, {
+        "ID": 2,
+        "Name": "棋牌室"
+      }, {
+        "ID": 3,
+        "Name": "桑拿"
+      }],
+      "LeisureTime": [{
+        "ID": 1,
+        "Name": "泳池"
+      }, {
+        "ID": 2,
+        "Name": "健身房"
+      }, {
+        "ID": 3,
+        "Name": "美容美发"
+      }, {
+        "ID": 4,
+        "Name": "SPA"
+      }, {
+        "ID": 5,
+        "Name": "球场"
+      }],
+      "Restaurant": [{
+        "ID": 1,
+        "Name": "中餐"
+      }, {
+        "ID": 2,
+        "Name": "西餐"
+      }, {
+        "ID": 3,
+        "Name": "宴会厅"
+      }, {
+        "ID": 4,
+        "Name": "酒吧"
+      }],
+      "RoomSocialSecurity": [{
+        "ID": 1,
+        "Name": "空调"
+      }, {
+        "ID": 2,
+        "Name": "WIFI"
+      }, {
+        "ID": 3,
+        "Name": "冰柜"
+      }, {
+        "ID": 4,
+        "Name": "洗漱用品"
+      }, {
+        "ID": 5,
+        "Name": "吹风机"
+      }, {
+        "ID": 6,
+        "Name": "水壶"
+      }, {
+        "ID": 7,
+        "Name": "电熨斗"
+      }]
+    };
+
+    function requestOver() {
+      requestStep += 1;
+      if (requestStep >= requestNum)
+        callback(param);
+    }
+
+    getHotelStarType(function(response) {
+      param.hotelStars = response.list;
+      requestOver();
+    });
+
+    getHotelLocation(function(response) {
+      param.hotelLocations = response;
+      requestOver();
+    });
+
+    getHotelStandard(function(response) {
+      param.hotelStandards = response;
+      requestOver();
+    });
+
+    HYhttp($http, {
+      url: dreamFlyUrl + "BasicData/BasicsHotel/BasicsHotelDetailData",
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        param.data = response.data.data;
+
+        // delete param.data.CreateUser;
+        delete param.data.CreateUserIP;
+        // delete param.data.CreateTime;
+        delete param.data.UpdateUser;
+        delete param.data.UpdateUserIP;
+        delete param.data.UpdateTime;
+        delete param.data.delStatus;
+        delete param.data.HotelNo;
+
+        param.standard = {
+          Value: param.data.HotelStandard.ID,
+          Text: param.data.HotelStandard.Name
+        };
+        param.location = {
+          Value: param.data.LocatedPosition.ID,
+          Text: param.data.LocatedPosition.Name
+        };
+        if (param.data.Pics === null) param.data.Pics = [];
+        param.Pics = angular.copy(param.data.Pics);
+        param.addrValue = "";
+        for (var i = 0; i < param.data.HotelGADDR.Parents.length; i++) {
+          if (i === 0)
+            param.addrValue += param.data.HotelGADDR.Parents[i].Name;
+          else
+            param.addrValue += " / " + param.data.HotelGADDR.Parents[i].Name;
+        }
+
+        param.data.HotelGADDR = {
+          ForeignKeyID: param.data.HotelGADDR.ForeignKeyID
+        };
+        param.data.HotelStar = {
+          ForeignKeyID: param.data.HotelStar.ForeignKeyID
+        };
+
+        for (i in param.facility) {
+          if (param.data[i]) {
+            l = 0;
+            for (var j = 0; j < param.data[i].length; j++) {
+              for (; l < param.facility[i].length; l++) {
+                if (param.data[i][j].Name == param.facility[i][l].Name) {
+                  param.facility[i][l].selected = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        requestOver();
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+
+  basicData.cooperateDetail = function(callback, param) {
+    var data = null;
+    HYhttp($http, {
+      url: dreamFlyUrl + "BasicData/ClosingNnit/ClosingNnitOne",
+      method: "POST",
+      data: {ID:param.ID}
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        data = response.data.data;
+        data.editUrl = "system/basicData/cooperateEdit?ID=" + data.ID;
+        angular.extend(data, param);
+        callback(data);
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+
+  basicData.cooperateAdd = function(callback, param) {
+    var requestNum = 2,
+      requestStep = 0;
+
+    function requestOver() {
+      requestStep += 1;
+      if (requestStep >= requestNum)
+        callback(param);
+    }
+
+    getAddrData(function(response) {
+      param.countries = response;
+      requestOver();
+    });
+
+    getCooperateCompanyType(function(response) {
+      param.types = response.data.list;
+      requestOver();
+    });
+  };
+
+  basicData.cooperateEdit = function(callback, param) {
+    var requestNum = 4,
+      requestStep = 0;
+
+    param.editMode = true;
+
+    function requestOver() {
+      requestStep += 1;
+      if (requestStep >= requestNum)
+        callback(param);
+    }
+
+    HYhttp($http, {
+      url: dreamFlyUrl + "BasicData/ClosingNnit/ClosingNnitOne",
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        var data = response.data.data,
+          addr = data.GADDR.Parents;
+        param.data = {
+          ID: param.ID,
+          CompanyTypeid: data.TypeID,
+          Name: data.Name,
+          Address: data.Address,
+          BusinessLicense: data.BusinessLicense,
+          BusinessScope: data.BusinessScope,
+          Content: data.Content,
+        };
+
+        if (addr.length > 0) {
+          param.data.Countryid = addr[0].parentid;
+          param.data.Provinceid = addr[1].parentid;
+          param.data.Cityid = addr[2] && addr[2].parentid || "";
+
+          getAddrData(function(response) {
+            param.regions = response;
+            requestOver();
+          }, addr[0].parentid);
+
+          getAddrData(function(response) {
+            param.cities = response;
+            requestOver();
+          }, addr[1].parentid);
+
+        } else {
+          requestNum = 3;
+          requestOver();
+        }
+
+      } else {
+        showErrorInfo(response);
+      }
+    });
+
+    getAddrData(function(response) {
+      param.countries = response;
+      requestOver();
+    });
+
+    getCooperateCompanyType(function(response) {
+      param.types = response.data.list;
+      requestOver();
+    });
+  };
+
+  basicData.visaMaterialDetail = function(callback, param) {
+    var data = null;
+    HYhttp($http, {
+      url: dreamFlyUrl + "BasicData/BasicsVisa/GetVisaMaterial",
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        data = response.data.data;
+        data.editUrl = "system/basicData/visaMaterialEdit?ID=" + data._id;
+        var reg = /[^\/]*$/;
+
+        if (data.Stencil) {
+          data.StencilName = reg.exec(data.Stencil)[0];
+        }
+
+        if (data.Sample) {
+          data.SampleName = reg.exec(data.Sample)[0];
+        }
+        callback(data);
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+
+  basicData.visaMaterialAdd = function(callback, param) {
+    var data = {};
+    visaMaterialBasicData(function(types) {
+      data.materialTypes = types.data;
+      data.SampleData = {};
+      data.StencilData = {};
+      callback(data);
+    });
+  };
+
+  basicData.visaMaterialEdit = function(callback, param) {
+    var data = null;
+    HYhttp($http, {
+      url: dreamFlyUrl + "BasicData/BasicsVisa/GetVisaMaterial",
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        data = response.data.data;
+        data.isEditMode = true;
+
+        var reg = /[^\/]*$/;
+
+        if (data.Stencil) {
+          data.StencilData = {
+            url: data.Stencil,
+            name: reg.exec(data.Stencil)[0]
+          };
+        }else {
+          data.StencilData = {};
+        }
+
+        if (data.Sample) {
+          data.SampleData = {
+            url: data.Sample,
+            name: reg.exec(data.Sample)[0]
+          };
+        }else {
+          data.SampleData = {};
+        }
+
+        visaMaterialBasicData(function(types) {
+          data.materialTypes = types.data;
+          data.materialTypes.forEach(function(item) {
+            if (-1 != _.findIndex(data.VisaMaterialTypes, {
+                Name: item.Name
+              })) {
+              item.isSelected = true;
+            }
+          });
+          callback(data);
+        });
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+
+  basicData.travelGoodsEdit = function(callback, param) {
+    var data = {};
+    getTravelGoodsDetail(function(response) {
+      data = response.data;
+      data.isEditMode = true;
+      data.TravelGoodPic = {
+        url: data.TravelGoodUrl
+      };
+      travelGoodsBasicData(function(basicData) {
+        data.goodsType = basicData.goodsType;
+        data.TravelGoodType = data.goodsType[_.findIndex(data.goodsType, {
+          ID: data.TravelGoodType.ForeignKeyID
+        })];
+        callback(data);
+      });
+    }, param);
+  };
+
+  basicData.travelGoodsAdd = function(callback) {
+    var data = {};
+    data.TravelGoodPic = {};
+    travelGoodsBasicData(function(basicData) {
+      data.goodsType = basicData.goodsType;
+      callback(data);
+    });
+  };
+
+  basicData.travelGoodsDetail = function(callback, param) {
+    var data = {};
+    travelGoodsStockDetail(function(stock) {
+      data.stockInfo = stock.data;
+      getTravelGoodsDetail(function(info) {
+        data.detail = info.data;
+        data.editUrl = "system/basicData/travelGoodsEdit?ID=" + data.detail._id;
+        if (null !== data.detail.TravelGoodUrl && data.detail.TravelGoodUrl.indexOf("http") == -1) {
+          data.detail.TravelGoodUrl = data.detail.TravelGoodUrl.indexOf('http')>-1?data.detail.TravelGoodUrl:(picUrl + data.detail.TravelGoodUrl);
+        }
+        travelGoodsStorageLog(function(store) {
+          data.store = store.data;
+          travelGoodsStorageLog(function(orderExport) {
+            data.orderExport = orderExport.data;
+            var storePage = new Pagination(parseInt(data.store.count), 1, 10);
+            var orderPage = new Pagination(parseInt(data.orderExport.count), 1, 10);
+            data.Pagination = {
+              store: storePage,
+              order: orderPage
+            };
+            angular.extend(data, param);
+            callback(data);
+          }, {
+            ID: param.ID,
+            TravelGoodsSources: 2,
+            iPageIndex: 1,
+            iPageSize: 10
+          });
+        }, {
+          ID: param.ID,
+          TravelGoodsSources: 3,
+          iPageIndex: 1,
+          iPageSize: 10
+        });
+      }, param);
+    }, param);
+  };
+
+  basicData.destinationDetail = function(callback, param) {
+    var requestNum = 2,
+      requestStep = 0;
+
+    param.editUrl = "system/basicData/destinationEdit?ID=" + param.ID;
+
+    function requestOver() {
+      requestStep += 1;
+      if (requestStep >= requestNum)
+        callback(param);
+    }
+
+    getDestinationDetailType(function(response) {
+      param.detailType = response.data;
+      param.detailType.forEach(function(ele) {
+        ele.Notes = "";
+        ele.selected = false;
+      });
+      requestOver();
+    });
+
+    getAddrData(function(response) {
+      param.list = response;
+      requestOver();
+    }, param.ID);
+  };
+
+  basicData.destinationAdd = function(callback, param) {
+    getAddrData(function(response) {
+      param.data = {};
+      param.continents = response;
+      callback(param);
+    }, "");
+  };
+
+  basicData.destinationEdit = function(callback, param) {
+    getAddrData(function(response) {
+      param.isEditMode = true;
+      param.continents = response;
+      getDestination(function(response) {
+        param.data = response.data;
+        callback(param);
+      }, {
+        ID: param.ID
+      });
+    }, "");
+  };
+
+  basicData.shipCompanyDetail = function(callback, param) {
+    param.iPageSize = pageLimit;
+    param.iPageIndex = 1;
+    getShipInfoList(function(response) {
+      param.list = response.data.list;
+      param.editUrl = "system/basicData/shipCompanyEdit?companyInfo=" + param.companyInfo;
+      callback(param);
+    }, {
+      ID: param.ID,
+      iPageIndex: param.iPageIndex,
+      iPageSize: param.iPageSize
+    });
+  };
+
+  basicData.shipCompanyAdd = function(callback, param) {
+    param.data = {
+      "ID": "",
+      "CompanyName_ZH": "",
+      "CompanyName_EN": "",
+      "Logo": "",
+      "Mem": ""
+    };
+
+    callback(param);
+  };
+
+
+  basicData.shipCompanyEdit = function(callback, param) {
+    param.data = JSON.parse(decodeURIComponent(param.companyInfo));
+    param.isEditMode = true;
+
+    callback(param);
+  };
+
+  basicData.shipDetail = function(callback, param) {
+    getShipDetail(function(response) {
+      param.data = response.data;
+      getShipSpaceType(function(response) {
+        param.shipSpaceType = response.data;
+        callback(param);
+      });
+    }, param);
+  };
+
+  return basicData;
+});systemRoute.service("permission", function($rootScope, _, getPermissionList, getPermissionDetail, getPermissionBasicData,
+getPermissionRoleMenu) {
+  var permissionRoute = {};
+
+  permissionRoute.list = function(callback, param) {
+    var data = {};
+    data.search = {
+      limit: 9999,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getPermissionList(data.search, function(response) {
+      response.data.forEach(function(item) {
+        item.showUrl = 'system/permission/detail?id=' + item._id.$id;
+      });
+      data.list = response.data;
+      callback(data);
+    });
+  };
+
+  permissionRoute.detail = function(callback, param) {
+    var data = {};
+    getPermissionDetail(param.id, function(response) {
+      data = response;
+			getPermissionRoleMenu(param.id, function(menus){
+				data.menus = menus;
+				data.editUrl = 'system/permission/edit?id=' + response._id.$id;
+	      callback(data);
+			});
+    });
+  };
+
+  permissionRoute.add = function(callback, param) {
+    var data = {};
+    getPermissionBasicData(function(response) {
+      data.allMenus = response.allMenus;
+      data.roleGroupTypes = response.roleGroupTypes;
+      data.taskList = [];
+      data.removeTaskList = [];
+      data.activeCheckSubListMenuID = '';
+      data.detail = {taskList: []};
+      callback(data);
+    });
+  };
+
+  permissionRoute.edit = function(callback, param) {
+    var data = {};
+    getPermissionBasicData(function(response) {
+      data.allMenus = response.allMenus;
+      data.isEditMode = true;
+      data.roleGroupTypes = response.roleGroupTypes;
+      data.taskList = [];
+      data.removeTaskList = [];
+      getPermissionDetail(param.id, function(roleInfo) {
+        data.roleGroupType = data.roleGroupTypes[_.findIndex(data.roleGroupTypes, {
+          name: roleInfo.RoleGroup.name
+        })];
+				_.forEach(roleInfo.taskList, function(value){
+          value.isSelect = true;
+					_.forEach(data.allMenus.menu, function(navi) {
+						_.forEach(navi, function(menu){
+              if(!menu.menuCommands){
+                menu.menuCommands = [];
+              }
+							if(value.menuID == menu.menuID){
+								menu.isSelect = true;
+                menu.menuCommands.push(value);
+								return true;
+							}
+							_.forEach(menu.list, function(subMenu) {
+                if(!menu[subMenu.menuID]){
+                  menu[subMenu.menuID] = {
+                    menuCommands: []
+                  };
+                }
+								if(value.menuID == subMenu.menuID){
+									menu.isSelect = true;
+                  menu[subMenu.menuID].menuCommands.push(value);
+									return false;
+								}
+							});
+						});
+	        });
+				});
+        data.detail = roleInfo;
+        data.showUrl = 'system/permission/detail?id=' + param.id;
+				data.name = roleInfo.name;
+        callback(data);
+      });
+    });
+  };
+
+  return permissionRoute;
+});
+systemRoute.service("experiential", function($rootScope, _, getExperientialList, getExperientialDetail
+) {
+  var experientialRoute = {};
+
+  experientialRoute.list = function(callback, param) {
+    var data = {};
+    data.search = {
+      CompanyType:3,
+      limit: pageLimit,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getExperientialList(data.search, function(response) {
+      response.data.forEach(function(item) {
+        item.showUrl = 'system/experiential/detail?id=' + item._id.$id;
+      });
+      data.list = response.data;
+      callback(data);
+    });
+  };
+
+  experientialRoute.detail = function(callback, param) {
+    var data = {};
+    getExperientialDetail(param.id, function(response) {
+      data = response;
+
+				data.showUrl = 'system/experiential/detail?id=' + data._id.$id;
+        data.editUrl = 'system/experiential/edit?id=' + data._id.$id;
+
+	      callback(data);
+    });
+  };
+
+  experientialRoute.add = function(callback, param) {
+    var data = {};
+    data.isEditMode = false;
+  
+      callback(data);
+  };
+
+  experientialRoute.edit = function(callback, param) {
+    var data = {};
+    getExperientialDetail(param.id, function(response) {
+     data.CompanyInfo = {};
+      data._id = {};
+      data.showUrl = 'system/experiential/detail';
+      data.isEditMode = true;
+      data.isCheck = true;
+       data._id.$id = response._id.$id;
+       data.CompanyInfo.CompanyName = response.CompanyName;
+       data.CompanyInfo.CompanyDefaultContact = response.CompanyDefaultContact;
+       data.CompanyInfo.CompanyTel = response.CompanyTel;
+       data.CompanyInfo.CompanyEmail = response.CompanyEmail;
+       data.CompanyInfo.CompanyAddress = response.CompanyAddress;
+       data.CompanyInfo.CompanyContent = response.CompanyContent;
+       data.logo = response.logo;
+       data.BusinessLicense = response.BusinessLicense;
+       data.BusinessPermit = response.BusinessPermit;
+       data.InsuranceQualification = response.InsuranceQualification;
+       data.CooperationAgreement = response.CooperationAgreement;
+     callback(data);
+    });
+  };
+
+  return experientialRoute;
+});
+systemRoute.service("counterparts", function($rootScope, _, getCounterpartsList, getCounterpartsDetail
+) {
+  var counterpartsRoute = {};
+
+  counterpartsRoute.list = function(callback, param) {
+    var data = {};
+    data.search = {
+     CompanyType:4,
+      limit: pageLimit,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getCounterpartsList(data.search, function(response) {
+      response.data.forEach(function(item) {
+        item.showUrl = 'system/counterparts/detail?id=' + item._id.$id;
+      });
+      data.list = response.data;
+      callback(data);
+    });
+  };
+
+  counterpartsRoute.detail = function(callback, param) {
+    var data = {};
+    getCounterpartsDetail(param.id, function(response) {
+      data = response;
+
+				data.showUrl = 'system/counterparts/detail?id=' + data._id.$id;
+        data.editUrl = 'system/counterparts/edit?id=' + data._id.$id;
+
+	      callback(data);
+    });
+  };
+
+  counterpartsRoute.add = function(callback, param) {
+    var data = {};
+    data.isEditMode = false;
+  
+      callback(data);
+  };
+
+  counterpartsRoute.edit = function(callback, param) {
+    var data = {};
+    getCounterpartsDetail(param.id, function(response) {
+     data.CompanyInfo = {};
+      data._id = {};
+      data.showUrl = 'system/counterparts/detail';
+      data.isEditMode = true;
+      data.isCheck = true;
+       data._id.$id = response._id.$id;
+       data.CompanyInfo.CompanyName = response.CompanyName;
+       data.CompanyInfo.CompanyDefaultContact = response.CompanyDefaultContact;
+       data.CompanyInfo.CompanyTel = response.CompanyTel;
+       data.CompanyInfo.CompanyEmail = response.CompanyEmail;
+       data.CompanyInfo.CompanyAddress = response.CompanyAddress;
+       data.CompanyInfo.CompanyContent = response.CompanyContent;
+       data.logo = response.logo;
+       data.BusinessLicense = response.BusinessLicense;
+       data.BusinessPermit = response.BusinessPermit;
+       data.InsuranceQualification = response.InsuranceQualification;
+       data.CooperationAgreement = response.CooperationAgreement;
+     callback(data);
+    });
+  };
+
+  return counterpartsRoute;
+});
+systemRoute.service("branchCompany", function($rootScope, _, getCompanyList, getCompanyDetail
+) {
+  var branchCompanyRoute = {};
+
+  branchCompanyRoute.list = function(callback, param) {
+    var data = {};
+    data.search = {
+      CompanyType:2,
+      limit: pageLimit,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+       console.log(param);
+    getCompanyList(data.search, function(response) {
+      response.data.forEach(function(item) {
+        item.showUrl = 'system/branchCompany/detail?id=' + item._id.$id;
+      });
+      data.list = response.data;
+      callback(data);
+    });
+  };
+
+  branchCompanyRoute.detail = function(callback, param) {
+    var data = {};
+    getCompanyDetail(param.id, function(response) {
+      data = response;
+
+				data.showUrl = 'system/branchCompany/detail?id=' + data._id.$id;
+        data.editUrl = 'system/branchCompany/edit?id=' + data._id.$id;
+
+	      callback(data);
+    });
+  };
+
+  branchCompanyRoute.add = function(callback, param) {
+    var data = {};
+    data.isEditMode = false;
+  
+      callback(data);
+  };
+
+  branchCompanyRoute.edit = function(callback, param) {
+    var data = {};
+    getCompanyDetail(param.id, function(response) {
+     data.CompanyInfo = {};
+      data._id = {};
+      data.showUrl = 'system/branchCompany/detail';
+      data.isEditMode = true;
+      data.isCheck = true;
+       data._id.$id = response._id.$id;
+       data.CompanyInfo.CompanyName = response.CompanyName;
+       data.CompanyInfo.CompanyDefaultContact = response.CompanyDefaultContact;
+       data.CompanyInfo.CompanyTel = response.CompanyTel;
+       data.CompanyInfo.CompanyEmail = response.CompanyEmail;
+       data.CompanyInfo.CompanyAddress = response.CompanyAddress;
+       data.CompanyInfo.CompanyContent = response.CompanyContent;
+       data.logo = response.logo;
+       data.BusinessLicense = response.BusinessLicense;
+       data.BusinessPermit = response.BusinessPermit;
+       data.InsuranceQualification = response.InsuranceQualification;
+       data.CooperationAgreement = response.CooperationAgreement;
+     callback(data);
+    });
+  };
+
+  return branchCompanyRoute;
+});

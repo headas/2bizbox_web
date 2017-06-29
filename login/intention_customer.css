@@ -1,0 +1,133 @@
+@charset "utf-8";
+/*意向客户*/
+.pink_color { color: #f86b4f; }
+.blue_color { color: #4b77be; }
+.green_color { color: #17b085; }
+.gray_color { color: #999; }
+font.bold{font-weight:bold}
+.unclickableBtn{padding:5px;border:1px #eee solid;margin-bottom:5px;}
+.speList li { height: 50px; line-height: 20px; padding-top: 7px; line-height: 35px; }
+.speList .l_c { height: 18px; line-height: 18px; }
+.tab_color { width: 100%; table-layout: fixed; }
+.tab_color th { font-weight: normal; background: #f2d0b4; border: 1px solid #dc9860; text-align: center; padding: 5px; }
+.tab_color td { color: #666; text-align: center; padding: 10px 5px; border: 1px solid #d2d2d2; vertical-align: middle; }
+.tab_color td tr:even td {
+background:#eee;
+}
+.tab_color td.left { text-align: left; }
+/*.linkToolBar .popover-title, .pop .popover-title { display: none; }*/
+.linkToolBar .popover-content { font-size: 12px; }
+.w220 { width: 220px; }
+.linkToolBar .popover, .pop .popover { max-width: 800px; }
+
+.vistCon { width: 350px; }
+.record { font-size: 12px; line-height: 18px; }
+/*评价*/
+.tab_cmt { width: 100%; }
+.tab_cmt td.tit-td { background: #f86b4f; color: #fff; text-align: center; border: 1px solid #f86b4f; }
+.tab_cmt th { text-align: center; background: #f2f2f2; color: #666; font-weight: normal; }
+.tab_cmt td, .tab_cmt th { border: 1px dashed #f86b4f; vertical-align: middle; padding: 8px 10px; }
+.color-em { color: #f86b4f; }
+.hided { display: none; }
+.calendar_blue { width: 20px; height: 20px; display: inline-block; vertical-align: middle; background: url(http://gsm.wanmagps.com/images/calendar.png) no-repeat left -28px; }
+/*que_box*/
+.que_box { border: 1px solid #d2d2d2; height: 580px; }
+.que_box .left_col { width: 200px; float: left; background: #f2f2f2; border-right: 1px solid #d2d2d2; height: 100%; }
+.navi_sub_t { width: 100%; }
+.navi_sub_t li { float: left; width:50%; }
+.navi_sub_t li.first a { border-left: none; }
+.navi_sub_t li a { width: 100%; border-bottom: 1px solid #d2d2d2; background: #e4e4e4; border-left: 1px solid #d2d2d2; height: 30px; line-height: 30px; text-align: center; display: block; }
+.navi_sub_t li a.nav_1 { border-left: none; }
+.navi_sub_t li.active a { background: #f2f2f2; border-bottom-color: #f2f2f2; }
+.pro_box { padding: 15px 15px 0; margin: 0; }
+.line_bottom { border-bottom: 1px dashed #ccc; padding-bottom: 15px; margin-bottom: 15px; }
+.pro_box.line_bottom { margin-bottom: 0; padding-bottom: 12px; }
+.navi2, .navi3 { border-bottom: 1px solid #bebebe; height: 25px; line-height: 20px; margin-bottom: 10px; }
+.navi2 a, .navi3 a { display: inline-block; height: 25px; border-bottom: 1px solid #bebebe; margin-bottom: -1px; padding: 0 10px; }
+.navi2 a.now2 { border-bottom: 1px solid #f39800; background: url(http://gsm.wanmagps.com/images/arr_up2.png) no-repeat center bottom; }
+.navi3 { margin-bottom: 15px; }
+.navi3 a { padding: 0 15px; }
+.navi3 a.now2 { border-bottom: 1px solid #22ac38; color: #22ac38; background: url(http://gsm.wanmagps.com/images/arr_up2_green.png) no-repeat center bottom; }
+.panel_navi, .link_p { width: 200px; margin-right: -30px; display: none }
+.link_p { display: block; }
+.panel_navi a, .link_p a { color: #999; padding: 2px 0; width: 78px; text-align: center; display: inline-block; background: #fff; border: 1px solid #d2d2d2; margin: 0 13px 10px 0; }
+.panel_navi a.active, .panel_navi a:hover, .link_p a.active, .link_p a:hover { border-color: #f39800; color: #f39800; }
+.titRow { padding: 10px; border-bottom: 1px dashed #d2d2d2; }
+.titRow h3 { font-weight: bold; cursor: pointer; }
+.titRow h3 span { width: 135px; display: inline-block; }
+.que_list { margin: 10px 0 0 15px;  }
+.que_list li { line-height: 22px; }
+.arr_b { width: 9px; height: 5px; display: inline-block; background: url(http://gsm.wanmagps.com/images/arr_down.png) no-repeat 0 -3px; vertical-align: middle; margin-left: 30px; }
+.arr_b.up { background: url(http://gsm.wanmagps.com/images/arr_up.png) no-repeat 0 -2px; }
+.row_conts { height: 100%; overflow-x: hidden; overflow-y: auto; display: none; }
+.show { display: block; }
+.m dd a { margin-right: 20px; }
+.m dd a.active { color: #f60; }
+.right_col { width: 540px; float: right; height: 100%; overflow: auto; overflow-x: hidden; }
+.red_outline { border: 1px dashed #ff0000; padding: 5px 10px; margin-bottom: 15px; }
+.con_tabT { overflow: hidden; overflow-y: auto; display: none; line-height: 20px; }
+.con_tabT p { margin-bottom: 10px; }
+.con_tabT table p { margin-bottom: 0; }
+.city_list dt { float: left; clear: left; text-align: right; padding-bottom: 15px; line-height: 20px; }
+.city_list dd { padding-left: 70px; padding-bottom: 15px; line-height: 20px; }
+.city_list dd a { margin-right: 17px; display: inline-block; }
+.city_list dd a.active { color: #f60; }
+.colA { padding: 10px 20px 10px 0; }
+.infoPanel { margin-bottom: 15px; }
+.infoPanel p { margin-bottom: 10px; }
+.date_list p span { width: 120px; display: inline-block; color: #444; }
+.queCon { width: 400px; }
+.que_box .popover { max-width: 800px; }
+.select_drop { position: relative; }
+.current_field { border: 1px solid #ccc; width: 160px; padding: 0 10px; position: relative; cursor: pointer; z-index:1111; background:#fff; }
+.current_field.active { border-color:#aaa; border-bottom:none;}
+.arrow_d { position: absolute; top: 10px; right: 10px; width: 10px; height: 10px; display: inline-block; background: url(http://gsm.wanmagps.com/images/arr_down.png) no-repeat left top; }
+.selece_listDrop { width: 175px; border: 1px solid #dcdcdc; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); position: absolute; left: 0; top: 31px; background: #fff; padding: 5px 0 15px; z-index: 9999; }
+.link_list { margin-bottom: 15px; }
+.link_list a { padding: 4px 10px; display: block; }
+.link_list a:hover { background: #f4f4f4; color: #333; }
+.selece_listDrop .form-control { margin: 0 10px; width: 150px; background: #f4f4f4; }
+/*新增意向客户*/
+.row_input .btn_ok { padding-top: 10px; padding-bottom: 9px; }
+.selectPanel { display: inline-block; vertical-align: middle; position: relative; }
+.city_option { border: 1px solid #999; width: 180px; position: absolute; left: 0; top: 30px; background: #fff; z-index: 999; }
+.selectPanel .current_field { width: 170px; }
+.cityTab { margin-left: -1px; height: 28px; }
+.cityTab a { width: 33.3%; float: left; display: inline-block; height: 28px; line-height: 28px; border: 1px solid #999; border-right: none; border-top: none; text-align: center; background: #eee; }
+.cityGroup { padding: 5px 5px 5px 10px; margin-right: -20px; }
+.cityGroup a { display: inline-block; margin: 3px 18px 3px 0; }
+.cityTab a.active { border-bottom: 1px solid #fff; background: #fff; color: #f86b4f; }
+/*日志信息*/
+.record_listRow { border-left: 1px solid #448aca; position: relative; margin-left: 6px; padding-left: 20px; padding-bottom: 10px; }
+.record_listRow.last { border-color: #fff; }
+.record_listRow i.round_dot { width: 13px; height: 13px; display: inline-block; background: #448aca; position: absolute; left: -7px; top: 0; border-radius: 50%; }
+.tab_con .tab-pane { padding: 0 10px; }
+.popUp_ify { position: relative; display: block; width: 100%; background: #f2f2f2; color: #666; margin-bottom: 10px; border: 1px solid #d2d2d2; }
+.red_txt { color: #ff0000; }
+.popUp_ify .arrow { width:5px; height:8px; display: inline-block; background: url(http://gsm.wanmagps.com/images/arr_l.gif) no-repeat; position:absolute; top:10px; left:-5px;}
+.tab_diaryPanel { display:none; min-height:500px; overflow:auto;}
+/*考核分组管理*/
+.int_subMenu { margin-left:30px; font-size:14px;}
+.int_subMenu a { margin-right:25px;}
+.int_subMenu a.active { color:#4b77be;}
+
+.crew { height:28px; width:67px; cursor:pointer; background:#eee; border:1px solid #eee; text-align:center; line-height:28px; display:inline-block; margin:0 10px 10px 0; position:relative;}
+.crew:hover { border:1px solid #c9c9c9; color:#999;}
+a.delted { color:#999; position:absolute; top:0; right:0; line-height:1; font-size:13px; font-family:宋体; display:none;}
+.crew:hover a.delted{ display:block;}
+a.addCrew { width:67px; height:30px; color:#4b77be; border:1px solid #4b77be;  text-align:center; display:inline-block;}
+a.addCrew.active, a.addCrew:hover {background:#4b77be; color:#fff;}
+.add_i { font-size:22px; font-style:normal; line-height:24px; display:inline-block;}
+.crew_relative { position:relative; display: inline-block;}
+
+.siteName span { margin-right:15px; line-height:20px;}
+.checkRpw  .checkbox-inline{ margin-bottom:5px;}
+.city_option.b { width:450px; padding:10px; line-height:20px;}
+.h20 { height:20px; line-height:20px;}
+.list_tel { border-right:1px solid #d9d9d9; margin-right:-1px;}
+.addTelBox { border-left:1px solid #d9d9d9; width:240px; min-width:0;}
+.tabTra tr.active th, .tabTra tr.active td{ background:#fde1e0;}
+.selected_txt { height:30px; line-height:30px;}
+.sl { max-width:370px; height:20px; line-height:20px; display:block;overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+
+#ICPopoverVisible .popover-content { overflow:visible; }

@@ -1,0 +1,303 @@
+app.filter('subStr', function() {
+  return function(input, startIndex, length) {
+    input = input || '';
+    if (length) {
+      return input.substr(startIndex, length);
+    } else {
+      return input.substr(startIndex);
+    }
+  };
+});
+
+app.filter('showObjValueFormArray', function() {
+  return function(input, array, keyTxt, valueTxt) {
+    var findObj = {};
+    findObj[keyTxt] = input;
+    var index = _.findIndex(array, findObj);
+    if (index > -1) {
+      if (array[index][valueTxt]) {
+        return array[index][valueTxt];
+      } else {
+        return '无';
+      }
+    } else {
+      return "-";
+    }
+  };
+});
+
+app.filter('getInnerObjValueFormArray', function(findInnerObjIndex) {
+  return function(input, array, keyTxt, valueTxt) {
+    var index = findInnerObjIndex(array, keyTxt, input);
+    if (index > -1) {
+      if (array[index][valueTxt]) {
+        return array[index][valueTxt];
+      } else {
+        return '无';
+      }
+    } else {
+      return "-";
+    }
+  };
+});
+
+app.filter('timezoneFilter', function() {
+  return function(input) {
+    if(undefined !== input && null !== input)
+      return input.substr(0, 19).replace('T', ' ');
+    return "";
+  };
+});
+
+app.filter('timeDateFilter', function() {
+  return function(input) {
+    if(undefined !== input && null !== input)
+      return input.substr(0, 10);
+    return "";
+  };
+});
+
+app.filter('goodsInOutStatus', function(){
+  return function(input){
+    if(input == 1){
+      return "未出入库";
+    }else if(input == 2){
+      return "正在出入库";
+    }else if(input == 3){
+      return "已出入库";
+    }else{
+      return "未知状态";
+    }
+  }
+});
+app.filter('CCPayStatusFilter', function($rootScope, getEnumeration) {
+  return function(input) {
+    if(input == 1){
+      return "已确认";
+    }
+    return "未确认";
+  };
+});
+
+app.filter('CCFinanceCardInStatusFilter', function($rootScope, getEnumeration) {
+  return function(input) {
+    if(input == 1){
+      return "已充值";
+    }
+    return "未充值";
+  };
+});
+app.filter('roomStatus', function(){
+	return function(input, array){
+		input = parseInt(input);
+		var result =  _.find(array, function(item){
+			return item.Value == input;
+		});
+		if(undefined != result){
+			return result.Text;
+		}
+		return '';
+	};
+});
+app.filter('intentionStatusFilter', function(_){
+	return function(input, array){
+		var target = _.find(global.IntentionCustomer.ReviewState, function(item){
+      return item._id === input;
+    });
+    if(undefined !== target){
+      return target.StateTitle;
+    }
+		return '';
+	};
+});
+app.filter('intentionCusReviewStateFilter', function(_) {
+    return function(value) {
+        var StateFilter=[];
+        for (var i = 0; i < value.length; i++) {
+           if(value[i]._id !== "000000000000000000000008" && value[i]._id !== "000000000000000000000010" &&value[i]._id !== "000000000000000000000011"){
+            StateFilter.push(value[i]);
+           }
+        }
+        return StateFilter;
+       };
+});app.filter('roundInt', function() {
+  return function(input, type) {
+    if(type){
+      if(type === "ceil"){
+        return Math.ceil(input);
+      }else if(type === "floor"){
+        return Math.floor(input);
+      }else{
+        return input;
+      }
+    }else{
+      return Math.round(input);
+    }
+  };
+});
+
+app.filter('fixNumber', function() {
+  return function(input, num) {
+    if(num && !isNaN(num)){
+      return input.toFixed(num);
+    }else{
+      if(undefined !== input && null !== input){
+        return input.toFixed(2);
+      }
+      return "0.00";
+    }
+  };
+});
+app.filter('ICMainTypeFilter', function() {
+  return function(input) {
+    input = parseInt(input);
+    var target = _.find(global.InformationCenter.RemindTypes, function(item) {
+      return item.ID == input;
+    });
+    if (undefined !== target) {
+      return target.name;
+    } else {
+      return '其他类型';
+    }
+  };
+});
+
+app.filter('RemindTaskFetchUrlFilter', function() {
+  return function(notice) {
+    var result = {};
+    switch (notice.subType) {
+      case 31:
+        {
+          result.url = "";
+        }
+        break;
+    }
+  };
+});
+
+app.filter('HandlingItemsInCludeHtml', function() {
+  return function(type) {
+    var url = '';
+    if (type > 0 && type < 5) {//审核通知
+      url = '/public/angularView/common/components/erp_index/checkNotice.html';
+    }
+    switch (type) {
+      case 12://订单管理
+        url = '/public/angularView/common/components/erp_index/orderManagement.html';
+        break;
+      case 13://意向客户
+        url = '/public/angularView/common/components/erp_index/intentionCustomer.html';
+        break;
+      case 8://客户回访
+        url = '/public/angularView/common/components/erp_index/customerServiceCenter.html';
+        break;
+      case 9://团队列表
+        url = '/public/angularView/common/components/erp_index/teamList.html';
+    }
+    return url;
+  };
+});
+
+app.filter('ICFetchUrlFilter', function($rootScope) {
+  return function(notice) {
+    var result = {};
+    result.needOpenSubView = true;
+    switch (notice.subType) {
+      case 2:
+        {
+          result.url = "financeCenter/PurchaseBill/Info?BillID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id + "&OPtype=Audit";
+        }
+        break;
+      case 3: //导游报账
+        {
+          result.url = "financeCenter/financeGuideReim/Info?GuideReimID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id + "&OPtype=Audit";
+        }
+        break;
+      case 4: //导游预领
+        {
+          result.url = "financeCenter/financeGuidePreCollar/Info?FinanceID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id + "&OPtype=Audit";
+        }
+        break;
+      case 5: //订单退款
+        {
+          result.url = "informationCenter/financeCenter/orderRefundDetail?RecordID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id + "&OPtype=Audit";
+        }
+        break;
+      case 6: //订单预付款
+        {
+          result.url = "financeCenter/financeOrderAdvance/financeOrderAdvanceInfo?id=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id + "&OPtype=Audit";
+        }
+        break;
+      case 7: //订单暂借款
+        {
+          result.url = "financeCenter/financeOrderAdvance/financeOrderAdvanceInfo?id=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id + "&OPtype=Audit";
+        }
+        break;
+      case 8: //其他支出
+        {
+          result.url = "financeCenter/notBussiness/otherOutDetail?RecordID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id + "&OPtype=Audit";
+        }
+        break;
+      case 9: //三清单
+        {
+          $rootScope.OPtype = "Audit";
+          result.url = "financeCenter/Census/Detail?ID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id;
+        }
+        break;
+      case 12: //订单改期
+        {
+          result.url = "informationCenter/orderCenter/changeDate?ID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id;
+        }
+        break;
+      case 13: //订单取消
+        {
+          result.url = "informationCenter/orderCenter/cancel?ID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id;
+        }
+        break;
+      case 15: //游客退团
+        {
+          result.url = "informationCenter/orderCenter/quitTeam?ID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id;
+        }
+        break;
+      case 16: //订单延期
+        {
+          result.url = "informationCenter/orderCenter/delay?ID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id;
+        }
+        break;
+      case 19:
+      case 20:
+        {
+          result.url = "informationCenter/informationCenterTasks/IntentionCustomerList?targetId=" + notice.targetId;
+          result.needOpenSubView = false;
+        }
+        break;
+      case 27: //订单转让
+        {
+          result.url = "informationCenter/orderCenter/trans?ID=" + notice.businessId + "&targetId=" + notice.targetId + "&subType=" + notice.subType + "&itemID=" + notice._id;
+        }
+        break;
+      case 29: //意向客户认领
+        {
+          result.url = "intentionCustomer/ICConfirmOrder/list?targetId=" + notice.targetId;
+          result.needOpenSubView = false;
+        }
+        break;
+      case 30: //意向回追
+        {
+          result.url = "intentionCustomer/ICOrderFollow/list?targetId=" + notice.targetId;
+          result.needOpenSubView = false;
+        }
+        break;
+      case 47: //意向回追
+        {
+          result.url = "informationCenter/informationCenterRemind/remindList?type=" + notice.type + "&subType=" + notice.subType;
+          result.needOpenSubView = false;
+        }
+        break;
+      default:
+        break;
+    }
+    result.url += "&source=notice";
+    return result;
+  };
+});

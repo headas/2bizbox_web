@@ -1,0 +1,537 @@
+productOrderService.factory('getBookingIndependentOrderList', function($http, showErrorInfo) {
+  var getBookingIndependentOrderList = function(param1, callBack) {
+    var param = _.extend({
+      gaddrId: '',
+      SearchInfo: '',
+      sTime: '',
+      eTime: '',
+      stationId: '',
+      LineType: 0,
+      days:0,
+      iPageIndex: 1,
+      iPageSize: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderIndependenttravel/BookingOrderList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getBookingIndependentOrderList;
+});
+
+//自助游下单
+productOrderService.factory('saveOrderIndependenttravel', function($http, showErrorInfo) {
+  var saveOrderIndependenttravel = function(param1, callBack,error) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderIndependenttravel/SaveOrderIndependenttravel",
+        data: {
+          RequestData: angular.toJson(param1)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+          if(error) error();
+        }
+      },
+      function() {
+        if(error) error();
+      });
+  };
+  return saveOrderIndependenttravel;
+});
+
+productOrderService.factory('getProductInsurancesByProductIDWithTime', function($http, showErrorInfo){
+  return function(param, callBack){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetProductInsurancesByProductIDWithTime",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productOrderService.factory('getFreeTourPlanPrice', function() {
+  /**
+   * [计算自助游计划最低价格]
+   * @param  {[Array]} planProject [计划产品]
+   * @return {[number]}             [最低价]
+   */
+  return function(planProject) {
+    var minPriceHotel = 0,
+      minPriceTraffic = 0,
+      TrafficSchemePrice = 0,
+      HotelSchemePrice = 0;
+
+    planProject.forEach(function(project) {
+      if (project.ProductType.ProductTypeName === '交通') {
+        project.Traffics.forEach(function(traffic) {
+          if (traffic.IsRemove || traffic.IsSingleSold) return;
+
+          TrafficSchemePrice += traffic.AdultSellingPrice;
+        });
+
+        if (minPriceTraffic === 0 || TrafficSchemePrice < minPriceTraffic) {
+          minPriceTraffic = TrafficSchemePrice;
+        }
+
+        TrafficSchemePrice = 0;
+      } else if (project.ProductType.ProductTypeName === "酒店") {
+        project.Hotels.forEach(function(hotel) {
+          if (hotel.IsRemove || hotel.IsSingleSold) return;
+
+          var min = hotel.HotelRooms.reduce(function(pre, room) {
+            if (room.IsDefaultChecked && room.SellingPrice < pre || pre == 0) return room.SellingPrice;
+            else return pre;
+          }, 0);
+
+          HotelSchemePrice += min;
+        });
+
+        if (minPriceHotel === 0 || HotelSchemePrice < minPriceHotel) {
+          minPriceHotel = HotelSchemePrice;
+        }
+
+        HotelSchemePrice = 0;
+      }
+    });
+    return minPriceTraffic + minPriceHotel;
+  };
+});productOrderService.factory('getBookingOrderList', function($http, showErrorInfo) {
+  var getBookingOrderList = function(param1, callBack) {
+    var param = _.extend({
+      TravelType: '',
+      TravelDays: 0,
+      ProductType: 1,
+      GaddrId: '',
+      SearchInfo: "",
+      StartTime: '',
+      EndTime: '',
+      StationId: '',
+      iPageIndex: 1,
+      iPageSize: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderList/BookingOrderList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getBookingOrderList;
+});
+
+productOrderService.factory('getInfoForBookingTeamOrder', function($http, showErrorInfo) {
+  var getInfoForBookingTeamOrder = function(param1, callBack) {
+    var param = _.extend({
+      ProductType: "1",
+      ProductId: "",
+      PlanId: "",
+      CustomerId: "",
+      IntentOrderId: "",
+      OrderStartStatus: 0,
+      IsPeerOrder: false
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/TeamOrder/InfoForBookingTeamOrder",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getInfoForBookingTeamOrder;
+});
+
+productOrderService.factory('bookingTeamOrder', function($http, showErrorInfo) {
+  var getInfoForBookingTeamOrder = function(param, success, error) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/TeamOrder/BookingTeamOrder",
+        data: {
+          RequestData: angular.toJson(param)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          success(response.data.data);
+        } else {
+          showErrorInfo(response.data.message);
+          error();
+        }
+      },
+      function() {
+        error();
+      });
+  };
+  return getInfoForBookingTeamOrder;
+});
+
+/**
+ * 往计调和销售的常见任务中添加订单信息
+ */
+productOrderService.factory('sendOrderInfo', function($http, showErrorInfo) {
+  var getInfoForBookingTeamOrder = function(OrderID) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "SendMsg/SendMsg/SendMsgByOrder",
+        data: {
+          OrderID:OrderID,
+          erpRemindType:12,
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          console.log(response);
+        } else {
+
+        }
+      },
+      function() {
+      });
+  };
+  return getInfoForBookingTeamOrder;
+});
+
+/**
+ * 根据计划获取车辆占座信息
+ */
+productOrderService.factory('getSeatInfoByPlanAndCar', function($http, showErrorInfo) {
+  return function(param, success) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/order/getPlanCarSeatByID",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          success(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {
+      });
+  };
+});
+//签证下单
+productOrderService.factory('saveOrderVisa', function($http, showErrorInfo) {
+  var saveOrderIndependenttravel = function(param1, callBack,errer) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderVisa/SaveOrderVisa",
+        data: {
+          RequestData: JSON.stringify(param1)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {
+        errer();
+      });
+  };
+  return saveOrderIndependenttravel;
+});
+//景点门票下单列表
+productOrderService.factory('getBasicsScenicList', function($http, showErrorInfo) {
+  var getBasicsScenicList = function(param1, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderScenic/BasicsScenicList",
+        data: param1,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getBasicsScenicList;
+});
+
+//景点门票下单
+productOrderService.factory('bookingScenicTicketsOrder', function($http, showErrorInfo) {
+  var getBasicsScenicList = function(param1, callBack,error) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderScenic/BookingTeamOrder",
+        data: {
+          RequestData: JSON.stringify(param1)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+          if(error) error();
+        }
+      },
+      function() {
+        error();
+      });
+  };
+  return getBasicsScenicList;
+});
+productOrderService.factory('getSelfdrivingtourList', function($http, showErrorInfo) {
+  var getSelfdrivingtourList = function(param1, callBack) {
+    var param = _.extend({
+      GaddrID: "",
+      SearchInfo: "",
+      StationID: '',
+      LineTypeID: 0,
+      TravelDays: 0,
+      iPageIndex: 1,
+      iPageSize: pageLimit,
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderSelfdrivingtour/SelfdrivingtourList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getSelfdrivingtourList;
+});
+
+productOrderService.factory('bookingSelfdrivingtourOrder', function($http, showErrorInfo) {
+  var getSelfdrivingtourList = function(param1, callBack,error) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderSelfdrivingtour/BookingSelfdrivingtourOrder",
+        data: {
+          RequestData: JSON.stringify(param1)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          error();
+          showErrorInfo(response.data);
+        }
+      },
+      function() {
+       error();
+      });
+  };
+  return getSelfdrivingtourList;
+});
+productOrderService.factory('getOneTeamBookingList', function($http, showErrorInfo) {
+  var getBookingOrderList = function(param1, callBack) {
+    var param = _.extend({
+      TripTypeID: null,
+      TripDays: null,
+      DomesticAddressID: null,
+      AbroadAddressID: null,
+      SearchKey: "",
+      StationID: null,
+      PageIndex: 1,
+      PageSize: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OneTeamOrder/GetOneTeamBookingList",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getBookingOrderList;
+});
+
+productOrderService.factory('getProductInsurancesByProductIDWithNone', function($http, showErrorInfo) {
+  var getProductInsurancesByProductIDWithNone = function(param1, callBack) {
+    var param = _.extend({
+      ProductTypeID: "000000000000000000000001",
+      ProductID: "000000000000000000227602"
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetProductInsurancesByProductIDWithNone",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getProductInsurancesByProductIDWithNone;
+});
+
+
+productOrderService.factory('getProductInsurancesByProductIDWithTime', function($http, showErrorInfo) {
+  var getProductInsurancesByProductIDWithTime = function(param1, callBack) {
+    var param = _.extend({
+      ProductTypeID: "000000000000000000000001",
+      ProductID: "000000000000000000227602",
+      StartTime: "2020-11-9",
+      EndTime: "2020-11-12"
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetProductInsurancesByProductIDWithTime",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getProductInsurancesByProductIDWithTime;
+});
+
+//一团一议（组团游下单）
+productOrderService.factory('addOneTeamOrder', function($http, showErrorInfo) {
+  var addOneTeamOrder = function(param1, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OneTeamOrder/AddOneTeamOrder",
+        data: {
+          OneTeamOrder: JSON.stringify(param1)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addOneTeamOrder;
+});
+
+//一团一议自由行下单
+productOrderService.factory('saveOrderCustomTour', function($http, showErrorInfo) {
+  var saveOrderCustomTour = function(param1, callBack,errer) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderCustomTour/SaveOrderCustomTour",
+        data: {
+          RequestData: JSON.stringify(param1)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {
+        errer();
+      });
+  };
+  return saveOrderCustomTour;
+});
+
+productOrderService.factory('getTrafficListDatas', function($http, showErrorInfo) {
+  var getTrafficListDatas = function(param1, callBack) {
+    var param = _.extend({
+      ID: "",
+      TrafficType: "",
+      Title: "",
+      StartCity: "",
+      ArresCity: "",
+      iPageIndex: 1,
+      iPageSize: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/TrafficData/TrafficListDatas",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTrafficListDatas;
+});

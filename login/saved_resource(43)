@@ -1,0 +1,292 @@
+/**
+ * 目的地分配
+ */
+
+angular.module("intentionCustomerRoute").service("ICCityAssignment", ICCityAssignment);
+
+function ICCityAssignment(getCityAssignmentList, getCityAssignmentDetail) {
+	var CityAssignment = {};
+	CityAssignment.list = list;// 显示列表
+	CityAssignment.detail = detail;// 显示详细页
+	return CityAssignment;
+
+	function list(callback, param) {
+		getCityAssignmentList(param, constructResponse);
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+
+	function detail(callback, param) {
+		getCityAssignmentDetail(param, constructResponse);
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+}/**
+ * 意向订单
+ */
+angular.module("intentionCustomerRoute").service("ICConfirmOrder", ICConfirmOrder);
+
+function ICConfirmOrder(getICConfirmOrderList, getICConfirmListForServer) {
+  var Order = {};
+  Order.list = list;
+  return Order;
+
+  function list(callback, param) {
+    if (judgeMeAsAServer()) {
+      getICConfirmListForServer([], constructResponse);
+    } else if (judgeMeAsASale() || judgeMeAsAnOperator()) {
+      getICConfirmOrderList([], constructResponse);
+    } else {
+      console.log(global.userinfo.Label);
+    }
+
+    function constructResponse(response) {
+      console.log(response);
+      callback(response);
+    }
+    /**
+     *我是否是计调
+     **/
+    function judgeMeAsAnOperator() {
+      myLabels = _.pluck(global.userinfo.Label, "LabelGroup");
+      var labelGroupName = ["计调", "线路经理", '中心经理'];
+      var tag = false;
+      myLabels.forEach(function(item) {
+        if (_.indexOf(labelGroupName, item) > -1) {
+          tag = true;
+        }
+      });
+      return tag;
+    }
+    /**
+     * 我是否是客服
+     */
+    function judgeMeAsAServer(myLabels) {
+      if (!myLabels) {
+        myLabels = _.pluck(global.userinfo.Label, "LabelGroup");
+      }
+      var labelGroupName = ["客服"];
+      var tag = false;
+      myLabels.forEach(function(item) {
+        if (_.indexOf(labelGroupName, item) > -1) {
+          tag = true;
+        }
+      });
+      return tag;
+    }
+    /**
+     * 我是否是私顾
+     */
+    function judgeMeAsASale(myLabels) {
+      if (!myLabels) {
+        myLabels = _.pluck(global.userinfo.Label, "LabelGroup");
+      }
+      var labelGroupName = ["私顾", '私人旅游顾问', "中心经理"];
+      var tag = false;
+      myLabels.forEach(function(item) {
+        if (_.indexOf(labelGroupName, item) > -1) {
+          tag = true;
+        }
+      });
+      return tag;
+    }
+  }
+}
+/**
+ * 意向客户
+ */
+
+angular.module("intentionCustomerRoute").service("ICCustomer",ICCustomer);
+
+ICCustomer.$inject=['getICCustomerList'];
+
+function ICCustomer(getICCustomerList){
+	var Customer={};
+	Customer.list=list;//显示列表
+	return Customer;
+	
+	function list(callback,param){
+		getICCustomerList([],constructResponse);
+		function constructResponse(response){
+			callback(response);
+		}
+	}
+}/**
+ * 已添加意向订单
+ */
+angular.module("intentionCustomerRoute").service("ICOrderAdded",ICOrderAdded);
+
+function ICOrderAdded(getICOrderAddedList){
+	var Order={};
+	Order.list=list;
+	Order.detail=detail;
+	return Order;
+
+	function list(callback, param) {
+		getICOrderAddedList({page:1,pageSize:20}, constructResponse);
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+
+	function detail(callback, param) {
+		getICOrderAddedDetail([], constructResponse);
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+}
+/**
+ * 意向订单
+ */
+angular.module("intentionCustomerRoute").service("ICOrder", ICOrder);
+
+function ICOrder($rootScope, getOrderList, getOrderDetail, getLineDetailByProductID, getMemberByID, getPlanDetailByPlanID, getADestinationFromAPI) {
+    var Order = {};
+    Order.list = list;
+    Order.detail = detail;
+    Order.add = add;
+    Order.edit = edit;
+    Order.log = log;
+    Order.autoAdd = autoAdd;
+    Order.lineDetail = lineDetail;
+    return Order;
+
+    function lineDetail(callback, param) {
+
+        getLineDetailByProductID(param, function(response) {
+            console.log('%cparam', 'background:blue;color:white;padding:2px 5px;', param);
+            console.log('%cresponse', 'background:red;color:white;padding:2px 5px;', response);
+
+            var lineDetailResponse = response.data.data;
+            console.log('%clineDetailResponse', 'background:red;color:white;padding:2px 5px;', lineDetailResponse);
+
+            getPlanDetailByPlanID({
+                id: param.planID
+            }, function(planResponse) {
+                console.log('%cplanResponse', 'background:red;color:white;padding:2px 5px;', planResponse);
+                if (planResponse.code >= 700 && planResponse.code < 800) {
+                    lineDetailResponse.PriceTypes = _.union(planResponse.data.ProductPlanPrice_isDefault0, planResponse.data.ProductPlanPrice_isDefault1);
+                    lineDetailResponse.ProductPlan = planResponse.data;
+                    lineDetailResponse.PriceTypesEmpty = false;
+                    if (lineDetailResponse.PriceTypes.length == 0) {
+                        lineDetailResponse.PriceTypesEmpty = true;
+                    }
+                }
+                getADestinationFromAPI({
+                    ID: lineDetailResponse.ProductGADDR.ForeignKeyID.$id
+                }, function(desResponse) {
+                    console.log('%cdesResponse', 'background:red;color:white;padding:2px 5px;', desResponse);
+                    lineDetailResponse.MainADDR = desResponse;
+                    console.log('%clineDetailResponse', 'background:black;color:white;padding:2px 5px;', lineDetailResponse);
+                    callback(lineDetailResponse);
+                })
+
+            });
+        });
+    }
+
+
+    function log(callback, param) {
+        callback(param);
+    }
+
+    function autoAdd(callback, param) {
+        callback(param);
+    }
+
+    function edit(callback, param) {
+        callback(param);
+    }
+
+    function add(callback, param) {
+        callback(param);
+    }
+
+    function list(callback, param) {
+        getOrderList(param, constructResponse);
+
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+
+    function detail(callback, param) {
+        getOrderDetail(param, constructResponse);
+
+        function constructResponse(response) {
+            if (response.CustomerInfo.ID) {
+                getMemberByID(response.CustomerInfo.ID, function(memberInfo) {
+                    if (memberInfo.CustomerName) {
+                        response.CustomerInfo.GenderType = memberInfo.Enlarge.GenderTypeID == 1 ? "先生" : "女士";
+                        response.CustomerInfo.MemberType = memberInfo.Enlarge.CustomerLevelID.$id;
+                    } else {
+                        response.CustomerInfo.GenderType = "";
+                        response.CustomerInfo.MemberType = "非会员";
+                    }
+                    callback(response);
+                });
+            } else {
+                callback(response);
+            }
+
+
+        }
+
+    }
+
+}
+/**
+ * 意向订单
+ */
+angular.module("intentionCustomerRoute").service("ICOrderFollow",ICOrderFollow);
+
+function ICOrderFollow(getICOrderFollowList){
+	var Order={};
+	Order.list=list;
+	return Order;
+	
+	function list(callback, param) {
+		getICOrderFollowList(param, constructResponse);
+		function constructResponse(response) {
+			console.log(response);
+			callback(response);
+		}
+	}
+}/**
+ * 考核分组
+ */
+angular.module("intentionCustomerRoute").service("ICPerformanceManagement",
+		ICPerformanceManagement);
+
+ICPerformanceManagement.$inject = [ 'getPerformanceGroupList','getPerformanceGroupDetail' ];
+
+function ICPerformanceManagement(getPerformanceGroupList,getPerformanceGroupDetail) {
+	var ICPerformanceManagement = {};
+	ICPerformanceManagement.list = list;// 显示列表
+	ICPerformanceManagement.detail = detail;// 显示组的详细信息
+	ICPerformanceManagement.add=add;//显示添加页面
+	return ICPerformanceManagement;
+
+	// //////////////
+
+	function list(callback, param) {
+		getPerformanceGroupList(param, constructResponse);
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+
+	function detail(callback, param) {
+		getPerformanceGroupDetail(param,constructResponse);
+		function constructResponse(response){
+			callback(response);
+		}
+	}
+	
+	function add(callback, param) {
+			callback({});
+	}
+}

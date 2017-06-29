@@ -1,0 +1,674 @@
+/**
+ * Created by li on 2016/4/6.
+ * 订单收款明细 控制器
+ */
+app.controller('IReceivablesOperateController', function($scope, $filter, $rootScope,
+  SaveOrderBillInData,
+  SaveOrderUnBillInData,
+  delOrderFinanceRecord,
+  showWarningBox,
+  orderReceivables) {
+  var view = this;
+  $scope.detailData.template = {};
+  $scope.detailData.template.baseUrl = "/public/angularView/finances/orderReceivables/";
+  $scope.detailData.template.ApplyReceivables = $scope.detailData.template.baseUrl + "confirm.html";
+  $scope.detailData.template.baseExtendUrl = $scope.detailData.template.baseUrl + "extend/";
+  $scope.detailData.template.baseCancelUrl = $scope.detailData.template.baseUrl + "cancelConfirm.html";
+  initUrlOrFunInfo($scope.detailData.PayModeID, false);
+  if ($scope.detailData.template.ReceivableTypes.length <= 0)
+    $scope.detailData.template.ReceivableTypes = $scope.detailData.template.baseExtendUrl + "confirm_common.html";
+
+  $scope.detailData.popStatus = {
+    IsShowPop: false,
+    IsShowCancelPop: false
+  };
+
+  view.changeStatus = changeStatus;
+  view.changeMoneyType = changeMoneyType;
+  view.changePayMode = changePayMode;
+  view.changePayBank = changePayBank;
+  view.submitApply = submitApply;
+  view.cancelApply = cancelApply;
+  view.removeApply = removeApply;
+  view.deleteApply = deleteApply;
+  view.initUrl = initUrl;
+  view.initUrlOrFunInfo = initUrlOrFunInfo;
+
+  $scope.detailData.btnIsdisable = false;
+
+  $scope.detailData.edits = {};
+  $scope.detailData.verification = {
+    moneyTypetatus: false,
+    payModeStatus: false,
+    payBankStatus: false,
+    cardNoStatus: false,
+    cardPasswordStatus: false
+  };
+
+  $scope.detailData.detailTipInfo = "";
+  $scope.detailData.detailTipInfoType = "";
+
+  function changeStatus(type) {
+    $scope.detailData.verification[type] = false;
+  }
+
+  //切换收款类型时，进行数据对象的绑定
+  function changeMoneyType() {
+    var MoneyTypeObjectIndex = _.findIndex($rootScope.FinancesType.mtList, function(item) {
+      return item._id == $scope.detailData.edits.MoneyTypeValue;
+    });
+    $scope.detailData.edits.MoneyType = $rootScope.FinancesType.mtList[MoneyTypeObjectIndex];
+  }
+
+  //切换收款方式时，进行数据对象的绑定
+  function changePayMode(bIsUpdateUrl) {
+    var PayModeObjectIndex = _.findIndex($rootScope.FinancesType.paymodeList, function(item) {
+      return item._id == $scope.detailData.edits.PayModeValue;
+    });
+    $scope.detailData.edits.PayMode = $rootScope.FinancesType.paymodeList[PayModeObjectIndex];
+    if (bIsUpdateUrl)
+      initUrlOrFunInfo($scope.detailData.edits.PayMode._id, false);
+  }
+
+  function initUrl(bIsFun) {
+    var sPayModeID = $scope.detailData.PayModeID;
+    if ($scope.detailData.edits.PayModeValue) {
+      if ($scope.detailData.edits.PayModeValue.length > 0 && $scope.detailData.PayModeID != $scope.detailData.edits.PayModeValue) {
+        sPayModeID = $scope.detailData.edits.PayModeValue;
+      }
+    }
+    initUrlOrFunInfo(sPayModeID, bIsFun);
+  }
+
+  function initUrlOrFunInfo(sPayModeValue, bIsFun) {
+    if (!$scope.detailData.edits)
+      $scope.detailData.edits = {};
+    if (!$scope.detailData.edits.MoneyTypeValue) {
+      $scope.detailData.edits.MoneyTypeValue = $scope.detailData.MoneyTypeID;
+      changeMoneyType();
+    }
+    if ($scope.detailData.PayModeID != '000000000000000000000019' && sPayModeValue == '000000000000000000000019') {
+      $scope.detailData.edits.PayModeValue = $scope.detailData.PayModeID;
+      changePayMode(false);
+      sPayModeValue = $scope.detailData.PayModeID;
+    }
+    if ($scope.detailData.edits.PayModeValue) {
+      if ($scope.detailData.edits.PayModeValue != sPayModeValue) {
+        $scope.detailData.edits.PayModeValue = sPayModeValue;
+      }
+      changePayMode(false);
+    } else {
+      $scope.detailData.edits.PayModeValue = sPayModeValue;
+    }
+    switch (sPayModeValue) {
+      //刷卡+转帐
+      case "000000000000000000000003":
+      case "000000000000000000000004":
+        if (bIsFun) {
+          submitApply_Bankpay();
+        } else {
+          if (!$scope.detailData.edits.PayBankValue) {
+            $scope.detailData.edits.PayBankValue = $scope.detailData.PayBankID;
+            changePayBank();
+          }
+          $scope.detailData.template.ReceivableTypes = $scope.detailData.template.baseExtendUrl + "confirm_bankpay.html";
+        }
+        break;
+        //会员卡
+      case "000000000000000000000015":
+        if (bIsFun) {
+          submitApply_Membershipcard();
+        } else {
+          $scope.detailData.edits.CardNo = $scope.detailData.CardNo;
+          $scope.detailData.edits.CardPassword = "";
+          $scope.detailData.template.ReceivableTypes = $scope.detailData.template.baseExtendUrl + "confirm_membershipcard.html";
+        }
+        break;
+        //积分消费
+      case "000000000000000000000019":
+        if (bIsFun) {
+          submitApply_Integral();
+        } else {
+          $scope.detailData.template.ReceivableTypes = $scope.detailData.template.baseExtendUrl + "confirm_integral.html";
+        }
+        break;
+      default:
+        if (bIsFun) {
+          submitApply_Common();
+        } else {
+          $scope.detailData.template.ReceivableTypes = $scope.detailData.template.baseExtendUrl + "confirm_common.html";
+        }
+        break;
+    }
+  }
+
+  //切换支付银行时，进行数据对象的绑定
+  function changePayBank() {
+    var PayBankObjectIndex = _.findIndex($rootScope.FinancesType.bankList, function(item) {
+      return item._id == $scope.detailData.edits.PayBankValue;
+    });
+    $scope.detailData.edits.PayBank = $rootScope.FinancesType.bankList[PayBankObjectIndex];
+  }
+
+  function submitApply() {
+    initUrlOrFunInfo($scope.detailData.edits.PayModeValue, true);
+  }
+
+  //提交收款确认--刷卡+转帐
+  function submitApply_Bankpay() {
+    if (checkInput()) {
+      var pars = {
+        FinanceID: $scope.detailData.RecordID,
+        Notes: $scope.detailData.edits.ConfirmNotes
+      };
+      if ($scope.detailData.edits.MoneyType) {
+        pars.MoneyTypeID = $scope.detailData.edits.MoneyType._id;
+      }
+      if ($scope.detailData.edits.PayMode) {
+        pars.PayModeID = $scope.detailData.edits.PayMode._id;
+      }
+      if ($scope.detailData.edits.PayBank) {
+        pars.BankID = $scope.detailData.edits.PayBank._id;
+      }
+      $scope.detailData.btnIsdisable = true;
+      $scope.detailData.popStatus.IsShowPop = false;
+      SaveOrderBillInData(pars, refreshPage_Bankpay, function() {
+        $scope.detailData.btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData.verification.moneyTypeStatus = false;
+      $scope.detailData.verification.payModeStatus = false;
+      $scope.detailData.verification.payBankStatus = false;
+
+      if (!$scope.detailData.edits.MoneyType) {
+        $scope.detailData.detailTipInfo = "未选择收款类型";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.moneyTypeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData.edits.MoneyType._id) {
+          $scope.detailData.detailTipInfo = "未选择收款类型";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData.verification.moneyTypeStatus = true;
+          return false;
+        }
+      }
+
+      if (!$scope.detailData.edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择收款方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData.edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择收款方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData.verification.payModeStatus = true;
+          return false;
+        }
+      }
+
+      // if (!$scope.detailData.edits.PayBank) {
+      //   $scope.detailData.detailTipInfo = "未选择收款银行";
+      //   $scope.detailData.detailTipInfoType = "error";
+      //   $scope.detailData.verification.payBankStatus = true;
+      //   return false;
+      // } else {
+      //   if (!$scope.detailData.edits.PayBank._id) {
+      //     $scope.detailData.detailTipInfo = "未选择收款银行";
+      //     $scope.detailData.detailTipInfoType = "error";
+      //     $scope.detailData.verification.payBankStatus = true;
+      //     return false;
+      //   }
+      // }
+
+      return true;
+    }
+  }
+
+  //刷新界面并关闭当前的Pop界面--刷卡+转帐
+  function refreshPage_Bankpay(data) {
+    if ($scope.detailData.edits.MoneyType) {
+      $scope.detailData.MoneyTypeName = $scope.detailData.edits.MoneyType.Name;
+    }
+    if ($scope.detailData.edits.PayMode) {
+      $scope.detailData.PayModeID = $scope.detailData.edits.PayMode._id;
+      $scope.detailData.PayModeName = $scope.detailData.edits.PayMode.Name;
+    }
+    if ($scope.detailData.edits.PayBank) {
+      $scope.detailData.PayBankName = $scope.detailData.edits.PayBank.Name;
+    }
+    $scope.detailData.PayStatus = 2;
+    $scope.detailData.TotalUnPayPrice -= $scope.detailData.PaidPrice;
+    $scope.detailData.TotalPayPrice += $scope.detailData.PaidPrice;
+    $scope.detailData.ResultNotes = $scope.detailData.edits.ConfirmNotes !== undefined && $scope.detailData.edits.ConfirmNotes.length > 0 ? ($scope.detailData.Notes + "-" + $scope.detailData.edits.ConfirmNotes) : $scope.detailData.Notes;
+    initStatus();
+    $scope.detailData.btnIsdisable = false;
+    reflashReceivableList();
+  }
+
+  //提交收款确认--会员卡
+  function submitApply_Membershipcard() {
+    if (checkInput()) {
+      var pars = {
+        FinanceID: $scope.detailData.RecordID,
+        CardNo: $scope.detailData.edits.CardNo,
+        CardPassWord: $scope.detailData.edits.CardPassword
+      };
+      if ($scope.detailData.edits.MoneyType) {
+        pars.MoneyTypeID = $scope.detailData.edits.MoneyType._id;
+      }
+      if ($scope.detailData.edits.PayMode) {
+        pars.PayModeID = $scope.detailData.edits.PayMode._id;
+      }
+      $scope.detailData.btnIsdisable = true;
+      $scope.detailData.popStatus.IsShowPop = false;
+      SaveOrderBillInData(pars, refreshPage_Membershipcard, function() {
+        $scope.detailData.btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData.verification.moneyTypeStatus = false;
+      $scope.detailData.verification.payModeStatus = false;
+      $scope.detailData.verification.cardNoStatus = false;
+      $scope.detailData.verification.cardPasswordStatus = false;
+
+      if (!$scope.detailData.edits.MoneyType) {
+        $scope.detailData.detailTipInfo = "未选择收款类型";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.moneyTypeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData.edits.MoneyType._id) {
+          $scope.detailData.detailTipInfo = "未选择收款类型";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData.verification.moneyTypeStatus = true;
+          return false;
+        }
+      }
+
+      if (!$scope.detailData.edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择收款方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData.edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择收款方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData.verification.payModeStatus = true;
+          return false;
+        }
+      }
+
+      if (!$scope.detailData.edits.CardNo) {
+        $scope.detailData.detailTipInfo = "会员卡号为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.cardNoStatus = true;
+        return false;
+      }
+
+      if (!$scope.detailData.edits.CardPassword) {
+        $scope.detailData.detailTipInfo = "会员卡密码为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.cardPasswordStatus = true;
+        return false;
+      }
+
+      return true;
+    }
+  }
+
+  //刷新界面并关闭当前的Pop界面--会员卡
+  function refreshPage_Membershipcard(data) {
+    if ($scope.detailData.edits.MoneyType) {
+      $scope.detailData.MoneyTypeName = $scope.detailData.edits.MoneyType.Name;
+    }
+    if ($scope.detailData.edits.PayMode) {
+      $scope.detailData.PayModeID = $scope.detailData.edits.PayMode._id;
+      $scope.detailData.PayModeName = $scope.detailData.edits.PayMode.Name;
+    }
+    $scope.detailData.PayStatus = 2;
+    $scope.detailData.TotalUnPayPrice -= $scope.detailData.PaidPrice;
+    $scope.detailData.TotalPayPrice += $scope.detailData.PaidPrice;
+    $scope.detailData.ResultNotes = $scope.detailData.edits.ConfirmNotes !== undefined && $scope.detailData.edits.ConfirmNotes.length > 0 ? ($scope.detailData.Notes + "-" + $scope.detailData.edits.ConfirmNotes) : $scope.detailData.Notes;
+    initStatus();
+    $scope.detailData.btnIsdisable = false;
+    reflashReceivableList();
+  }
+
+  //提交收款确认--积分消费
+  function submitApply_Integral() {
+    var pars = {
+      FinanceID: $scope.detailData.RecordID
+    };
+    $scope.detailData.btnIsdisable = true;
+    $scope.detailData.popStatus.IsShowPop = false;
+    SaveOrderBillInData(pars, refreshPage_Integral, function() {
+      $scope.detailData.btnIsdisable = false;
+    });
+  }
+
+  //刷新界面并关闭当前的Pop界面--积分消费
+  function refreshPage_Integral(data) {
+    $scope.detailData.PayStatus = 2;
+    $scope.detailData.TotalUnPayPrice -= $scope.detailData.PaidPrice;
+    $scope.detailData.TotalPayPrice += $scope.detailData.PaidPrice;
+    $scope.detailData.ResultNotes = $scope.detailData.edits.ConfirmNotes !== undefined && $scope.detailData.edits.ConfirmNotes.length > 0 ? ($scope.detailData.Notes + "-" + $scope.detailData.edits.ConfirmNotes) : $scope.detailData.Notes;
+    initStatus();
+    $scope.detailData.btnIsdisable = false;
+    reflashReceivableList();
+  }
+
+  //提交收款确认--通用
+  function submitApply_Common() {
+    if (checkInput()) {
+      var pars = {
+        FinanceID: $scope.detailData.RecordID,
+        Notes: $scope.detailData.edits.ConfirmNotes
+      };
+      if ($scope.detailData.edits.MoneyType) {
+        pars.MoneyTypeID = $scope.detailData.edits.MoneyType._id;
+      }
+      if ($scope.detailData.edits.PayMode) {
+        pars.PayModeID = $scope.detailData.edits.PayMode._id;
+      }
+      $scope.detailData.btnIsdisable = true;
+      $scope.detailData.popStatus.IsShowPop = false;
+      SaveOrderBillInData(pars, refreshPage_Common, function() {
+        $scope.detailData.btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData.verification.moneyTypeStatus = false;
+      $scope.detailData.verification.payModeStatus = false;
+
+      if (!$scope.detailData.edits.MoneyType) {
+        $scope.detailData.detailTipInfo = "未选择收款类型";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.moneyTypeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData.edits.MoneyType._id) {
+          $scope.detailData.detailTipInfo = "未选择收款类型";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData.verification.moneyTypeStatus = true;
+          return false;
+        }
+      }
+
+      if (!$scope.detailData.edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择收款方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData.verification.payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData.edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择收款方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData.verification.payModeStatus = true;
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }
+
+  //刷新界面并关闭当前的Pop界面--通用
+  function refreshPage_Common(data) {
+    if ($scope.detailData.edits.MoneyType) {
+      $scope.detailData.MoneyTypeName = $scope.detailData.edits.MoneyType.Name;
+    }
+    if ($scope.detailData.edits.PayMode) {
+      $scope.detailData.PayModeID = $scope.detailData.edits.PayMode._id;
+      $scope.detailData.PayModeName = $scope.detailData.edits.PayMode.Name;
+    }
+    $scope.detailData.PayStatus = 2;
+    $scope.detailData.TotalUnPayPrice -= $scope.detailData.PaidPrice;
+    $scope.detailData.TotalPayPrice += $scope.detailData.PaidPrice;
+    $scope.detailData.ResultNotes = $scope.detailData.edits.ConfirmNotes !== undefined && $scope.detailData.edits.ConfirmNotes.length > 0 ? ($scope.detailData.Notes + "-" + $scope.detailData.edits.ConfirmNotes) : $scope.detailData.Notes;
+    initStatus();
+    $scope.detailData.btnIsdisable = false;
+    reflashReceivableList();
+  }
+
+  //初始化数据状态
+  function initStatus() {
+    $scope.detailData.edits.ConfirmNotes = "";
+    $scope.detailData.detailTipInfo = "";
+    $scope.detailData.detailTipInfoType = "";
+  }
+
+  //取消收款确认
+  function cancelApply() {
+    $scope.detailData.popStatus.IsShowPop = false;
+    initStatus();
+    $scope.detailData.edits.MoneyType = {};
+    $scope.detailData.edits.PayMode = {};
+    $scope.detailData.edits.PayBank = {};
+    $scope.detailData.edits.CardNo = "";
+    $scope.detailData.edits.CardPassword = "";
+    $scope.detailData.verification.moneyTypetatus = false;
+    $scope.detailData.verification.payModeStatus = false;
+    $scope.detailData.verification.payBankStatus = false;
+    $scope.detailData.verification.cardNoStatus = false;
+    $scope.detailData.verification.cardPasswordStatus = false;
+  }
+
+  //删除收款确认
+  function removeApply() {
+    var pars = {
+      FinanceID: $scope.detailData.RecordID,
+      Notes: $scope.detailData.edits.CacelConfirmNotes
+    };
+
+    $scope.detailData.btnIsdisable = true;
+    $scope.detailData.popStatus.IsShowCancelPop = false;
+    SaveOrderUnBillInData(pars, removeRefreshPage, function() {
+      $scope.detailData.btnIsdisable = false;
+    });
+  }
+
+  function removeRefreshPage() {
+    $scope.detailData.PayStatus = 1;
+    $scope.detailData.TotalUnPayPrice += $scope.detailData.PaidPrice;
+    $scope.detailData.TotalPayPrice -= $scope.detailData.PaidPrice;
+    initStatus();
+    $scope.detailData.btnIsdisable = false;
+    reflashReceivableList();
+  }
+
+  function deleteApply() {
+    showWarningBox("是否删除收款记录", function() {
+      delOrderFinanceRecord($scope.detailData.RecordID, deleteRefreshPage);
+    });
+  }
+
+  function deleteRefreshPage() {
+    initStatus();
+    reflashReceivableList();
+    $scope.closeSubView();
+  }
+
+  function reflashReceivableList() {
+    $rootScope[position[1]].maxPage = false;
+    $rootScope[position[1]].isLoading = true;
+    $rootScope[position[1]].filters.search.PageIndex = 1;
+    $rootScope[position[1]].filters.search.PageSize = $rootScope.pageLimit;
+    orderReceivables.list(function(response) {
+      $rootScope[position[1]].isLoading = false;
+      $rootScope[position[1]].list = response.list;
+      var pageCount = Math.ceil(response.count / response.limit);
+      if (1 == pageCount) {
+        $rootScope[position[1]].maxPage = true;
+      }
+    },$rootScope[position[1]].filters.search);
+  }
+});
+/**
+ * Created by li on 2016/4/6.
+ * 订单收款列表 控制器
+ */
+app.controller('IReceivablesViewController', function($scope, $rootScope, $filter, orderReceivables) {
+
+  var view = this;
+  $scope.mainData.showDetailUrl = 'financeCenter/orderReceivables/detail?';
+  view.openDatePicker = openDatePicker;
+
+  var status = $rootScope[position[1]].status;
+  if (typeof status == "undefined") {
+    $rootScope[position[1]].status = {
+      StartTime: false,
+      EndTime: false
+    };
+  }
+  var filters = $rootScope[position[1]].filters;
+  if (typeof filters == "undefined") {
+    $rootScope[position[1]].filters = {};
+  }
+  var search = $rootScope[position[1]].filters.search;
+  if (typeof search == "undefined") {
+    $rootScope[position[1]].filters.search = {};
+  }
+  var PayStatus = $rootScope[position[1]].filters.search.PayStatus;
+  if (typeof PayStatus == "undefined") {
+    $rootScope[position[1]].filters.search.PayStatus = 1;
+  }
+  var SearchType = $rootScope[position[1]].filters.search.SearchType;
+  if (typeof SearchType == "undefined") {
+    $rootScope[position[1]].filters.search.SearchType = 1;
+  }
+
+  function openDatePicker($event, type) {
+    $rootScope[position[1]].status[type] = true;
+  }
+
+  view.loadBasicData = loadBasicData;
+  view.addNewData = addNewData;
+  view.refreshPage = refreshPage;
+  view.changePayMode = changePayMode;
+  view.changeOrderType = changeOrderType;
+  view.changeDepartment = changeDepartment;
+  view.changeDepartmentWithLoadData = changeDepartmentWithLoadData;
+
+  function changeDepartmentWithLoadData() {
+    view.changeDepartment();
+    view.loadBasicData();
+  }
+
+  function loadBasicData($event) {
+    var bIsPass = false;
+    if ($event) {
+      switch ($event.keyCode) {
+        case 13: // Enter
+          bIsPass = true;
+          break;
+      }
+    } else {
+      bIsPass = true;
+    }
+    if (bIsPass) {
+      $rootScope[position[1]].maxPage = false;
+      $scope.isLoading = true;
+      $rootScope[position[1]].filters.search.PageIndex = 1;
+      $rootScope[position[1]].filters.search.PageSize = $rootScope.pageLimit;
+      $rootScope[position[1]].filters.search.StartTime = $filter("date")($rootScope[position[1]].filters.search.StartTime, "yyyy-MM-dd");
+      $rootScope[position[1]].filters.search.EndTime = $filter("date")($rootScope[position[1]].filters.search.EndTime, "yyyy-MM-dd");
+
+      if ($rootScope[position[1]].filters.search.PayMode) {
+        $rootScope[position[1]].filters.search.PayMode = $rootScope[position[1]].filters.search.PayMode._id;
+      } else {
+        $rootScope[position[1]].filters.search.PayMode = null;
+      }
+      if ($rootScope[position[1]].filters.search.OrderType) {
+        $rootScope[position[1]].filters.search.OrderType = $rootScope[position[1]].filters.search.OrderType._id;
+      } else {
+        $rootScope[position[1]].filters.search.OrderType = null;
+      }
+      if ($rootScope[position[1]].filters.search.Department) {
+        $rootScope[position[1]].filters.search.DeptID = $rootScope[position[1]].filters.search.Department._id.$id;
+      } else {
+        $rootScope[position[1]].filters.search.DeptID = null;
+      }
+      $rootScope[position[1]].filters.search.isFirst = false;
+      orderReceivables.list(function(response) {
+        $scope.isLoading = false;
+        $scope.mainData.list = response.list;
+        var pageCount = Math.ceil(response.count / response.limit);
+        if (1 == pageCount) {
+          $rootScope[position[1]].maxPage = true;
+        }
+      }, $rootScope[position[1]].filters.search);
+    }
+  }
+
+  //打开明细页控制方法
+  function addNewData(sRecordID) {
+    var viewUrl = $scope.mainData.showDetailUrl + 'RecordID=' + sRecordID;
+    $scope.fetch(viewUrl);
+    $scope.openItem();
+  }
+
+  //加载新的数据到当前列表数据中
+  function refreshPage(iDefaultIndex) {
+    if ($rootScope[position[1]].maxPage !== true) {
+      var iPIndex = iDefaultIndex ? iDefaultIndex : 1;
+      if (!$rootScope[position[1]].filters.search) {
+        $rootScope[position[1]].filters.search = {
+          PageIndex: iDefaultIndex ? iDefaultIndex : 1,
+          PageSize: pageLimit
+        };
+      }
+      $rootScope[position[1]].filters.search.PageIndex += 1;
+      orderReceivables.list(function(data) {
+        $scope.mainData.list = _.union($scope.mainData.list, data.list);
+        var pageCount = Math.ceil(data.count / data.limit);
+        if (iPIndex == pageCount) {
+          $rootScope[position[1]].maxPage = true;
+        }
+        $rootScope.isloadList = false;
+        $rootScope.showProcessBar = false;
+      }, $rootScope[position[1]].filters.search);
+    }
+    else {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }
+  }
+
+  //切换支付类型时，进行数据对象的绑定
+  function changePayMode() {
+    var PayModeObjectIndex = _.findIndex($rootScope.FinancesType.paymodeList, function(item) {
+      return item._id == $rootScope[position[1]].filters.search.PayModeValue;
+    });
+    $rootScope[position[1]].filters.search.PayMode = $rootScope.FinancesType.paymodeList[PayModeObjectIndex];
+  }
+
+  //切换订单类型时，进行数据对象的绑定
+  function changeOrderType() {
+    var OrderTypeObjectIndex = _.findIndex($rootScope.FinancesType.OrderTypesList, function(item) {
+      return item._id == $rootScope[position[1]].filters.search.OrderTypeValue;
+    });
+    $rootScope[position[1]].filters.search.OrderType = $rootScope.FinancesType.OrderTypesList[OrderTypeObjectIndex];
+  }
+
+  //切换部门时，进行数据对象的绑定
+  function changeDepartment() {
+    var DepartmentObjectIndex = _.findIndex($rootScope.Departments, function(item) {
+      return item._id == $rootScope[position[1]].filters.search.DepartmentValue;
+    });
+    $rootScope[position[1]].filters.search.Department = $rootScope.Departments[DepartmentObjectIndex];
+  }
+
+});

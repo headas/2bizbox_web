@@ -1,0 +1,59 @@
+var ICListUrlConfig = [{
+  'httpUrl': 'informationCenter/informationCenterTasks/IntentionCustomerList',
+  'templateUrl': '/public/angularView/informationCenter/InformationCenterList.html' + "?" + Math.random(),
+  'type': 1,
+	'title':'通知事项-意向客户-列表'
+}, {
+  'httpUrl': 'informationCenter/informationCenterTasks/FinanceList',
+  'templateUrl': '/public/angularView/informationCenter/InformationCenterList.html' + "?" + Math.random(),
+  'type': 1,
+	'title':'通知事项-财务中心-列表'
+}, {
+  'httpUrl': 'informationCenter/informationCenterTasks/OrderList',
+  'templateUrl': '/public/angularView/informationCenter/InformationCenterList.html' + "?" + Math.random(),
+  'type': 1,
+	'title':'通知事项-订单中心-列表'
+}, {
+  'httpUrl': 'informationCenter/informationCenterTasks/ServerList',
+  'templateUrl': '/public/angularView/informationCenter/InformationCenterList.html' + "?" + Math.random(),
+  'type': 1,
+	'title':'通知事项-客服中心-列表'
+},{
+  'httpUrl': 'informationCenter/financeCenter/orderRefundDetail',
+  'templateUrl': '/public/angularView/informationCenter/financeCenter/orderRefundDetail.html' + "?" + Math.random(),
+  'type': 2,
+	'title':'通知事项-财务中心-订单退款'
+}, {
+  'httpUrl': 'informationCenter/orderCenter/changeDate',
+  'templateUrl': '/public/angularView/informationCenter/orderCenter/changeDate.html' + "?" + Math.random(),
+  'type': 2,
+	'title':'通知事项-订单中心-订单改期'
+}, {
+  'httpUrl': 'informationCenter/orderCenter/cancel',
+  'templateUrl': '/public/angularView/informationCenter/orderCenter/cancel.html' + "?" + Math.random(),
+  'type': 2,
+	'title':'通知事项-订单中心-订单取消'
+}, {
+  'httpUrl': 'informationCenter/orderCenter/quitTeam',
+  'templateUrl': '/public/angularView/informationCenter/orderCenter/quitTeam.html' + "?" + Math.random(),
+  'type': 2,
+	'title':'通知事项-订单中心-订单退团'
+}, {
+  'httpUrl': 'informationCenter/orderCenter/delay',
+  'templateUrl': '/public/angularView/informationCenter/orderCenter/delay.html' + "?" + Math.random(),
+  'type': 2,
+	'title':'通知事项-订单中心-订单延期'
+}, {
+  'httpUrl': 'informationCenter/orderCenter/trans',
+  'templateUrl': '/public/angularView/informationCenter/orderCenter/trans.html' + "?" + Math.random(),
+  'type': 2,
+	'title':'通知事项-订单中心-订单转让'
+}];
+urlConfig = _.union(urlConfig, ICListUrlConfig); // 将意向客户的配置与urlConfig拼接到一起
+var ICRemindUrlConfig = [ {
+	'httpUrl' : 'informationCenter/informationCenterRemind/remindList',
+	'templateUrl' : '/public/angularView/informationCenter/RemindList.html' + "?" + Math.random(),
+	'type' : 1,
+	'title':'通知事项-提醒事项-列表'
+}];
+urlConfig = _.union(urlConfig, ICRemindUrlConfig);

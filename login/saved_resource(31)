@@ -1,0 +1,923 @@
+productOrderRoute.service('POFreetour', function(getBookingIndependentOrderList, getFreetourDetail, getScheduleClass,
+  getCompleteSchedule, getTeamtourPlanDetail, getInsureClass, getInfoForBookingTeamOrder, getCertificatesTypes,
+  getProductInsurancesByProductIDWithTime, getCustomerDetail, getBookingOrderList, getFreeTourPlanPrice) {
+  var POFreetour = {};
+  POFreetour.list = list;
+  POFreetour.detail = detail;
+  POFreetour.freetourOrder = freetourOrder;
+  return POFreetour;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      GaddrId: param.GaddrId,
+      StartTime: param.StartTime,
+      EndTime: param.EndTime,
+      TravelDays: param.TravelDays,
+      StationId: param.StationId,
+      ProductType: 12,
+      TravelType: param.TravelType,
+      SearchInfo: param.SearchInfo,
+      iPageSize: pageLimit,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1
+    };
+    getBookingOrderList(data.search, function(response) {
+      data.list = response.list;
+      data.list.forEach(function(item) {
+        item.showUrl = 'productOrder/POFreetour/detail?ProductId=' + item.ProductId + '&PlanId=' + item.PlanId + '&PlanStartTime=' + item.PlanStartTime;
+      });
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getFreetourDetail(param.ProductId, function(response) {
+      data = response;
+      getTeamtourPlanDetail(param.PlanId, function(planDetail) {
+        data.planDetail = planDetail;
+        data.minimumPrice = getFreeTourPlanPrice(planDetail.PlanProject);
+
+        if(planDetail.TripID) data.TripId = planDetail.TripID.$id;
+        data.orderCount = {};
+        getScheduleClass(param.ProductId, function(schedule) {
+          data.schedule = schedule.list;
+          data.ProductId = param.ProductId;
+          data.PlanId = param.PlanId;
+          data.PlanStartTime = param.PlanStartTime;
+          callback(data);
+        });
+      });
+    });
+  }
+
+  function freetourOrder(callback, param) {
+    var data = param;
+    data.type = 3;
+    data.Salesman = {};
+    data.OrderPriceRecord = [];
+    data.OrderTourists = [];
+    data.peopleCount = {
+      AdultCount: parseInt(param.adultCount),
+      BabyCount: 0,
+      ChildCount: parseInt(param.childCount),
+    };
+
+    getProductInsurancesByProductIDWithTime ({
+      ProductTypeID: "000000000000000000000012",
+      ProductID: param.ProductId,
+      StartTime: param.StartTime,
+      EndTime: param.EndTime
+    }, function(response) {
+      data.insurance = response;
+      getCertificatesTypes(function(Certificates) {
+        data.Certificates = Certificates;
+        getCustomerDetail(param.customerID, function(customer) {
+          var index = _.findIndex(customer.CustomerLocations, {
+            CustomerAddressBindStatus: true
+          });
+          if (index > -1) {
+            customer.location = customer.CustomerLocations[index];
+          }
+          if (customer.location) {
+            data.address = {
+              city: customer.location.CityID.$id,
+              region: customer.location.ProvinceID.$id,
+              country: customer.location.CountryID.$id,
+              AreaID: customer.location.AreaID?customer.location.AreaID.$id:'',
+              CustomerPositionDetail: customer.location.CustomerPositionDetail,
+              StreetID: customer.location.StreetID?customer.location.StreetID.$id:''
+            };
+          }
+
+          data.customer = customer;
+          data.MemberDetail = angular.extend({},customer);
+
+          data.ProductType = param.ProductType;
+          getFreetourDetail(param.ProductId, function(productDetail) {
+            data.productDetail = productDetail;
+            getTeamtourPlanDetail(param.PlanId, function(planDetail) {
+              data.planDetail = planDetail;
+              data.trafficProject = [];
+              data.hotelProject = [];
+              planDetail.PlanProject.forEach(function(project) {
+                if (project.ProductType.ForeignKeyID.$id == '000000000000000000000004' && project.DelStatus === 0) {
+                  if (project.IsDefault) {
+                    data.selectedTrafficProject = data.trafficProject.length;
+                    project.isSelected = true;
+                  }
+
+                  project.Traffics.forEach(function(traffic) {
+                    if(!traffic.IsSingleSold) traffic.isSelected = true;
+                  });
+
+                  data.trafficProject.push(project);
+                } else if (project.ProductType.ForeignKeyID.$id == '000000000000000000000007' && project.DelStatus === 0) {
+                  if (project.IsDefault) {
+                    data.selectedHotelProject = data.hotelProject.length;
+                    project.isSelected = true;
+                  }
+                  project.Hotels.forEach(function(hotel) {
+                    if(!hotel.IsSingleSold)
+                      hotel.HotelRooms.forEach(function(room) {
+                        if (room.IsDefaultChecked) room.isSelected = true;
+                      });
+                  });
+                  data.hotelProject.push(project);
+                }
+              });
+              callback(data);
+            });
+          });
+        });
+      });
+    });
+  }
+
+});
+productOrderRoute.service('POteamtour', function(getBookingOrderList, getTeamtourDetail, getScheduleClass,
+  getCompleteSchedule, getTeamtourPlanDetail, getInsureClass, getInfoForBookingTeamOrder, getCertificatesTypes, getCustomerDetail) {
+  var teamtour = {};
+  teamtour.list = list;
+  teamtour.teamtourOrder = teamtourOrder;
+  teamtour.detail = detail;
+  teamtour.edit = edit;
+  return teamtour;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TravelType: param.TravelType,
+      TravelDays: param.TravelDays,
+      ProductType: param.ProductType || 1,
+      GaddrId: param.GaddrId,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      StartTime: param.StartTime,
+      EndTime: param.EndTime,
+      iPageSize: pageLimit
+    };
+    getBookingOrderList(data.search, function(response) {
+      data.list = response.list;
+      data.list.forEach(function(item) {
+        item.showUrl = 'productOrder/POteamtour/detail?ProductId=' + item.ProductId + '&PlanId=' + item.PlanId + '&PlanStartTime=' + item.PlanStartTime;
+      });
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getTeamtourDetail(param.ProductId, function(response) {
+      data = response;
+      getTeamtourPlanDetail(param.PlanId, function(planDetail) {
+        data.planDetail = planDetail;
+        data.TripId = planDetail.TripID.$id;
+        data.orderCount = {};
+        getScheduleClass(param.ProductId, function(schedule) {
+          data.schedule = schedule.list;
+          data.ProductId = param.ProductId;
+          data.PlanId = param.PlanId;
+          data.PlanStartTime = param.PlanStartTime;
+          callback(data);
+        });
+      });
+    });
+  }
+
+  function teamtourOrder(callback, param) {
+    var data = param;
+    var requestNum = 3, request = 0;
+
+    data.type = 1;
+    var condition = {
+      ProductType: '1',
+      ProductId: param.ProductId,
+      PlanId: param.PlanId,
+      CustomerId: param.customerID,
+      IntentOrderId: param.IntentOrderID,
+      OrderStartStatus: 0
+    };
+
+    getInfoForBookingTeamOrder(condition, function(response) {
+      angular.extend(data, response);
+      data.peopleCount = {
+        AdultCount: +param.adultCount,
+        BabyCount: +param.babyCount,
+        ChildCount: +param.childCount,
+      };
+      data.Salesman = {};
+      data.orderType = param.orderType;
+      data.cost = {};
+      data.OrderPriceRecord = [];
+      data.OrderContract = {
+        OrderHolidayAppointment: [],
+        ContractPayTypeAndTime: '',
+        FightGroupTravelAgencyName: param.peerCompanyName,
+        IsAgreeChangeOtherLine: true,
+        IsAgreeDelayGroup: true,
+        IsAgreeFightGroupsAppointment: true,
+        IsAgreeNoGroup: true,
+        IsAgreeTerminationContract: true,
+        IsMoveTravelAgency: true,
+        OtherAppointment: '',
+        TravelAgencyName: param.peerCompanyName
+      };
+      data.OrderTourists = [];
+      //updated by lzw
+      if (data.CustomerInfo.data) {
+        if(data.CustomerInfo.data.location){
+          data.address = {
+            city: data.CustomerInfo.data.location.CityID,
+            region: data.CustomerInfo.data.location.ProvinceID,
+            country: data.CustomerInfo.data.location.CountryID
+          };
+          data.Location = data.CustomerInfo.data.location;
+        }else data.Location = {};
+
+        data.ContactInfo = data.CustomerInfo.data.customer;
+        data.ContactInfo.CertificatesType = "000000000000000000000001";
+      }else{
+        data.ContactInfo = {};
+        data.Location = {};
+      }
+
+      if (data.TeamInfo.data.length > 0) {
+        data.TeamInfo.data[0].isSelected = true;
+      }
+
+      request++;
+      if(request >= requestNum) callback(data);
+    });
+
+    getCertificatesTypes(function(Certificates) {
+      data.Certificates = Certificates;
+
+      request++;
+      if(request >= requestNum) callback(data);
+    });
+
+    getCustomerDetail(param.customerID, function(response){
+      data.MemberDetail = response;
+
+      request++;
+      if(request >= requestNum) callback(data);
+    });
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    callback(data);
+  }
+
+});
+productOrderRoute.service('POVisa', function(getVisaList, getVisaDetail, getScheduleClass,
+  getCompleteSchedule, getTeamtourPlanDetail, getInsureClass, getInfoForBookingTeamOrder, getCertificatesTypes,
+  getProductInsurancesByProductIDWithNone, getCustomerDetail) {
+  var POVisa = {};
+  POVisa.list = list;
+  POVisa.detail = detail;
+  POVisa.visaOrder = visaOrder;
+  return POVisa;
+
+  function list(callback, params) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1
+    };
+    if (params) {
+      data.search = _.extend(data.search, params);
+    }
+    getVisaList(data.search, function(response) {
+      response.data.list.forEach(function(item) {
+        item.showUrl = 'productOrder/POVisa/detail?id=' + item._id.$id;
+      });
+      data.list = response.data.list;
+      callback(data);
+    });
+  }
+
+  function detail(callback, params) {
+    var data = {};
+    getVisaDetail(params.id, function(response) {
+      data = response;
+      if (data.Insurances && data.Insurances.length > 0) {
+        data.hasInsurance = true;
+      }
+      if (data.Materials && data.Materials.length > 0) {
+        data.showMaterialId = data.Materials[0].Typeid.$id;
+      }
+      data.ProductId = params.id;
+      callback(data);
+    });
+  }
+
+  function visaOrder(callback, param) {
+    var data = {};
+    data = param;
+    data.type = 3;
+    data.Salesman = {};
+    data.OrderPriceRecord = [];
+    data.OrderTourists = [];
+    data.peopleCount = {
+      AdultCount: 0,
+      BabyCount: 0,
+      ChildCount: 0,
+    };
+    getProductInsurancesByProductIDWithNone({
+      ProductTypeID: "000000000000000000000002",
+      ProductID: param.ProductId
+    }, function(response) {
+      data.insurance = response;
+      getCertificatesTypes(function(Certificates) {
+        data.Certificates = Certificates;
+        getCustomerDetail(param.customerID, function(customer) {
+          var index = _.findIndex(customer.CustomerLocations, {
+            CustomerAddressBindStatus: true
+          });
+          if (index > -1) {
+            customer.location = customer.CustomerLocations[index];
+          }
+          if (customer.location) {
+            data.address = {
+              city: customer.location.CityID.$id,
+              region: customer.location.ProvinceID.$id,
+              country: customer.location.CountryID.$id,
+              AreaID: customer.location.AreaID?customer.location.AreaID.$id:'',
+              CustomerPositionDetail: customer.location.CustomerPositionDetail,
+              StreetID: customer.location.StreetID?customer.location.StreetID.$id:''
+            };
+          }
+          data.customer = customer;
+          data.MemberDetail = angular.extend({}, customer);
+          data.ProductType = param.ProductType;
+          getVisaDetail(param.ProductId, function(productDetail) {
+            data.productDetail = productDetail;
+            callback(data);
+          });
+        });
+      });
+    });
+  }
+
+});
+productOrderRoute.service('POTicket', function(getBasicsScenicList, getScenicDetail, getScenicTickets,
+  getCertificatesTypes, getCustomerDetail, findInnerObjIndex,getProductInsurancesByProductIDWithNone) {
+  var POTicket = {};
+  POTicket.list = list;
+  POTicket.detail = detail;
+  POTicket.ticketOrder = ticketOrder;
+  return POTicket;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      GaddrID: param.GaddrID || "000000000000000000000001",
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      ViewspotTypeID: param.ViewspotTypeID,
+      iPageSize: pageLimit,
+    };
+    data.country = {
+      _id: {$id: '000000000000000000000001'}
+    };
+    getBasicsScenicList(data.search, function(response) {
+      data.list = response.list;
+      if(data.list){
+        data.list.forEach(function(item) {
+
+          item.showUrl = 'productOrder/POTicket/detail?ProductId=' + item._id;
+        });
+      }
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getScenicDetail(param.ProductId, function(response) {
+      data = response;
+      getScenicTickets(function(nResponse) {
+        if (nResponse && nResponse.length > 0) {
+          data.hasTickets = true;
+          data.tickets = nResponse;
+        }
+        callback(data);
+      }, data._id.$id);
+    });
+  }
+
+  function ticketOrder(callback, param) {
+    var data = {};
+    var selectedTicket = angular.fromJson(param.tickets);
+    data.peopleCount = {
+      AdultCount: 0,
+      ChildCount: 0,
+      BabyCount: 0
+    };
+    data.IntentOrderID = param.IntentOrderID || '';
+    data.Salesman = {};
+    data.type = 3;
+    data.OrderTourists = [];
+    data.OrderPriceRecord = [];
+    getCustomerDetail(param.customerID, function(customer) {
+      var index = _.findIndex(customer.CustomerLocations, {
+        CustomerAddressBindStatus: true
+      });
+      if (index > -1) {
+        customer.location = customer.CustomerLocations[index];
+      }
+      if (customer.location) {
+        data.address = {
+          city: customer.location.CityID.$id,
+          region: customer.location.ProvinceID.$id,
+          country: customer.location.CountryID.$id,
+          AreaID: customer.location.AreaID?customer.location.AreaID.$id:'',
+          CustomerPositionDetail: customer.location.CustomerPositionDetail,
+          StreetID: customer.location.StreetID?customer.location.StreetID.$id:''
+        };
+      }
+      data.customer = customer;
+      data.MemberDetail = angular.extend({}, customer);
+      getScenicDetail(param.ProductId, function(response) {
+        data.productDetail = response;
+        getScenicTickets(function(nResponse) {
+          if (nResponse && nResponse.length > 0) {
+            data.hasTickets = true;
+            data.tickets = nResponse;
+          }
+          selectedTicket.tickets.forEach(function(item) {
+            var index = findInnerObjIndex(data.tickets, ['_id', '$id'], item.id);
+            if (index > -1) {
+              data.tickets[index].count = item.count;
+            }
+          });
+          getProductInsurancesByProductIDWithNone({
+            ProductTypeID: "000000000000000000000003",
+            ProductID: param.ProductId
+          }, function(insurance) {
+            data.insurance = insurance;
+            getCertificatesTypes(function(Certificates) {
+              data.Certificates = Certificates;
+              data.selectedTicket = selectedTicket;
+              callback(data);
+            });
+          });
+        }, data.productDetail._id.$id);
+      });
+    });
+
+  }
+
+});
+productOrderRoute.service('PODrivetour', function(getSelfdrivingtourList,
+  getInsureClass, getDrivingtourDetail, getCertificatesTypes,
+  getProductInsurancesByProductIDWithNone, getCustomerDetail, getDrivingtourPackages) {
+  var PODrivetour = {};
+  PODrivetour.list = list;
+  PODrivetour.detail = detail;
+  PODrivetour.drivetourOrder = drivetourOrder;
+  return PODrivetour;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      GaddrID: param.GaddrID,
+      TravelDays: param.TravelDays,
+      StationID: param.StationID,
+      LineTypeID: param.LineTypeID,
+      SearchInfo: param.SearchInfo,
+      iPageSize: pageLimit,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+    };
+    getSelfdrivingtourList(data.search, function(response) {
+      data.list = [];
+      if (response.list) {
+        console.log(response.list);
+        data.list = response.list;
+        data.list.forEach(function(item) {
+          item.showUrl = 'productOrder/PODrivetour/detail?ProductId=' + item._id;
+        });
+      }
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getDrivingtourDetail(param.ProductId, function(response) {
+      data = response;
+      getDrivingtourPackages(param.ProductId, function(packages) {
+        data.packages = packages;
+        callback(data);
+      });
+    });
+  }
+
+  function drivetourOrder(callback, param) {
+    var data = param;
+    data.type = 3;
+    data.Salesman = {};
+    data.OrderPriceRecord = [];
+    data.OrderTourists = [];
+    data.peopleCount = {
+      AdultCount: 0,
+      BabyCount: 0,
+      ChildCount: 0,
+    };
+    getProductInsurancesByProductIDWithNone({
+      ProductTypeID: "000000000000000000000013",
+      ProductID: param.ProductId
+    }, function(response) {
+      data.insurance = response;
+      getCertificatesTypes(function(Certificates) {
+        data.Certificates = Certificates;
+        getCustomerDetail(param.customerID, function(customer) {
+          console.log(customer);
+          var index = _.findIndex(customer.CustomerLocations, {
+            CustomerAddressBindStatus: true
+          });
+          if (index > -1) {
+            customer.location = customer.CustomerLocations[index];
+          }
+          if (customer.location) {
+            data.address = {
+              city: customer.location.CityID.$id,
+              region: customer.location.ProvinceID.$id,
+              country: customer.location.CountryID.$id,
+              AreaID: customer.location.AreaID?customer.location.AreaID.$id:'',
+              CustomerPositionDetail: customer.location.CustomerPositionDetail,
+              StreetID: customer.location.StreetID?customer.location.StreetID.$id:''
+            };
+          }
+          data.customer = customer;
+          data.MemberDetail = angular.extend({}, customer);
+          getDrivingtourDetail(param.ProductId, function(productDetail) {
+            data.productDetail = productDetail;
+            getDrivingtourPackages(param.ProductId, function(packages) {
+              data.packages = packages;
+              callback(data);
+            });
+          });
+        });
+      });
+    });
+  }
+
+});
+productOrderRoute.service('POcruise', function(getBookingOrderList, getCruiseDetail, getTeamtourPlanDetail, getScheduleClass, getCustomerDetail,
+  getCertificatesTypes, getInfoForBookingTeamOrder) {
+  var cruise = {};
+  cruise.list = list;
+  cruise.detail = detail;
+  cruise.cruiseOrder = cruiseOrder;
+  return cruise;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TravelType: param.TravelType,
+      TravelDays: param.TravelDays,
+      ProductType: param.ProductType ? param.ProductType : 18,
+      GaddrId: param.GaddrId,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      StartTime: param.StartTime,
+      EndTime: param.EndTime,
+      iPageSize: pageLimit
+    };
+    getBookingOrderList(data.search, function(response) {
+      data.list = response.list;
+      data.list.forEach(function(item) {
+        item.showUrl = 'productOrder/POcruise/detail?ProductId=' + item.ProductId + '&PlanId=' + item.PlanId + '&PlanStartTime=' + item.PlanStartTime;
+      });
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getCruiseDetail(param.ProductId, function(response) {
+      data = response;
+      getTeamtourPlanDetail(param.PlanId, function(planDetail) {
+        data.planDetail = planDetail;
+        data.TripId = planDetail.TripID.$id;
+        data.orderCount = {};
+        getScheduleClass(param.ProductId, function(schedule) {
+          data.schedule = schedule.list;
+          data.ProductId = param.ProductId;
+          data.PlanId = param.PlanId;
+          data.PlanStartTime = param.PlanStartTime;
+          callback(data);
+        });
+      });
+    });
+  }
+
+  function cruiseOrder(callback, param) {
+    var data = param;
+    data.type = 2;
+    var request = 0, requestNum = 3;
+
+    var condition = {
+      ProductType: '18',
+      ProductId: param.ProductId,
+      PlanId: param.PlanId,
+      CustomerId: param.customerID,
+      IntentOrderId: param.IntentOrderID,
+      OrderStartStatus: 0,
+      IsPeerOrder: false
+    };
+
+    getInfoForBookingTeamOrder(condition, function(response) {
+      angular.extend(data, response);
+
+      data.Salesman = {};
+      data.orderType = param.orderType;
+      data.cost = {};
+      data.OrderPriceRecord = [];
+      data.OrderContract = {
+        OrderHolidayAppointment: [],
+        ContractPayTypeAndTime: '',
+        FightGroupTravelAgencyName: param.peerCompanyName,
+        IsAgreeChangeOtherLine: true,
+        IsAgreeDelayGroup: true,
+        IsAgreeFightGroupsAppointment: true,
+        IsAgreeNoGroup: true,
+        IsAgreeTerminationContract: true,
+        IsMoveTravelAgency: true,
+        OtherAppointment: '',
+        TravelAgencyName: param.peerCompanyName
+      };
+
+      if(angular.isArray(data.ProductInfo.data.CruisePackages) && data.ProductInfo.data.CruisePackages.length>0){
+        data.selectedPackage = data.ProductInfo.data.CruisePackages[0];
+      }
+
+      data.OrderTourists = [];
+
+      //updated by lzw
+      if (data.CustomerInfo.data) {
+        if(data.CustomerInfo.data.location){
+          data.address = {
+            city: data.CustomerInfo.data.location.CityID,
+            region: data.CustomerInfo.data.location.ProvinceID,
+            country: data.CustomerInfo.data.location.CountryID
+          };
+          data.Location = data.CustomerInfo.data.location;
+        }else data.Location = {};
+
+        data.ContactInfo = data.CustomerInfo.data.customer;
+        data.ContactInfo.CertificatesType = "000000000000000000000001";
+      }else{
+        data.ContactInfo = {};
+        data.Location = {};
+      }
+
+
+      if (data.TeamInfo.data.length > 0) {
+        data.TeamInfo.data[0].isSelected = true;
+      }
+      data.roomType = [{
+        ID: 1,
+        Name: "海景房",
+        value: []
+      }, {
+        ID: 2,
+        Name: "阳台房",
+        value: []
+      }, {
+        ID: 3,
+        Name: "套房",
+        value: []
+      }, {
+        ID: 4,
+        Name: "内舱房",
+        value: []
+      }];
+
+
+     if(data.ProductPlanPrice){
+        data.ProductPlanPrice.data.forEach(function(item) {
+        var index = _.findIndex(data.roomType, {
+          ID: item.planFinanceCruise.ShippingSpace.ShippingSpaceType.ID
+        });
+        data.roomType[index].value.push(item);
+      });
+     }
+
+
+      data.selectedPrice = [];
+      data.selectedPriceDetail = [];
+
+      if(++request >= requestNum) callback(data);
+    });
+
+    getCertificatesTypes(function(Certificates) {
+      data.Certificates = Certificates;
+
+      if(++request >= requestNum) callback(data);
+    });
+
+    getCustomerDetail(param.customerID, function(response){
+      data.MemberDetail = response;
+
+      if(++request >= requestNum) callback(data);
+    });
+  }
+});
+productOrderRoute.service('PODiscussion', function(getOneTeamBookingList, getTeamtourDetail,
+  getTeamtourPlanDetail, getInfoForBookingTeamOrder, getCertificatesTypes, getFreetourDetail,
+  getFreetourExpand, getProductInsurancesByProductIDWithNone, getCustomerDetail) {
+  var discussion = {};
+  discussion.list = list;
+  discussion.discussionOrder = discussionOrder;
+  discussion.discussionOrderFreetour = discussionOrderFreetour;
+  discussion.discussionTeamTourDetail = discussionTeamTourDetail;
+  discussion.discussionFreetourDetail = discussionFreetourDetail;
+  return discussion;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TripTypeID: param.TravelType,
+      TripDays: param.TravelDays,
+      DomesticAddressID: param.DomesticAddressID,
+      AbroadAddressID: param.AbroadAddressID,
+      SearchKey: param.SearchInfo,
+      StationID: param.StationId,
+      PageIndex: param.PageIndex ? param.PageIndex : 1,
+      PageSize: pageLimit
+    };
+    getOneTeamBookingList(data.search, function(response) {
+      data.list = response.list;
+      data.list.forEach(function(item) {
+        if (item.ProductTypeName == '跟团游') {
+          item.showUrl = 'productOrder/PODiscussion/discussionTeamTourDetail?ProductId=' + item.ProductID;
+        } else {
+          item.showUrl = 'productOrder/PODiscussion/discussionFreetourDetail?ProductId=' + item.ProductID;
+        }
+      });
+      callback(data);
+    });
+  }
+
+  function discussionTeamTourDetail(callback, param) {
+    var data = {};
+    getTeamtourDetail(param.ProductId, function(resonse) {
+      data = resonse;
+      callback(data);
+    });
+  }
+
+  function discussionFreetourDetail(callback, param) {
+    var data = {};
+    getFreetourDetail(param.ProductId, function(response) {
+      data = response;
+      getFreetourExpand(param.ProductId, function(response1) {
+        data.expand = response1;
+        callback(data);
+      });
+    });
+  }
+
+  function discussionOrder(callback, param) {
+    var data = {};
+    data = param;
+    data.type = 3;
+    data.Salesman = {};
+    data.ReceptionCompany = {};
+    data.cost = {};
+    data.OrderPriceRecord = [];
+    data.IsNeedGuide = 1;
+    data.OrderContract = {
+      OrderHolidayAppointment: [],
+      ContractPayTypeAndTime: '',
+      FightGroupTravelAgencyName: '',
+      IsAgreeChangeOtherLine: true,
+      IsAgreeDelayGroup: true,
+      IsAgreeFightGroupsAppointment: true,
+      IsAgreeNoGroup: true,
+      IsAgreeTerminationContract: true,
+      IsMoveTravelAgency: true,
+      OtherAppointment: '',
+      TravelAgencyName: ''
+    };
+    data.OrderTourists = [];
+    data.peopleCount = {
+      AdultCount: 0,
+      ChildCount: 0,
+      BabyCount: 0
+    };
+
+    getProductInsurancesByProductIDWithNone({
+      ProductTypeID: "000000000000000000000001",
+      ProductID: param.ProductId
+    }, function(response) {
+      data.insurance = response;
+      getCertificatesTypes(function(Certificates) {
+        console.log(Certificates);
+        data.Certificates = Certificates;
+        getCustomerDetail(param.customerID, function(customer) {
+          var index = _.findIndex(customer.CustomerLocations, {
+            CustomerAddressBindStatus: true
+          });
+          if (index > -1) {
+            customer.location = customer.CustomerLocations[index];
+          }
+          if (customer.location) {
+            data.address = {
+              city: customer.location.CityID.$id,
+              region: customer.location.ProvinceID.$id,
+              country: customer.location.CountryID.$id,
+              AreaID: customer.location.AreaID && customer.location.AreaID.$id || '',
+              CustomerPositionDetail: customer.location.CustomerPositionDetail,
+              StreetID: customer.location.StreetID && customer.location.StreetID.$id || ''
+            };
+          }
+          data.customer = customer;
+          data.MemberDetail = angular.extend({}, customer);
+          
+          data.ProductType = param.ProductType;
+          getTeamtourDetail(param.ProductId, function(prodcutDetail) {
+            data.prodcutDetail = prodcutDetail;
+            callback(data);
+          });
+        });
+      });
+    });
+  }
+
+  function discussionOrderFreetour(callback, param) {
+    var data = {};
+    data = param;
+    data.type = 3;
+    data.Salesman = {};
+    data.cost = {};
+    data.OrderPriceRecord = [];
+    data.OrderTourists = [];
+    data.peopleCount = {
+      AdultCount: 0,
+      ChildCount: 0,
+      BabyCount: 0
+    };
+    data.TotalHotelRoomPrice = 0;
+    data.TotalPrice = 0;
+    data.VisaTotalprice = 0;
+    data.HotelSchemes = [];
+    data.TrafficSchemes = [];
+    data.Additionals = [];
+    data.hotelDetail = {};
+    data.trafficDetail = {};
+    data.Additionals = [{
+      EInnerEntrustTypeID: 1,
+      name: '代订机票'
+    }, {
+      EInnerEntrustTypeID: 2,
+      name: '代订住宿'
+    }, {
+      EInnerEntrustTypeID: 3,
+      name: '代送签证'
+    }, {
+      EInnerEntrustTypeID: 4,
+      name: '其他委托'
+    }];
+    getProductInsurancesByProductIDWithNone({
+      ProductTypeID: "000000000000000000000012",
+      ProductID: param.ProductId
+    }, function(response) {
+      data.insurance = response;
+      getCertificatesTypes(function(Certificates) {
+        data.Certificates = Certificates;
+        getCustomerDetail(param.customerID, function(customer) {
+          var index = _.findIndex(customer.CustomerLocations, {
+            CustomerAddressBindStatus: true
+          });
+          if (index > -1) {
+            customer.location = customer.CustomerLocations[index];
+          }
+          if (customer.location) {
+            data.address = {
+              city: customer.location.CityID.$id,
+              region: customer.location.ProvinceID.$id,
+              country: customer.location.CountryID.$id,
+              AreaID: customer.location.AreaID && customer.location.AreaID.$id || '',
+              CustomerPositionDetail: customer.location.CustomerPositionDetail,
+              StreetID: customer.location.StreetID && customer.location.StreetID.$id || ''
+            };
+          }
+          data.customer = customer;
+          data.ProductType = param.ProductType;
+          getFreetourDetail(param.ProductId, function(prodcutDetail) {
+            data.prodcutDetail = prodcutDetail;
+            callback(data);
+          });
+        });
+      });
+    });
+  }
+
+});

@@ -1,0 +1,343 @@
+administrationRoute.service("goodsApply", function(getTravelGoodApplyList,getTravelGoodApplyDetail,
+  getTravelGoodsType) {
+  var goodsApply = {};
+  goodsApply.list = list;
+  goodsApply.add = add;
+  goodsApply.detail = detail;
+  goodsApply.edit = edit;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      "SearchInfo": param.SearchInfo,
+      "StartTime": param.StartTime,
+      "EndTime": param.EndTime,
+      "ApplyStatus": param.ApplyStatus?param.ApplyStatus:1,
+      "iPageIndex": param.iPageIndex?param.iPageIndex:1,
+      "iPageSize": 25
+    };
+    getTravelGoodApplyList(data.search,function(response){
+      data.list = response.list;
+      data.list.forEach(function(item){
+        item.showUrl = 'administration/goodsApply/detail?id='+item.ID;
+      });
+      callback(data);
+    });
+  }
+
+  function add(callback, param) {
+    var data = {};
+    getTravelGoodsType(function(response){
+      data.goodsType = response.data;
+      data.add = {};
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getTravelGoodApplyDetail(param.id, function(response) {
+      data = response;
+      callback(data);
+    });
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    callback(data);
+  }
+
+  return goodsApply;
+});
+administrationRoute.service("staff", function(getPersonnel, getPersonDetail, getPersonLevel, getPermissionList,
+  getAllLabel, getMenuByUserID,getPersonnelListOrderByPlLevel) {
+  var staff = {};
+  staff.list = list;
+  staff.detail = detail;
+  staff.add = add;
+  staff.edit = edit;
+  staff.editPermission = editPermission;
+  return staff;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1,
+      lock: 0
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getPersonnelListOrderByPlLevel(data.search, function(resonse) {
+      data.list = resonse.list;
+      data.list.forEach(function(item) {
+        item.showUrl = 'administration/staff/detail?id=' + item._id.$id;
+      });
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getPersonDetail(param.id, function(resonse) {
+      data = resonse;
+      if (/^http:/.test(data.LargePhoto)) {
+
+      } else if(data.LargePhoto !== '') {
+        data.LargePhoto = picUrl + data.LargePhoto;
+      }
+      callback(data);
+    });
+  }
+
+  function add(callback, param) {
+    var data = {};
+    data.Department = {
+      ID: {
+        $id: ''
+      }
+    };
+    data.permission = {
+      role: []
+    };
+    data.plLevel = {
+      _id: {
+        $id: ''
+      }
+    };
+    data.Sex = 1;
+    data.myPosition = [];
+    data.MaritalStatus = 0;
+    getPersonLevel(function(level) {
+      data.level = level;
+      getPermissionList({
+        limit: 9999
+      }, function(role) {
+        data.roles = role.data;
+        data.birthDay = new Date();
+        data.educationList = ['博士后', '博士', '硕士', '学士', '本科', '大专', '高中', '初中'];
+        getAllLabel(function(label) {
+          data.labels = label.result;
+          callback(data);
+        });
+      });
+    });
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    getPersonDetail(param.id, function(resonse) {
+      data = resonse;
+      data.myPosition = [];
+      if (/^http:/.test(data.LargePhoto)) {
+
+      } else {
+        data.LargePhoto = picUrl + data.LargePhoto;
+      }
+      data.PositionID.forEach(function(id) {
+        _.find(global.Position, function(item) {
+          if (item._id.$id == id) {
+            data.myPosition.push(item);
+          }
+        });
+      });
+      getPersonLevel(function(level) {
+        data.level = level;
+        getPermissionList({
+          limit: 9999
+        }, function(role) {
+          data.roles = role.data;
+          data.birthDay = new Date(data.Birth.sec * 1000);
+          data.educationList = ['博士后', '博士', '硕士', '学士', '本科', '大专', '高中', '初中'];
+          data.myLabel = [];
+          data.Label.forEach(function(item) {
+            data.myLabel.push({
+              LabelGroup: item.LabelGroup,
+              Label: {
+                name: item.LabelName,
+                NO: item.labelNo
+              }
+            });
+          });
+          data.myInDepartment = [];
+          data.InDepartment.forEach(function(item) {
+            var d = _.find(global.Departments, function(department) {
+              if (department._id.$id == item) {
+                return true;
+              }
+            });
+            if(d){
+              data.myInDepartment.push(d);
+            }
+          });
+          getAllLabel(function(label) {
+            data.labels = label.result;
+            callback(data);
+          });
+        });
+      });
+    });
+  }
+
+  function editPermission(callback, param) {
+    var data = {};
+    data.id = param.id;
+    getMenuByUserID(param.id, function(response) {
+      data.menus = response;
+      angular.forEach(data.menus.task, function(tasks, menuID) {
+        tasks.forEach(function(task) {
+          var result = _.find(data.menus.roleExternal, function(item) {
+            if (task.taskID == item.taskID) {
+              task.unSelect = true;
+              return true;
+            }
+          });
+        });
+      });
+      callback(data);
+    });
+  }
+});
+administrationRoute.service("goodsExport", function($rootScope,
+  getTravelGoodApplyList, getTravelGoodOrderList, getStorageResult,
+  getTravelGoodApplyDetail,getTravelGoodOrderDetail) {
+  var goodsExport = {};
+  goodsExport.list = list;
+  goodsExport.add = add;
+  goodsExport.detail = detail;
+  goodsExport.edit = edit;
+  goodsExport.departmentList = departmentList;
+  goodsExport.orderList = orderList;
+  goodsExport.orderDetail = orderDetail;
+  goodsExport.departmentDetail = departmentDetail;
+
+  function list(callback, param) {
+    var data = {};
+    callback(data);
+  }
+
+  function departmentList(callback, param) {
+    var data = {};
+    data.nav = param.nav;
+    data.search = {
+      "SearchInfo": param.SearchInfo,
+      "StartTime": param.StartTime,
+      "EndTime": param.EndTime,
+      "ApplyStatus": param.ApplyStatus ? param.ApplyStatus : 1,
+      "iPageIndex": param.iPageIndex ? param.iPageIndex : 1,
+      "iPageSize": 25
+    };
+    getTravelGoodApplyList(data.search, function(response) {
+      data.list = response.list;
+      data.list.forEach(function(item) {
+        item.showUrl = "administration/goodsExport/departmentDetail?id=" + item.ID;
+      });
+      callback(data);
+    });
+  }
+
+  function orderList(callback, param) {
+    var data = {};
+    data.nav = param.nav;
+    data.search = {
+      "SearchInfo": param.SearchInfo,
+      "StartTime": param.StartTime,
+      "EndTime": param.EndTime,
+      "ApplyStatus": param.ApplyStatus ? param.ApplyStatus : 1,
+      "iPageIndex": param.iPageIndex ? param.iPageIndex : 1,
+      "iPageSize": 25
+    };
+    getTravelGoodOrderList(data.search, function(response) {
+      data.list = response.list;
+      data.list.forEach(function(item) {
+        item.showUrl = "administration/goodsExport/orderDetail?id=" + item.ID;
+      });
+      callback(data);
+    });
+  }
+
+  function orderDetail(callback, param) {
+    var data = {};
+    getTravelGoodOrderDetail(param.id, function(response) {
+      data = response;
+      callback(data);
+    });
+  }
+
+  function departmentDetail(callback, param) {
+    var data = {};
+    getTravelGoodApplyDetail(param.id, function(response) {
+      data = response;
+      callback(data);
+    });
+  }
+
+  function add(callback, param) {
+    var data = {};
+    callback(data);
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    callback(data);
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    callback(data);
+  }
+
+  return goodsExport;
+});
+administrationRoute.service("adminDepartment", function(getDepartmentList, getDepartmentDetail) {
+  var department = {};
+  department.list = list;
+  department.detail = detail;
+  department.add = add;
+  department.edit = edit;
+  return department;
+
+  function list(callback, param) {
+    var data = {};
+    var postData = {
+      page: 1,
+      limit: 999
+    };
+    getDepartmentList(postData, function(response){
+      data = response;
+      data.list.forEach(function(item){
+        item.showUrl = "administration/adminDepartment/detail?id=" + item._id.$id;
+      });
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getDepartmentDetail(param.id, function(response){
+      data = response;
+      data.editSubDept = false;
+      data.showUrl = "administration/adminDepartment/detail?id=" + data._id.$id;
+      data.editUrl = "administration/adminDepartment/edit?id=" + data._id.$id;
+      callback(data);
+    });
+  }
+
+  function add(callback, param) {
+    var data = {};
+    data.Name = "";
+    callback(data);
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    getDepartmentDetail(param.id, function(response){
+      data = response;
+      data.showUrl = "administration/adminDepartment/detail?id=" + data._id.$id;
+      data.isEditMode = true;
+      callback(data);
+    });
+  }
+
+});

@@ -1,0 +1,576 @@
+/**
+ * Created by a on 2016/4/15.
+ * 导游报账 by chen
+ */
+angular.module("financeCenterRoute").service("financeGuideReim", financeGuideReim);
+
+function financeGuideReim(getFinanceGuideReimList, getPreCollarByTeamID, GetTeamPreMoneyInfo, getPersonnel, GetGuideReimTeamInfo,
+	deleteGuideReim) {
+	var fGuideReim = {};
+	fGuideReim.List = financeGuideReimList; //导游报账列表
+	fGuideReim.Add = financeGuideReimAdd; //导游报账添加
+	fGuideReim.Info = financeGuideReimInfo; //导游报账信息
+	fGuideReim.Edit = financeGuideReimEdit; //导游报账修改
+	return fGuideReim;
+
+	//导游报账列表
+	function financeGuideReimList(callback, param) {
+		getFinanceGuideReimList(param, constructResponse);
+
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+
+	//添加导游报账
+	function financeGuideReimAdd(callback, param) {
+		var data = {};
+		data.operationMode = "add";
+		getPreCollarByTeamID(param, constructResponse);
+
+		function constructResponse(response) {
+			data.TeamInfo = response;
+			GetTeamPreMoneyInfo(param, function(gpcResponse) {
+				data.GuidePreCollarList = gpcResponse;
+				callback(data);
+			});
+		}
+	}
+
+	//查看导游报账基本信息
+	function financeGuideReimInfo(callback, param) {
+		GetGuideReimTeamInfo(param, constructResponse);
+
+		function constructResponse(response) {
+			response.operationMode = "show";
+			callback(response);
+		}
+	}
+
+	//修改导游报账
+	function financeGuideReimEdit(callback, param) {
+		var data = {};
+		data.operationMode = "edit";
+		GetGuideReimTeamInfo(param, constructResponse);
+
+		function constructResponse(response) {
+			data.TeamInfo = {
+				TeamID: response.TeamID,
+				TeamNo: response.TeamNo,
+				TeamName: response.TeamName,
+				TeamStartTime: response.StartTime,
+				TeamEndTime: response.EndTime,
+				TeamTypeID: response.TypeID,
+				TeamTypeName: response.TypeName,
+				TeamDeployID: response.DeployInfo.ForeignKeyID,
+				TeamDeployName: response.DeployInfo.EmployeeName,
+				TeamFullGuides: response.fullGuides,
+				TeamFlyGuides: response.sendGuides,
+				TeamPayMoney: response.PayMoney,
+				TeamUserPayMoney: response.UserPayMoney
+			};
+			data.GuidePreCollarList = response.GuidePreCollar; //导游预领
+			//data.GuideReimDetailList = response.GuideReimDetail; //导游报账
+			data.GuideReimDetailList = [];
+			for (var item in response.GuideReimDetail) {
+				//console.log(JSON.stringify(item.PayType));
+				var _one = {
+					DetailID: response.GuideReimDetail[item].DetailID,
+					GuideID: response.GuideReimDetail[item].GuideInfo.ForeignKeyID,
+					Title: response.GuideReimDetail[item].Title,
+					PayTypeID: response.GuideReimDetail[item].PayType.ID,
+					Numbers: response.GuideReimDetail[item].Numbers,
+					SingePrice: response.GuideReimDetail[item].SingePrice,
+					PayPrice: response.GuideReimDetail[item].PayPrice,
+					OrderID: response.GuideReimDetail[item].OrderID,
+					Notes: response.GuideReimDetail[item].Notes
+				}
+				data.GuideReimDetailList.push(_one);
+			}
+			data.ReimVerificationMoney = response.finance.ReimVerificationMoney; //导游报账中使用预领金额
+			data.FinanceID = response.finance._id;
+			data.OPtype = param.OPtype;
+      data.subType = param.subType;
+      data.targetID = param.targetID;
+      data.itemID = param.itemID;
+			callback(data);
+		}
+	}
+}
+/**
+ * Created by chen on 2016/4/7.
+ * 导游预领 route
+ */
+angular.module("financeCenterRoute").service("financeGuidePreCollar", financeGuidePreCollar);
+function financeGuidePreCollar(getFinanceGuidePreCollarList,getFinanceGuidePreCollarInfo,getPreCollarByTeamID){
+    var fGridePreCollar = {};
+    fGridePreCollar.List = financeGuidePreCollarList; //导游预领列表
+    fGridePreCollar.Info=financeGuidePreCollarInfo;//导游预领详情
+    fGridePreCollar.Add=financeGuidePreCollarAdd;//添加
+    return fGridePreCollar;
+
+    //导游预领列表
+    function financeGuidePreCollarList(callback, param){
+        getFinanceGuidePreCollarList(param,constructResponse);
+        function constructResponse(response){
+          console.log(response);
+            callback(response);
+        }
+    }
+
+    //导游预领详情
+    function financeGuidePreCollarInfo(callback,param){
+        getFinanceGuidePreCollarInfo(param,constructResponse);
+        function constructResponse(response){
+            response.operationMode = 'show';
+            callback(response);
+        }
+    }
+
+    //团队信息以及以往申请的预领信息
+    function financeGuidePreCollarAdd(callback,param){
+        getPreCollarByTeamID(param,constructResponse);
+        function constructResponse(response){
+            console.log(JSON.stringify(response));
+            callback(response);
+        }
+    }
+}
+﻿angular.module("financeCenterRoute").service("IncomeSettlement", IncomeSettlement);
+
+function IncomeSettlement(getGeneratelist) {
+    var IncomeSettlement = {};
+    IncomeSettlement.list = list;
+    return IncomeSettlement;
+
+    function list(callback, param) {
+        getGeneratelist([], constructResponse);
+
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+}
+
+//预付款撤回
+angular.module("financeCenterRoute").service("IncomeSettlementOAdvanceRevoke", IncomeSettlementOAdvanceRevoke);
+
+function IncomeSettlementOAdvanceRevoke(getIncomeSettlementlist, getAdvanceRevokeDetail, getPreCollarRevokeDetail) {
+    var AdvanceRevoke = {};
+    AdvanceRevoke.list = list;//显示列表
+    AdvanceRevoke.detail = detail;//显示详细页
+    AdvanceRevoke.preCollarDetail = preCollarDetail;//导游预领撤回详情
+    AdvanceRevoke.preCollarList = preCollarList;//导游预领撤回列表
+    AdvanceRevoke.TemporaryList = TemporaryList;
+    return AdvanceRevoke;
+
+    function list(callback, param) {
+        getIncomeSettlementlist(param, constructResponse);
+        function constructResponse(response) {
+            //data.list = response.list;
+            response.RType = param.RType;//撤销类型
+            callback(response);
+        }
+    }
+    //订单暂借款撤回
+    function TemporaryList(callback, param) {
+        getIncomeSettlementlist(param, constructResponse);
+        function constructResponse(response) {
+            //data.list = response.list;
+            response.RType = param.RType;//撤销类型
+            callback(response);
+        }
+    }
+    /*导游预领撤回列表*/
+    function preCollarList(callback, param) {
+        getIncomeSettlementlist(param, constructResponse);
+        function constructResponse(response) {
+            response.RType = param.RType;//撤销类型
+            callback(response);
+        }
+    }
+
+    /*预付款撤回详情，暂借款撤回详情*/
+    function detail(callback, param) {
+        getAdvanceRevokeDetail(param, constructResponse);
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+
+    /*导游预领撤回详情*/
+    function preCollarDetail(callback, param) {
+        getPreCollarRevokeDetail(param, constructResponse);
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+}
+
+//其他收入
+angular.module("financeCenterRoute").service("otherSR", otherSR);
+
+function otherSR(getotherSRlist, getotherSRdetail) {
+    var AdvanceRevoke = {};
+    AdvanceRevoke.list = list;//显示列表
+    AdvanceRevoke.detail = detail;//显示详细页
+   // AdvanceRevoke.DeptInOutTypelist = DeptInOutTypelist;//显示结算类型列表
+
+    return AdvanceRevoke;
+
+    function list(callback, param) {
+        getotherSRlist(param, constructResponse);
+        function constructResponse(response) {
+            console.log(response);
+            callback(response);
+        }
+    }
+
+    /*其他收入详情*/
+    function detail(callback, param) {
+        getotherSRdetail(param, constructResponse);
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+
+}
+
+//会员卡退款
+angular.module("financeCenterRoute").service("CardRefund", CardRefund);
+
+function CardRefund(getCardRefundlist, getCardRefunddetail) {
+    var AdvanceRevoke = {};
+    AdvanceRevoke.list = list;//显示列表
+    AdvanceRevoke.detail = detail;//显示详细页
+    // AdvanceRevoke.DeptInOutTypelist = DeptInOutTypelist;//显示结算类型列表
+
+    return AdvanceRevoke;
+
+    function list(callback, param) {
+        getCardRefundlist(param, constructResponse);
+        function constructResponse(response) {
+            console.log(response);
+            callback(response);
+        }
+    }
+
+    /*会员卡退款详情*/
+    function detail(callback, param) {
+        getCardRefunddetail(param, constructResponse);
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+
+}
+﻿angular.module("financeCenterRoute").service("Remittance", Remittance);
+
+function Remittance(getRemittanceList, getRemittanceDetail) {
+    var Remittance = {};
+    Remittance.List = List;
+    Remittance.Detail = Detail;
+    return Remittance;
+
+    function List(callback, param) {
+        getRemittanceList(param, constructResponse);
+
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+
+    function Detail(callback, param) {
+        getRemittanceDetail(param, constructResponse);
+
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+}
+angular.module("financeCenterRoute").service("Census", Census);
+
+function Census(getGeneratelist, getGeneratePlanInfo, getGenerateOrderInfo, getCensusList, getCensusDetail, $timeout) {
+  var Census = {};
+  Census.Generatelist = Generatelist;
+  Census.GeneratePlanInfo = GeneratePlanInfo;
+  Census.GenerateOrderInfo = GenerateOrderInfo;
+  Census.List = List;
+  Census.Detail = Detail;
+  return Census;
+
+  function Generatelist(callback, param) {
+    getGeneratelist([], constructResponse);
+
+    function constructResponse(response) {
+      $timeout(function(){
+        callback(response);
+      });
+    }
+  }
+
+  function GeneratePlanInfo(callback, param) {
+    getGeneratePlanInfo(param, constructResponse);
+
+    function constructResponse(response) {
+      callback(response);
+    }
+  }
+
+  function GenerateOrderInfo(callback, param) {
+    getGenerateOrderInfo(param, constructResponse);
+
+    function constructResponse(response) {
+      callback(response);
+    }
+  }
+
+  function List(callback, param) {
+    getCensusList(param, constructResponse);
+
+    function constructResponse(response) {
+      callback(response);
+    }
+  }
+
+  function Detail(callback, param) {
+    getCensusDetail(param, constructResponse);
+
+    function constructResponse(response) {
+      callback(response);
+    }
+  }
+}
+angular.module("financeCenterRoute").service('temporaryLoan', function() {
+  var temporaryLoan = {};
+  temporaryLoan.list = list;
+  temporaryLoan.detail = detail;
+  return temporaryLoan;
+
+  function list(callback, param) {
+
+  }
+
+  function detail(callback, param) {
+    callback({});
+  }
+});
+﻿//订单开票
+angular.module("financeCenterRoute").service("FinanceOrderBillingBussiness", FinanceOrderBillingBussiness);
+
+function FinanceOrderBillingBussiness(getBillingOrderList, getBillingOrderdetail) {
+    var AdvanceRevoke = {};
+    AdvanceRevoke.list = list;//显示列表
+    AdvanceRevoke.detail = detail;//显示列表
+    return AdvanceRevoke;
+
+    function list(callback, param) {
+        getBillingOrderList(param, constructResponse);
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+    /*详情*/
+    function detail(callback, param) {
+        var search = {OrderID:param.OrderID};
+        var data = {detail:param};
+        getBillingOrderdetail(search, constructResponse);
+        function constructResponse(response) {
+            data.list = response;
+            callback(data);
+        }
+    }
+
+}
+﻿angular.module("financeCenterRoute").service("RemittanceOrder", RemittanceOrder);
+
+function RemittanceOrder(getRemittanceOrderList, getRemittanceOrderDetail) {
+    var RemittanceOrder = {};
+    RemittanceOrder.List = List;
+    RemittanceOrder.Detail = Detail;
+    return RemittanceOrder;
+
+    function List(callback, param) {
+        getRemittanceOrderList(param, constructResponse);
+
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+
+    function Detail(callback, param) {
+        getRemittanceOrderDetail(param, constructResponse);
+
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+}
+/**
+ * Created by chen on 2016/3/16.chen
+ * 订单预付款撤回 route
+ */
+angular.module("financeCenterRoute").service("OAdvanceRevoke",OAdvanceRevoke);
+
+function OAdvanceRevoke(getAdvanceRevokeList,getAdvanceRevokeDetail,getPreCollarRevokeDetail){
+    var AdvanceRevoke={};
+    AdvanceRevoke.list=list;//显示列表
+    AdvanceRevoke.detail=detail;//显示详细页
+    AdvanceRevoke.preCollarDetail=preCollarDetail;//导游预领撤回详情
+    return AdvanceRevoke;
+
+    function list(callback,param){
+        getAdvanceRevokeList(param,constructResponse);
+        function constructResponse(response) {
+            //data.list = response.list;
+            response.RType=param.RType;//撤销类型
+            callback(response);
+        }
+    }
+
+    /*预付款撤回详情，暂借款撤回详情*/
+    function detail(callback,param){
+        getAdvanceRevokeDetail(param,constructResponse);
+        function constructResponse(response){
+            callback(response);
+        }
+    }
+
+    /*导游预领撤回详情*/
+    function preCollarDetail(callback,param){
+        getPreCollarRevokeDetail(param,constructResponse);
+        function constructResponse(response){
+            callback(response);
+        }
+    }
+}
+﻿
+/*
+ * Created by chen on 2016/3/26.chen
+ * 订单预付款 route
+ * */
+angular.module("financeCenterRoute").service("financeOrderAdvance", financeOrderAdvance);
+
+function financeOrderAdvance(getFinanceOrderAdvanceList, getFinanceOrderAdvanceInfo, $filter) {
+	var fOrderAdvance = {};
+	fOrderAdvance.financeOrderAdvanceList = financeOrderAdvanceList; //订单预付款列表
+	fOrderAdvance.financeOrderBorrowList = financeOrderBorrowList; //订单暂借款
+	fOrderAdvance.financeOrderAdvanceInfo = financeOrderAdvanceInfo; //订单预付款详情
+	fOrderAdvance.financeOrderAdvanceAdd = financeOrderAdvanceAdd; //订单预付款添加
+	fOrderAdvance.financeOrderBorrowAdd = financeOrderBorrowAdd; //订单暂借款添加
+	return fOrderAdvance;
+
+	//订单预付款列表
+	function financeOrderAdvanceList(callback, param) {
+		param.FinanceType = 2;
+		getFinanceOrderAdvanceList(param, constructResponse);
+
+		function constructResponse(response) {
+			response.FinanceType = 2;
+			callback(response);
+		}
+	}
+
+	//订单暂借款列表
+	function financeOrderBorrowList(callback, param) {
+		param.FinanceType = 3;
+		getFinanceOrderAdvanceList(param, constructResponse);
+
+		function constructResponse(response) {
+			response.FinanceType = 3;
+			callback(response);
+		}
+	}
+
+	//订单预付款详情，暂借款详情
+	function financeOrderAdvanceInfo(callback, param) {
+		getFinanceOrderAdvanceInfo(param, constructResponse);
+
+		function constructResponse(response) {
+			response.operationMode = 'show';
+			callback(response);
+		}
+	}
+
+	//订单预付款添加
+	function financeOrderAdvanceAdd(callback, param) {
+		//param.ProjectTimes=new Date(Date.parse(param.ProjectTime.replace(/-/g, "/")));
+		param.FinanceType = 2;
+		if (param.operationMode != "edit") {
+			param.operationMode = 'add';
+		}
+		callback(param);
+	}
+
+	//订单暂接款添加
+	function financeOrderBorrowAdd(callback, param) {
+		param.FinanceType = 3;
+    if (param.operationMode != "edit") {
+      param.operationMode = 'add';
+    }
+		callback(param);
+	}
+}
+﻿angular.module("financeCenterRoute").service("GuideSubsidy", GuideSubsidy);
+
+function GuideSubsidy(getGuideSubsidyList, getGuideSubsidyDetail) {
+    var GuideSubsidy = {};
+    GuideSubsidy.List = List;
+    GuideSubsidy.Detail = Detail;
+    return GuideSubsidy;
+
+    function List(callback, param) {
+        getGuideSubsidyList(param, constructResponse);
+
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+
+    function Detail(callback, param) {
+        getGuideSubsidyDetail(param, constructResponse);
+
+        function constructResponse(response) {
+            callback(response);
+        }
+    }
+}
+/**
+ * Created by a on 2016/5/3.
+ * 三清单成本结算 路由
+ */
+angular.module("financeCenterRoute").service("PurchaseBill",PurchaseBill);
+
+function PurchaseBill(getPurchaseBillList,GetPurchaseBillDetailInfo,GetPurchaseList){
+    var fPurchaseBill={};
+    fPurchaseBill.List=financePurchaseBillList;//三清单成本结算列表
+    fPurchaseBill.Add=financePurchaseBillAdd;//三清单成本结算添加
+    fPurchaseBill.Info=financePurchaseBillInfo;//三清单详情
+    return fPurchaseBill;
+
+    //三清单成本结算列表
+    function financePurchaseBillList(callback,param){
+        getPurchaseBillList(param,constructResponse);
+        function constructResponse(response){
+            callback(response);
+        }
+    }
+
+    //三清单成本结算添加,获取三清单成本
+    function financePurchaseBillAdd(callback,param){
+        GetPurchaseList(param,constructResponse);
+        function constructResponse(response){
+            response.operationMode="add";
+            callback(response);
+        }
+    }
+
+    //三清单基本信息
+    function financePurchaseBillInfo(callback,param){
+        GetPurchaseBillDetailInfo(param,constructResponse);
+        function constructResponse(response){
+            response.operationMode="show";
+            callback(response);
+        }
+    }
+}

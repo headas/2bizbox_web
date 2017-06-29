@@ -1,0 +1,2290 @@
+//获取列表信息
+systemService.factory("getCompanyList", function($http, $rootScope, _, showErrorInfo){
+	var BranchCompanyList = function(param1, callBack) {
+     var param = withoutFlaseKey(_.extend({
+      query:'',
+      CompanyType: '',
+      page: 1,
+      limit: pageLimit
+    }, param1));
+		HYhttp(
+			$http, {
+				url: baseUrl + "common/Company/getCompanyList",
+				data: param,
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callBack(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			},
+			function() {});
+	};
+	return BranchCompanyList;
+});
+
+//判断名称是否可以（编辑时）
+systemService.factory("checkCompanyNameEdit", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id,param1, callBack) {
+      var param = {
+      ID:id,
+      CompanyName : param1
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/checkCompanyName",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+//判断名称是否可以（添加时）
+systemService.factory("checkCompanyName", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param1, callBack) {
+      var param = {
+      CompanyName : param1
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/checkCompanyName",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+
+//设置账号
+systemService.factory("setCompanyAccount", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param,callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/setCompanyAccount",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+//添加账号
+systemService.factory("addCompany", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param1, callBack) {
+    var param = {
+      data : JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/addCompany",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+//获取公司详情
+systemService.factory("getCompanyDetail", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+    var param = {
+      ID: id,
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/getCompanyDetail",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+//删除公司
+systemService.factory("delCompany", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+    var param = {
+      ID: id,
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/delCompany",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+//修改公司详情
+systemService.factory("editCompany", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id,param1, callBack) {
+    var param={
+      id:id,
+      data:JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/editCompany",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+//锁定账号
+systemService.factory("lockAllAccount", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+  var param ={
+    ID:id
+  };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/lockAllAccount",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+//解冻账号
+systemService.factory("unlockAllAccount", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+   var param ={
+    ID:id
+  };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/unlockAllAccount",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});systemService.factory("getExperientialList", function($http, $rootScope, _, showErrorInfo){
+
+	var ExperientialList = function(param1, callBack) {
+	   var param = withoutFlaseKey(_.extend({
+      query:'',
+      CompanyType: '',
+      page: 1,
+      limit: pageLimit
+    }, param1));
+		HYhttp(
+			$http, {
+				url: baseUrl + "common/Company/getCompanyList",
+				data: param,
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callBack(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			},
+			function() {});
+	};
+	return ExperientialList;
+});
+
+
+systemService.factory("checkExperientialNameEdit", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id,param1, callBack) {
+      var param = {
+      ID:id,
+      CompanyName : param1
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/checkCompanyName",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("checkExperientialName", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param1, callBack) {
+      var param = {
+      CompanyName : param1
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/checkCompanyName",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+
+
+systemService.factory("setExperientialAccount", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param,callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/setCompanyAccount",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("addExperiential", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param1, callBack) {
+    var param = {
+      data : JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/addCompany",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("getExperientialDetail", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+    var param = {
+      ID: id,
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/getCompanyDetail",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+
+systemService.factory("delExperiential", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+    var param = {
+      ID: id,
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/delCompany",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+
+systemService.factory("editExperiential", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id,param1, callBack) {
+    var param={
+      id:id,
+      data:JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/editCompany",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+
+systemService.factory("lockAllAccount", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+  var param ={
+    ID:id
+  };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/lockAllAccount",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("unlockAllAccount", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+   var param ={
+    ID:id
+  };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/unlockAllAccount",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});+ function() {
+  systemService.factory("getBasicData", getBasicData)
+    .factory("getAddrData", getAddrData)
+    .factory("getShopScore", getShopScore)
+    .factory("addShopInfo", addShopInfo)
+    .factory("getShoppingDatas", getShoppingDatas)
+    .factory("deleteShopInfo", deleteShopInfo)
+    .factory("getTrafficMethods", getTrafficMethods)
+    .factory("addTrafficCompany", addTrafficCompany)
+    .factory("deleteTrafficCompany", deleteTrafficCompany)
+    .factory("getTrafficInfoList", getTrafficInfoList)
+    .factory("addTrafficInfo", addTrafficInfo)
+    .factory("deleteTrafficInfo", deleteTrafficInfo)
+    .factory("getHotelStarType", getHotelStarType)
+    .factory("getHotelLocation", getHotelLocation)
+    .factory("getHotelStandard", getHotelStandard)
+    .factory("addHotel", addHotel)
+    .factory("deleteHotel", deleteHotel)
+    .factory("getTravelGoodsType", getTravelGoodsType)
+    .factory("getSuitPeopleType", getSuitPeopleType)
+    .factory("getCooperateCompanyType", getCooperateCompanyType)
+    .factory("addCooperateInfo", addCooperateInfo)
+    .factory("deleteCooperateCompany", deleteCooperateCompany)
+    .factory("addCooperateCompany", addCooperateCompany)
+    .factory("updateCooperateInfo", updateCooperateInfo)
+    .factory("delVisaMaterial", delVisaMaterial)
+    .factory("saveVisaMaterial", saveVisaMaterial)
+    .factory("visaMaterialBasicData", visaMaterialBasicData)
+    .factory("travelGoodsBasicData", travelGoodsBasicData)
+    .factory("travelGoodsStorageAdd", travelGoodsStorageAdd)
+    .factory("travelGoodsStorageDel", travelGoodsStorageDel)
+    .factory("saveTravelGoods", saveTravelGoods)
+    .factory("travelGoodsEntry", travelGoodsEntry)
+    .factory("changeTravelGoodsStatus", changeTravelGoodsStatus)
+    .factory("getTravelGoodsDetail", getTravelGoodsDetail)
+    .factory("travelGoodsStockDetail", travelGoodsStockDetail)
+    .factory("travelGoodsStorageLog", travelGoodsStorageLog)
+    .factory("delTravelGoods", delTravelGoods)
+    .factory("saveTravelGoodType", saveTravelGoodType)
+    .factory("updateTravelGoodType", updateTravelGoodType)
+    .factory("delTravelGoodType", delTravelGoodType)
+    .factory("addDestination", addDestination)
+    .factory("getDestinationDetailType", getDestinationDetailType)
+    .factory("deleteDestination", deleteDestination)
+    .factory("getDestination", getDestination)
+    .factory("getShipInfoList", getShipInfoList)
+    .factory("deleteShipInfo", deleteShipInfo)
+    .factory("deleteShipCompany", deleteShipCompany)
+    .factory("addShipInfo", addShipInfo)
+    .factory("getShipDetail", getShipDetail)
+    .factory("addShipCompany", addShipCompany)
+    .factory("addShipEq", addShipEq)
+    .factory("addShipEqPic", addShipEqPic)
+    .factory("deleteShipEqPic", deleteShipEqPic)
+    .factory("getShipSpaceType", getShipSpaceType)
+    .factory("addShipSpace", addShipSpace)
+    .factory("addShipDeck", addShipDeck)
+    .factory("saveCruiseLines", saveCruiseLines);
+
+  function getBasicData($http, showErrorInfo) {
+    var basicData = {};
+
+    basicData.shopList = function(callback, param) {
+      var data = {
+        "SearchInfo": "",
+        "Countryid": "",
+        "Provinceid": "",
+        "Cityid": "",
+        "iPageIndex": 1,
+        "iPageSize": pageLimit
+      };
+
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ShoppingData/ShoppingDatas",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          angular.forEach(response.data.data.list, function(ele) {
+            ele.detailUrl = "system/basicData/shopDetail?ID=" + ele.ID;
+          });
+
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    basicData.trafficList = function(callback, param) {
+      var data = {
+        "SearchInfo": "",
+        "iPageIndex": 1,
+        "iPageSize": pageLimit
+      };
+
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TrafficData/TrafficCompanyListData",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          angular.forEach(response.data.data.list, function(ele) {
+            ele.detailUrl = "system/basicData/trafficDetail?ID=" + ele.ID + "&Title=" + ele.Name + "&Content=" + ele.Notes;
+          });
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    basicData.hotelList = function(callback, param) {
+      var data = {
+        "SearchInfo": "",
+        "iPageIndex": 1,
+        "iPageSize": pageLimit,
+        "Countryid": "",
+        "Provinceid": "",
+        "Cityid": "",
+        "BasicsHotelStar": ""
+      };
+
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsHotel/BasicsHotelDatas",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var list = response.data.data.list;
+          for (var i = 0; i < list.length; i++) {
+            list[i].detailUrl = "system/basicData/hotelDetail?ID=" + list[i].ID;
+          }
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    basicData.travelGoodsList = function(callback, param) {
+      var data = {
+        "SearchInfo": "",
+        "TravelGoodStatus": "0",
+        "GoodsTypeID": "",
+        "iPageIndex": 1,
+        "iPageSize": pageLimit
+      };
+
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/LYGoodsData",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data;
+          result.data.list.forEach(function(item) {
+            item.detailUrl = "system/basicData/travelGoodsDetail?ID=" + item.ID;
+          });
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    basicData.destinationList = function(callback, param) {
+      var data = {
+        "SearchInfo": "",
+        "ParentID": "000000000000000000000002",
+        "iPageIndex": 1,
+        "iPageSize": pageLimit
+      };
+
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsGADDRlData/BasicsGADDRHierarchyData",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var list = response.data.data.list;
+          for (var i = 0; i < list.length; i++) {
+            list[i].detailUrl = "system/basicData/destinationDetail?ID=" + list[i].ID + "&Title=" + list[i].Title + "&Type=省份";
+          }
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    basicData.visaList = function(callback, param) {
+      var data = {
+        "SearchInfo": "",
+        "MaterialType": "",
+        "iPageIndex": 1,
+        "iPageSize": pageLimit
+      };
+
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsVisa/BasicsVisaMaterialList",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          response.data.data.list.forEach(function(item) {
+            item.detailUrl = 'system/basicData/visaMaterialDetail?ID=' + item._id;
+          });
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    basicData.cooperateList = function(callback, param) {
+      var data = {
+        "SearchInfo": "",
+        "CompanyType": "",
+        "iPageIndex": 1,
+        "iPageSize": pageLimit
+      };
+
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/ClosingNnits",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var list = response.data.data.list;
+          for (var i = 0; i < list.length; i++) {
+            list[i].detailUrl = "system/basicData/cooperateDetail?ID=" + list[i].ID;
+          }
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    basicData.shipList = function(callback, param) {
+      var data = {
+        "SearchInfo": "",
+        "iPageIndex": 1,
+        "iPageSize": pageLimit
+      };
+
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/BasicsCruiseCompanyData",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var list = response.data.data.list;
+          for (var i = 0; i < list.length; i++) {
+            list[i].detailUrl = "system/basicData/shipCompanyDetail?ID=" + list[i]._id + "&Title=" + list[i].CompanyName_ZH + "&companyInfo=" + encodeURIComponent(JSON.stringify({
+              ID: list[i]._id,
+              CompanyName_ZH: list[i].CompanyName_ZH,
+              CompanyName_EN: list[i].CompanyName_EN,
+              Logo: list[i].Logo,
+              Mem: list[i].Mem
+            }));
+          }
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return basicData;
+  }
+
+  function getAddrData($http, showErrorInfo) {
+    var data = {
+      "SearchInfo": "",
+      "ParentID": "",
+      "iPageIndex": "1",
+      "iPageSize": "999"
+    };
+
+
+    var addrData = function(callback, param) {
+      data.ParentID = param;
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsGADDRlData/BasicsGADDRHierarchyData",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data.list);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return addrData;
+  }
+
+  function getShopScore($http, showErrorInfo) {
+    var shopScore = function(callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ShoppingData/ShoppingScore",
+        method: "GET"
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return shopScore;
+  }
+
+  function addShopInfo($http, showErrorInfo) {
+    var shopInfo = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ShoppingData/SaveShoppingDatas",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return shopInfo;
+  }
+
+  function deleteShopInfo($http, showErrorInfo) {
+    var deleteInfo = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ShoppingData/DelShoppingDatas",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return deleteInfo;
+  }
+
+  function getShoppingDatas($http, showErrorInfo) {
+    return function(param, callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ShoppingData/GetShoppingDatas",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  };
+
+  function getTrafficMethods($http, showErrorInfo) {
+    var trafficMethods = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TrafficData/TrafficTypeAll",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return trafficMethods;
+  }
+
+  function addTrafficCompany($http, showErrorInfo) {
+    var trafficCompany = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TrafficData/SaveBasicsTrafficCompany",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return trafficCompany;
+  }
+
+  function deleteTrafficCompany($http, showErrorInfo) {
+    var data = {
+      "ID": ""
+    };
+
+    var deleteTraffic = function(callback, param) {
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TrafficData/DelBasicsTrafficCompany",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return deleteTraffic;
+  }
+
+  function getTrafficInfoList($http, showErrorInfo) {
+    var infoList = function(callback, id) {
+      var data = {
+        "ID": id,
+        "iPageIndex": 1,
+        "iPageSize": pageLimit
+      };
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TrafficData/TrafficListDatas",
+        method: "POST",
+        data: data
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data.list);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return infoList;
+  }
+
+  function addTrafficInfo($http, showErrorInfo) {
+    var trafficInfo = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TrafficData/SaveBasicsTraffic",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return trafficInfo;
+  }
+
+  function deleteTrafficInfo($http, showErrorInfo) {
+    var data = {
+      "ID": ""
+    };
+
+    var deleteTraffic = function(callback, param) {
+      if (param)
+        for (var i in data)
+          if (param[i])
+            data[i] = param[i];
+
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TrafficData/DelBasicsTraffic",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return deleteTraffic;
+  }
+
+  function getHotelStarType($http, showErrorInfo) {
+    var hotelStarType = function(callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsHotel/BasicsHotelStarAll",
+        method: "POST",
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return hotelStarType;
+  }
+
+  function getHotelLocation($http, showErrorInfo) {
+    var hotelLocation = function(callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsHotel/ELocatedPosition",
+        method: "POST",
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return hotelLocation;
+  }
+
+  function getHotelStandard($http, showErrorInfo) {
+    var hotelStandard = function(callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsHotel/EHotelStandard",
+        method: "POST",
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return hotelStandard;
+  }
+
+  function addHotel($http, showErrorInfo) {
+    var hotel = function(param, success, error) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsHotel/SaveBasicsHotel",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          success(response.data);
+        } else {
+          showErrorInfo(response.data.message);
+          error(response.data);
+        }
+      });
+    };
+
+    return hotel;
+  }
+
+  function deleteHotel($http, showErrorInfo) {
+    var hotel = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsHotel/DelBasicsHotel",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return hotel;
+  }
+
+  function getTravelGoodsType($http, showErrorInfo) {
+    var goodsType = function(callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/TravelGoodTypeAll",
+        method: "GET",
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return goodsType;
+  }
+
+  function getSuitPeopleType($http, showErrorInfo) {
+    var suitPeopleType = function(callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsVisa/BasicsVisaMaterialTypeData",
+        method: "POST",
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return suitPeopleType;
+  }
+
+  function getCooperateCompanyType($http, showErrorInfo) {
+    var companyType = function(callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/FinanceCompanyTypeAll",
+        method: "GET",
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return companyType;
+  }
+
+  function deleteCooperateCompany($http, showErrorInfo) {
+    var deleteCompany = function(callback, id) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/DelClosingNnit",
+        method: "POST",
+        data: {
+          "ID": id
+        }
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return deleteCompany;
+  }
+
+  function addCooperateCompany($http, showErrorInfo) {
+    var cooperateCompany = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/SaveClosingNnit",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return cooperateCompany;
+  }
+
+  function addCooperateInfo($http, showErrorInfo) {
+    var cooperateInfo = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/InsertClosingNnitPeople",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return cooperateInfo;
+  }
+
+  function updateCooperateInfo($http, showErrorInfo) {
+    var updateInfo = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/UpdateClosingNnitPeople",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return updateInfo;
+  }
+
+  function deleteCooperateInfo($http, showErrorInfo) {
+    var deleteInfo = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+
+    return deleteInfo;
+  }
+
+  function visaMaterialBasicData($http, showErrorInfo) {
+    var basicData = function(callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsVisa/BasicsVisaMaterialTypeData",
+        method: "POST"
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+    return basicData;
+  }
+
+  function delVisaMaterial($http, showErrorInfo) {
+    var basicData = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsVisa/DelVisaMaterial",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+    return basicData;
+  }
+
+  function saveVisaMaterial($http, showErrorInfo) {
+    var basicData = function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsVisa/SaveVisaMaterial",
+        method: "POST",
+        data: {
+          RequestData: param
+        }
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+    return basicData;
+  }
+
+  function travelGoodsBasicData($http, showErrorInfo) {
+    var basicData = function(callback, param) {
+      var myResponse = {};
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/TravelGoodTypeAll",
+        method: "POST",
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          myResponse.goodsType = response.data.data;
+          callback(myResponse);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+    return basicData;
+  }
+
+  function saveTravelGoods($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/SaveTravelGoods",
+        method: "POST",
+        data: {
+          RequestData: param
+        }
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function saveTravelGoodType($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/SaveTravelGoodTypes",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function updateTravelGoodType($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/UpdateTravelGoodTypes",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function delTravelGoodType($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/DelTravelGoodTypes",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function delTravelGoods($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/DelTravelGood",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function getTravelGoodsDetail($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/GetTravelGoods",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function changeTravelGoodsStatus($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/SuspendTravelGood",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function travelGoodsStockDetail($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/GetTravelGoodStockDetail",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function travelGoodsStorageLog($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/GetStorageResult",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function travelGoodsStorageAdd($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/SaveTravelGoodEntry",
+        method: "POST",
+        data: {
+          RequestData: JSON.stringify(param)
+        }
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function travelGoodsStorageDel($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/DelTravelGoodEntry",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function travelGoodsEntry($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/TravelGoods/TravelGoodEntryOutInOP",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function addDestination($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsGADDRlData/SaveGADDR",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function getDestinationDetailType($http, showErrorInfo) {
+    return function(callback) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsGADDRlData/BasicsGADDRDetailTypeData",
+        method: "POST"
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function deleteDestination($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsGADDRlData/DelGADDR",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function getDestination($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsGADDRlData/GetGADDR",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var data = response.data.data;
+
+          callback({
+            data: {
+              "Title": data.Title,
+              "parentid": data.parentid,
+              "GADDRDetails": data.GADDRDetails,
+              "NationalFlagUrl": data.NationalFlagUrl,
+              "_id": data._id
+            }
+          });
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function getShipInfoList($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/BasicsCruiseData",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          response.data.data.list.forEach(function(ele) {
+            ele.shipDetailUrl = "system/basicData/shipDetail?ID=" + ele._id;
+          });
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function deleteShipInfo($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/DelBasicsCruise",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function deleteShipCompany($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/DelCruiseCompany",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function addShipInfo($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/SaveLiner",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function getShipDetail($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/BasicsCruiseDataByID",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function addShipCompany($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/SaveCruiseCompany",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function addShipEq($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/SaveInnerBasicsCruiseEq",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function addShipEqPic($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/SaveInnerBasicsCruiseEqPic",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function deleteShipEqPic($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/DelInnerBasicsCruiseEqPic",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function getShipSpaceType($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/EShippingSpaceTypes",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function addShipSpace($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/SaveInnerBasicsCruiseEqShippingSpace",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function addShipDeck($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/SaveDeckPic",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });
+    };
+  }
+
+  function saveCruiseLines($http, showErrorInfo) {
+    return function(callback, param) {
+      HYhttp($http, {
+        url: dreamFlyUrl + "/BasicData/BasicsLiner/SaveInnerBasicsCruiseCruiseLines",
+        method: "POST",
+        data: param
+      }).then(function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      });     
+    };
+  }
+}();systemService.factory("getCounterpartsList", function($http, $rootScope, _, showErrorInfo){
+
+	var CounterpartsList = function(param1, callBack) {
+	   var param = withoutFlaseKey(_.extend({
+      query:'',
+      CompanyType: '',
+      page: 1,
+      limit: pageLimit
+    }, param1));
+		HYhttp(
+			$http, {
+				url: baseUrl + "common/Company/getCompanyList",
+				data: param,
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callBack(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			},
+			function() {});
+	};
+	return CounterpartsList;
+});
+
+
+systemService.factory("checkCounterpartsNameEdit", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id,param1, callBack) {
+      var param = {
+      ID:id,
+      CompanyName : param1
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/checkCompanyName",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("checkCounterpartsName", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param1, callBack) {
+      var param = {
+      CompanyName : param1
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/checkCompanyName",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+
+
+systemService.factory("setCounterpartsAccount", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param,callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/setCompanyAccount",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("addCounterparts", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param1, callBack) {
+    var param = {
+      data : JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/addCompany",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("getCounterpartsDetail", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+    var param = {
+      ID: id,
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/getCompanyDetail",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+
+systemService.factory("delCounterparts", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+    var param = {
+      ID: id,
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/delCompany",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+
+systemService.factory("editCounterparts", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id,param1, callBack) {
+    var param={
+      id:id,
+      data:JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/editCompany",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+
+systemService.factory("lockAllAccount", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+  var param ={
+    ID:id
+  };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/lockAllAccount",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("unlockAllAccount", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+   var param ={
+    ID:id
+  };
+    HYhttp(
+      $http, {
+        url: baseUrl + "common/Company/unlockAllAccount",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});systemService.factory("getPermissionList", function($http, $rootScope, _, showErrorInfo){
+
+	var permissionList = function(param1, callBack) {
+		var param = _.extend({
+			page: 1,
+			limit: pageLimit
+		}, param1);
+		HYhttp(
+			$http, {
+				url: baseUrl + "role/findList",
+				data: param,
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callBack(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			},
+			function() {});
+	};
+	return permissionList;
+});
+
+systemService.factory("getPermissionDetail", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+    var param = {
+      roleID: id,
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "role/getRoleDetail",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("getPermissionListBasicData", function($http, $rootScope, _, showErrorInfo, getPermissionRoleType) {
+  var result = function(callBack) {
+		var data = {};
+		getPermissionRoleType(function(response){
+			data.roleGroupTypes = response;
+			callBack(data);
+		});
+	};
+  return result;
+});
+
+systemService.factory("getPermissionBasicData", function($http, $rootScope, _, showErrorInfo, getPermissionRoleType, getPermissionAllMenus,
+getPermissionAllTasks) {
+  var result = function(callBack) {
+		var data = {};
+		getPermissionRoleType(function(response){
+			data.roleGroupTypes = response;
+			getPermissionAllMenus(function(response1){
+				data.allMenus = response1;
+				// getPermissionAllTasks(function(response2){
+				// 	data.allTasks = response2;
+					callBack(data);
+				// });
+			});
+		});
+	};
+  return result;
+});
+
+systemService.factory("getPermissionRoleType", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "roleGroup/getAllRoleGroup",
+        method: "GET"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+systemService.factory("getPermissionRoleQuotee", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "role/getRoleQuoteList",
+        method: "GET"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("delPermissionRoleMember", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(id, callBack) {
+		var param = {
+      roleID: id,
+    };
+    HYhttp(
+      $http, {
+        url: baseUrl + "role/deleteRole",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("getPermissionAllMenus", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "menus/getMenusIgnoreUser",
+        method: "GET"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("getPermissionAllTasks", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "showRoleTask/getAllTask",
+        method: "GET"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("getPermissionTasksByMenu", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "role/getTaskByMenuID",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("getPermissionRoleMenu", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(roleID, callBack) {
+		var param = {
+			roleID: roleID
+		};
+    HYhttp(
+      $http, {
+        url: baseUrl + "menus/getRoleMenus",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("addPermissionRole", function($http, $rootScope, _, showErrorInfo) {
+  var result = function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "role/addRole",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});
+
+systemService.factory("updatePermissionRole", function($http, showErrorInfo) {
+  var result = function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "role/editRole",
+				data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return result;
+});

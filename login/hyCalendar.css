@@ -1,0 +1,59 @@
+/*行程日历*/
+.fullcalendar { width: 100%; text-align: center; border: 1px solid #c9c9c9; border-top: 2px solid #4b77be; table-layout: fixed; }
+.fullcalendar .calClass { width: 100%; table-layout: fixed; border: 1px solid #cacaca; border-top: 2px solid #4b77be; }
+.fullcalendar td { vertical-align: top; }
+.fullcalendar .head_date { padding: 7px 0 5px; font-size: 16px; color: #4b77be; }
+.fullcalendar .head_date:hover { color: #2155aa; }
+.fullcalendar th { font-weight: normal; text-align: center; }
+.left_arrow, .right_arrow { font-size: 14px; color: #4b77be; cursor: pointer; }
+.fullcalendar .calHead .glyphicon { padding: 5px 8px; }
+.fullcalendar .calHead .glyphicon:hover { background: #eee; }
+.fullcalendar th.week { font-size: 14px; padding: 5px 0 7px; }
+.fullcalendar .calBody .calendar_day { border: 1px solid #c9c9c9; line-height: 1; background: #fafafa; padding: 8px; color: #666; vertical-align: top; text-align: right; height: 45px; box-sizing: border-box; }
+.fullcalendar .calBody .today { background: #dbd9d9; }
+.fullcalendar .calBody .old, .fullcalendar .calBody .new { color: #ccc; }
+.fullcalendar .calBody .calendar_day:hover { background: #ededed; transition: all 0.1s ease-in-out; }
+.tab_line { border: 1px solid #c9c9c9; height: 2px; display: block; border-top: none; }
+td.calender_month { width: 25%; text-align: center; padding: 7px; cursor: pointer; }
+td.calender_month:hover { color: #4b77be; }
+.xc_l { float: left; width: 70px; text-align: left; }
+.xc_l span { display: block; color: #8fc31f; margin-bottom: 6px; max-height:24px; overflow:hidden; }
+.xc_l font { color: #f32613; }
+.xc_l font.red_txt { color: #f32613;}
+.xc_l font.green_txt { color:#8fc31f;}
+.fullcalendar .calBody .xcA { border-left: 2px solid #8fc31f; }
+.fullcalendar .calBody .xcB { border-left: 2px solid #4b77be; }
+.fullcalendar .calBody .xcC { border-left: 2px solid #f39800; }
+.f_r span { display: block; margin-bottom: 4px; }
+.fullcalendar .calBody .xcB .xc_l span { color: #4b77be; }
+.fullcalendar .calBody .xcC .xc_l span { color: #f39800; }
+.label_inner { width: 100%; height: 100%; display: block; }
+/*时间日历*/
+.datetime { width: 380px;border:1px solid #ccc;  }
+.datetimePicker .calHead .glyphicon { color: #333; }
+.datetimePicker { width: 100%; table-layout: fixed; }
+.datetimePicker .calClass { width: 100%; table-layout: fixed; }
+.datetimePicker th { text-align: center; font-weight: normal; vertical-align: middle; }
+.datetimePicker .head_date { font-size: 16px; padding: 5px 0; }
+.datetimePicker .week { padding: 5px 0 10px; }
+.datetimePicker .calBody .old, .datetimePicker .calBody .new { color: #ccc; }
+.datetimePicker .calender_day { text-align: center; font-family: Arial, Helvetica, sans-serif; font-size: 12px; padding: 2px 0;  }
+/*.datetimePicker .today { background:#ccc;}*/
+.priceRow { color: #f63;color:#f86b4f; }
+.cell_date { padding-top:5px;}
+.seatRow font { color:#ff3e3e;}
+.datetime .calBody tr.ng-scope th { border:1px solid #efefef; text-align:left; padding:0 0 0 3px; height:50px; line-height:14px; vertical-align:top; position:relative; overflow:hidden;}
+table.datetimepicker { table-layout: fixed;}
+table.datetimepicker td.calender_day.today { background:#fffae9;}
+.datetime .calBody tr.ng-scope th:last-child { border-right:1px solid #ccc; }
+.datetime .calendar_head  th{ padding:10px 0 5px;}
+.datetime .calBody tr.ng-scope th:first-child { border-left:none; }
+.datetime .calBody tr:last-child th { border-bottom:none;}
+.datetime .calBody .calendar_day .day-active {background: #d7e6ff;}
+.gT { color:#5cb85c; font-size:12px;}
+
+.offset { width:16px; height:16px; display:inline-block; color:#fff; background:#f86b4f; text-align:center; line-height:15px; position:absolute; top:0; right:0;}
+
+
+
+

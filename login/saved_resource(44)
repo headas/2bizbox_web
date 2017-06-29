@@ -1,0 +1,919 @@
++ function() {
+	app
+		.controller('tourGuideScheduleCtrl', tourGuideScheduleCtrl)
+		.controller('tourGuideScheduleDetailCtrl', tourGuideScheduleDetailCtrl)
+		.controller('tourGuideArrangeCtrl', tourGuideArrangeCtrl)
+		.controller('tourGuideTravelsCtrl', tourGuideTravelsCtrl)
+		.controller('tourGuideManageCtrl', tourGuideManageCtrl)
+		.controller('tourGuideHonorCtrl', tourGuideHonorCtrl)
+		.directive('dateTable', function(scheduleDate, $rootScope) {
+			return {
+				restrict: 'EA',
+				scope: true,
+				transclude: true,
+				replace: true,
+				templateUrl: '/public/angularView/tourGuide/schedule.html?' + Math.random(),
+				controller: function($scope) {
+					this.getTotalDays = function() {
+						return $scope.days;
+					};
+
+					this.currMonth = function() {
+						return $scope.currMonth;
+					};
+				},
+				link: function(scope, ele, attr) {
+					var header = ele[0].querySelector('.head .right tr'),
+						offset = 0,
+						tdw = +attr.tdw;
+
+					viewNum = ele[0].offsetWidth / tdw - 2;
+					scope.translate = {};
+					scope.currDay = new Date().getDate();
+
+					scope.$watch(attr.date, function(n, o) {
+						scope.currMonth = scheduleDate(new Date(n));
+						scope.days = scope.currMonth.totalDays();
+
+						var html = "";
+						for (var i = 0; i < scope.days; i++) {
+							html += '<th>' + (i + 1) + '</th>';
+						}
+
+						header.innerHTML = html;
+
+						offset = 0;
+						scope.translate.transform = 'translateX(' + -offset * tdw + 'px)';
+						scope.translate.width = scope.days * tdw + 'px';
+					}, true);
+
+					scope.next = function() {
+						offset = scope.days - viewNum;
+						scope.translate.transform = 'translateX(' + -offset * tdw + 'px)';
+					};
+
+					scope.prev = function() {
+						offset = 0;
+						scope.translate.transform = 'translateX(' + -offset * tdw + 'px)';
+					};
+				}
+			};
+		})
+		.directive('dateRow', function() {
+			return {
+				restrict: 'EA',
+				replace: true,
+				require: "^dateTable",
+				transclude: true,
+				template: '<tr ng-transclude></tr>',
+				controller: function() {
+					this.prev = 0;
+
+					this.getPrev = function() {
+						return this.prev;
+					};
+
+					this.setPrev = function(end) {
+						this.prev = end;
+					};
+				},
+				link: function(scope, ele, attr, ctrl) {
+					if (+attr.blocks !== 0) return;
+					var totalDays = ctrl.getTotalDays(),
+						html = "";
+					for (var i = 0; i < totalDays; i++) html += "<td>&nbsp;</td>";
+					ele.append(html);
+				}
+			};
+		})
+		.directive('dateItem', function() {
+			return {
+				replace: true,
+				require: ['^dateRow', '^dateTable'],
+				template: '<td ng-transclude></td>',
+				transclude: true,
+				link: function(scope, ele, attr, ctrls) {
+					attr.begin = +attr.begin;
+					
+					if(attr.type == 'Send') {
+						attr.end = attr.begin;
+					}else {
+						attr.end = +attr.end;
+					}
+
+					var currMonth = ctrls[1].currMonth(),
+						begin = attr.begin <= currMonth.start.stamp ? 1 : new Date(attr.begin).getDate(),
+						end = attr.end >= currMonth.end.stamp ? currMonth.totalDays() : new Date(attr.end).getDate(),
+						parent = ele[0].parentNode;
+
+					if(currMonth.start.stamp > attr.end) {
+						parent.removeChild(ele[0]);
+						return;
+					}
+
+					ele.attr({colspan: end - begin + 1});
+					ele.css({width: (end - begin + 1) * 60 + 'px'});
+
+					var beforeFragment = document.createDocumentFragment();
+					for (var i = 0; i < begin - ctrls[0].getPrev() - 1; i++) {
+						beforeFragment.appendChild(document.createElement('td'));
+					}
+					parent.insertBefore(beforeFragment, ele[0]);
+
+					if (attr.last === 'true') {
+						var totalDays = ctrls[1].getTotalDays();
+						if (end < totalDays){
+							var afterFragment = document.createDocumentFragment();
+							for (i = 0; i < totalDays - end; i++) {
+								afterFragment.appendChild(document.createElement('td'));
+							}
+							parent.appendChild(afterFragment);
+						}
+					} else ctrls[0].setPrev(end);
+				}
+			};
+		})
+		.directive('dateCalendar', function(scheduleDate, _, $filter) {
+			return {
+				restrict: 'A',
+				scope: {
+					schedule: '=',
+					date: '@'
+				},
+				link: function(scope, ele, attr) {
+					function formatTrip(trip) {
+						return trip.replace(/{飞机}/g, '<span class="tra_tool plane">&nbsp;</span>')
+							.replace(/{汽车}/g, '<span class="tra_tool bus">&nbsp;</span>')
+							.replace(/{动车}/g, '<span class="tra_tool dongche">&nbsp;</span>')
+							.replace(/{火车}/g, '<span class="tra_tool train">&nbsp;</span>')
+							.replace(/{船}/g, '<span class="tra_tool ship">&nbsp;</span>');
+					}
+
+					scope.$watch('date', function(n) {
+						if(!n) return;
+						var date = scheduleDate(new Date(n)),
+							lastMonthDays = date.lastMonthDays(),
+							firstDay = new Date(date.start.date),
+							lastDay = new Date(date.end.date),
+							schedule = $filter('orderBy')(scope.schedule, 'StartTime'),
+							first = firstDay.getDay(),
+							days = lastDay.getDate(),
+							end = lastDay.getDay();
+
+						var html = "",
+							trips = {};
+
+						schedule.forEach(function(s, index, arr) {
+							if (s.trips.length <= 0) return;
+
+							var length = 0;
+							if(s.Type === 'Send') length = 1;
+							else length = s.trips.length;
+
+							var day = new Date(s.StartTime);
+
+							for (var i = 0; i < length; i++) {
+								if (day.getTime() < date.start.stamp){
+									trips["0" + day.getDate()] = {
+										title: formatTrip(s.trips[i].Title),
+										state: s.trips[i].Day == 1?((s.Type == 'Send')?' spe_td':' borderL'):''
+									};
+								}
+								else if (day.getTime() >= date.end.stamp){
+									trips["00" + day.getDate()] = {
+										title: formatTrip(s.trips[i].Title),
+										state: s.trips[i].Day == 1?((s.Type == 'Send')?' spe_td':' borderL'):''
+									};
+								}
+								else {
+									trips["" + day.getDate()] = {
+										title: formatTrip(s.trips[i].Title),
+										state: s.trips[i].Day == 1?((s.Type == 'Send')?' spe_td':' borderL'):''	
+									};
+								}
+
+								day.setDate(day.getDate() + 1);
+							}
+						});
+
+						var dIndex = 0;
+
+						for (var i = 0; i < first; i++) {
+							dIndex = lastMonthDays - (first - i - 1);
+							if (trips['0' + dIndex])
+								html += '<td class="old_day sch-td'+ trips['0' + dIndex].state +'"><div class="td-inner"><p class="day_date">' + dIndex + '</p><div class="journey">' + trips['0' + dIndex].title + '</div></div></td>';
+							else
+								html += '<td class="old_day"><div class="td-inner"><p class="day_date">'+ dIndex +'</p></div></td>';
+						}
+
+						for (i = 1; i <= days; i++) {
+							if (trips['' + i]) {
+								html += '<td class="sch-td'+ trips['' + i].state +'"><div class="td-inner"><p class="day_date">' + i + '</p><div class="journey">' + trips['' + i].title + '</div></div></td>';
+							} else
+								html += '<td><div class="td-inner"><p class="day_date">' + i + '</p></div></td>';
+						}
+
+						for (i = 0; i < 6 - end; i++) {
+							dIndex = i + 1;
+							if (trips['00' + dIndex]) 
+								html += '<td class="old_day sch-td'+ trips['00' + dIndex].state +'"><div class="td-inner"><p class="day_date">' + dIndex + '</p><div class="journey">' + trips['00' + dIndex].title + '</div></div></td>';
+							else
+								html += '<td class="old_day"><div class="td-inner"><p class="day_date">' + dIndex + '</p></div></td>';
+						}
+
+						html = _.map(html.match(/(?:<td[\s\S]*?>[\s\S]*?<\/td>){7}/g), function(v) {
+							return '<tr>' + v + '</tr>';
+						}).join('');
+
+						html = '<tr><th>星期日</th><th>星期一</th><th>星期二</th><th>星期三</th><th>星期四</th><th>星期五</th><th>星期六</th></tr>' + html;
+
+						ele.html(html);
+					});
+				}
+			};
+		});
+
+	function tourGuideScheduleCtrl($scope, $rootScope, getTourGuideArrangeList, getTourGuideManageList, matchTourGuideSchedule, matchSelfTrip, scheduleDate, getSchedulePlan, insureForGuide, getCertificatesTypes, getProductInsurancesByProductIDWithNone, getTourGuideArrangeDetail) {
+		var views = ['date', 'list'];
+		$scope.curView = 'list';
+
+		$scope.tab = function(index) {
+			$scope.curView = views[index];
+		};
+
+		$scope.setMonth = function(flag) {
+			if($rootScope.isloadList) return;
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+
+			var date = scheduleDate($rootScope.mainData.time);
+
+			if (flag === 'prev') date.prevMonth();
+			else if (flag === 'next') date.nextMonth();
+
+			var teams = $rootScope.mainData.teams[date.start.date];
+
+
+			if (teams) {
+				$rootScope.mainData.data = matchTourGuideSchedule(teams, $rootScope.mainData.guides);
+				$rootScope.mainData.selfData.schedule = $rootScope.mainData.selfTeams[date.start.date];
+
+				$rootScope.mainData.time.setTime(date.start.stamp);
+
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+			} else {
+				getTourGuideArrangeList(function(response) {
+					teams = response.data.list;
+					var data = matchTourGuideSchedule(teams, $rootScope.mainData.guides),
+						selfData = matchTourGuideSchedule(teams, [$rootScope.userinfo])[0];
+
+					matchSelfTrip(selfData.schedule, function() {
+						$rootScope.mainData.time.setTime(date.start.stamp);
+						$rootScope.mainData.data = data;
+						$rootScope.mainData.selfData = selfData;
+						$rootScope.mainData.teams[date.start.date] = teams;
+						$rootScope.mainData.selfTeams[date.start.date] = selfData.schedule;
+						$rootScope.isloadList = false;
+						$rootScope.showProcessBar = false;
+					});
+				}, {
+					json: JSON.stringify({
+						page: 1,
+						limit: 99999,
+						justMonth: date.start.date.split('-').slice(0, 2).join('-')
+					})
+				});
+			}
+		};
+
+		$scope.searchList = function() {
+			var search = angular.extend({}, $rootScope.mainData.search, {
+				IsGuide: 1,
+				limit: pageLimit,
+				page: 1
+			});
+			getTourGuideManageList(function(response) {
+				var date = scheduleDate($rootScope.mainData.time);
+
+				$rootScope.mainData.guides = response.data.list;
+				$rootScope.mainData.data = matchTourGuideSchedule($rootScope.mainData.teams[date.start.date], response.data.list);
+
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+			}, {
+				json: JSON.stringify(search)
+			});
+		};
+
+		$scope.loadList = function() {
+			getTourGuideManageList(function(response) {
+				var date = scheduleDate($rootScope.mainData.time);
+
+				$rootScope.mainData.guides = $rootScope.mainData.guides.concat(response.data.list);
+				$rootScope.mainData.data = $rootScope.mainData.data.concat(matchTourGuideSchedule($rootScope.mainData.teams[date.start.date], response.data.list));
+
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+			}, {
+				json: JSON.stringify({
+					page: ++$rootScope.mainData.search.page,
+					limit: pageLimit,
+					IsGuide: 1,
+					IsDepartmentGuide: $rootScope.mainData.search.IsDepartmentGuide
+				})
+			});
+		};
+
+		var detail = {
+			'000000000000000000000001': 'tourGuideCenter/TourGuideScheduling/teamTourDetail',
+			'000000000000000000000017': 'tourGuideCenter/TourGuideScheduling/customTourDetail',
+			'000000000000000000000012': 'tourGuideCenter/TourGuideScheduling/freeTourDetail',
+			'000000000000000000000018': 'tourGuideCenter/TourGuideScheduling/cruiseDetail',
+			'000000000000000000000013': 'tourGuideCenter/TourGuideScheduling/drivingTourDetail'
+		};
+
+		$scope.fetchDetail = function(MomentID, LineID, teamID) {
+			var date = scheduleDate($rootScope.mainData.time);
+			$rootScope.mainData.selectedTeam = _.find($rootScope.mainData.teams[date.start.date], function(item) {
+				if (item._id.$id == teamID) return true;
+			});
+
+			getCertificatesTypes(function(response) {
+				$rootScope.mainData.certificates = response;
+			});
+
+			getTourGuideArrangeDetail(function(rs) {
+				var url = detail[rs.data.Type.ForeignKeyID.$id] + '?LineID=' + LineID;
+				$rootScope.fetch(url);
+			}, {
+				id: teamID
+			});
+		};
+	}
+
+	function tourGuideScheduleDetailCtrl($scope, insureForGuide, $rootScope, $filter, getGuideInsurance, showWarningBox, cancelInsurance) {
+		var mainData = $rootScope[position[1]];
+
+		var insBasic = {
+			OrderID: mainData.selectedTeam._id.$id,
+			TeamNo: mainData.selectedTeam.TeamNo,
+			TeamID: mainData.selectedTeam._id.$id,
+			InsuranceStartTime: $filter('date')(mainData.selectedTeam.StartTime.sec * 1000, 'yyyy-MM-dd HH:mm:ss'),
+			InsuranceDays: mainData.selectedTeam.Days,
+			InsuranceCompanyID: 2,
+			InsuranceMoney: 0
+		};
+
+		$scope.showInsurace = false;
+		$scope.showInsuranceTable = false;
+
+		$scope.guides = _.filter(mainData.selectedTeam.TeamGuides, function(item){
+			if(item.GuideID.$id === $rootScope.userinfo._id.$id)
+				return true;
+		});
+		if(angular.isArray($scope.guides) && $scope.guides.length > 0) {
+			$scope.insTemp = {
+				guide: _.find(mainData.selectedTeam.TeamGuides, function(item){
+					if(item.GuideID.$id === $rootScope.userinfo._id.$id)
+						return true;
+				}),
+				TouristMobile: $rootScope.userinfo.TelPhone,
+				GenderTypeID: $rootScope.userinfo.Sex
+			};
+		}
+		else $scope.insTemp = null;
+
+		$rootScope[position[2]].guideInsurances = [];
+		getGuideInsurance(function(response) {
+			response.data.forEach(function(obj) {
+				$rootScope[position[2]].guideInsurances.push({
+					TouristName: obj.InsuredName,
+					TouristID: obj.BBRID,
+					InsuranceID: obj.ID,
+					CertificatesTypeID: obj.InsuredCardNO,
+					TouristBirthday: obj.InsuredBirthday,
+					TouristMobile: obj.InsuredMobile,
+					GenderTypeID: obj.InsuredSex,
+					InsuranceName: obj.INSUTitle,
+					TouristDocumentNumber: obj.InsuredCardNO,
+					CertificatesTypeName: _.find(mainData.certificates, function(item) {
+						if (item._id.$id == obj.InsuredCardType) return true;
+					}).CertificatesTypeName
+				});
+			});
+
+			if($rootScope[position[2]].guideInsurances.length===0 && $scope.insTemp !== null)
+				$scope.showInsuranceTable = true;
+		}, {
+			TeamID: insBasic.TeamID,
+			TouristName: $rootScope.userinfo.FullName
+		});
+
+		$scope.insurances = [{
+			InsuranceID: 14,
+			InsuranceName: "泰康境内旅游意外险",
+			InsuranceNo: "40903001"
+		}, {
+			InsuranceID: 15,
+			InsuranceName: "泰康境外旅游意外险",
+			InsuranceNo: "40903002"
+		}];
+		if($rootScope[position[2]].LineType.ID == 3)
+			$scope.currInsurance = $scope.insurances[1];
+		else
+			$scope.currInsurance = $scope.insurances[0];
+
+		$scope.buyGuideInsurance = function(flag) {
+			if (flag) {
+				$rootScope[position[2]].info = "请完整填写保险信息";
+				return;
+			}
+
+			if (_.find($rootScope[position[2]].guideInsurances, {
+					TouristID: $scope.insTemp.guide.ForeignKeyID.$id
+				})) {
+				$rootScope[position[2]].info = "该导游已经投过保险";
+				return;
+			}
+
+			var data = {
+				TouristID: $scope.insTemp.guide.ForeignKeyID.$id,
+				TouristName: $scope.insTemp.guide.GuideName,
+				TouristBirthday: $filter('date')($scope.insTemp.TouristBirthday, 'yyyy-MM-dd'),
+				CertificatesTypeID: $scope.insTemp.CertificatesType._id.$id,
+				TouristDocumentNumber: $scope.insTemp.TouristDocumentNumber,
+				GenderTypeID: $scope.insTemp.GenderTypeID,
+				TouristMobile: $scope.insTemp.TouristMobile
+			};
+
+			angular.extend(data, insBasic, $scope.currInsurance);
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+
+			insureForGuide(function() {
+				$rootScope[position[2]].info = "投保成功";
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+				data.CertificatesTypeName = $scope.insTemp.CertificatesType.CertificatesTypeName;
+				$rootScope[position[2]].guideInsurances.push(data);
+				$scope.insTemp = {};
+				$scope.showInsuranceTable = false;
+			}, {
+				SourceID: 8828,
+				Insurances: angular.toJson([data])
+			});
+		};
+
+		$scope.cancelInsurance = function(ID, index) {
+			showWarningBox('是否确认退保', function() {
+				$rootScope.isloadList = true;
+				$rootScope.showProcessBar = true;
+
+				cancelInsurance(function() {
+					$rootScope.isloadList = false;
+					$rootScope.showProcessBar = false;
+
+					$rootScope[position[2]].guideInsurances.splice(index, 1);
+					$scope.showInsuranceTable = true;
+					$rootScope[position[2]].info = '退保成功';
+				}, {
+					PlatformOrders: JSON.stringify([ID])
+				});
+			});
+		};
+		
+		$scope.printDetail = function() {
+			commitPrintData('POST', baseUrl + 'common/printing/convertToHtml', {
+				content: document.getElementById('detail_content').innerHTML
+			}, '_blank');
+		};
+	}
+
+	function tourGuideArrangeCtrl($scope, $rootScope, getTourGuideArrangeList, addArrangeTeamGuide, _, deleteArrangeTeamGuide, addRefreshPageByID, showWarningBox, guideFilter) {
+		$scope.teamStatus = ['已取消', '未发团', '行程中', '结算期', '已结束'];
+		$scope.status = {};
+
+		$scope.selectGuide = function(p) {
+			console.log(p);
+			if (!$rootScope[position[2]].data.TeamGuides)
+				$rootScope[position[2]].data.TeamGuides = [];
+
+			var guide = _.find($rootScope[position[2]].data.TeamGuides, {id: p._id.$id});
+			if(!guide) {
+				guide = {
+					id: p._id.$id,
+					TinyPhoto: p.TinyPhoto,
+					FullName: p.FullName
+				};
+
+				$rootScope[position[2]].data.TeamGuides.push(guide);
+			}
+
+			if ($scope.status.guideType === 0) guide.IsFull = 1;
+			else if ($scope.status.guideType === 1) guide.IsSend = 1;
+		};
+
+		$scope.removeGuide = function(item, type){
+			if(type == 0) item.IsFull = 0;
+			else if(type == 1) item.IsSend = 0;
+			
+			if(item.IsFull == 0 && item.IsSend == 0){
+				for(var i = 0;i < $rootScope[position[2]].data.TeamGuides.length;i++){
+					if(item === $rootScope[position[2]].data.TeamGuides[i]){
+						$rootScope[position[2]].data.TeamGuides.splice(i, 1);
+						break;
+					}
+				}
+			}
+		};
+
+		$scope.addTeamGuide = function(flag) {
+			showWarningBox('是否确认操作', function(){
+				addArrangeTeamGuide(function(response) {
+					$rootScope[position[2]].info = "操作成功";
+					addRefreshPageByID($rootScope[switchType[2]].id);
+					$scope.searchList();
+				}, {
+					json: JSON.stringify({
+						id: $rootScope[position[2]].ID,
+						TeamGuides: _.map($rootScope[position[2]].data.TeamGuides, function(ele, index, arr) {
+							return {
+								id: ele.id,
+								IsFull: ele.IsFull || 0,
+								IsSend: ele.IsSend || 0
+							};
+						})
+					})
+				});
+			});
+		};
+
+		var nSc = true;
+		$scope.searchList = function() {
+			nSc = true;
+			for (var i in $rootScope.mainData.search)
+				if (!$rootScope.mainData.search[i])
+					delete $rootScope.mainData.search[i];
+
+			var time = {};
+			if ($rootScope.mainData.search.startTime)
+				time.startTime = Math.floor(new Date($rootScope.mainData.search.startTime).getTime() / 1000);
+			if ($rootScope.mainData.search.endTime)
+				time.endTime = Math.floor(new Date($rootScope.mainData.search.endTime).getTime() / 1000);
+
+			$rootScope.mainData.search.page = 1;
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+			getTourGuideArrangeList(function(response) {
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+
+				if (nSc) {
+					response.data.list.forEach(guideFilter);
+					$rootScope.mainData.list = response.data.list;
+					nSc = false;
+				}
+			}, {
+				json: JSON.stringify(angular.extend({}, $rootScope.mainData.search, time))
+			});
+		};
+
+		$scope.loadList = function() {
+			var time = {};
+			if ($rootScope.mainData.search.startTime)
+				time.startTime = Math.floor(new Date($rootScope.mainData.search.startTime).getTime() / 1000);
+			if ($rootScope.mainData.search.endTime)
+				time.endTime = Math.floor(new Date($rootScope.mainData.search.endTime).getTime() / 1000);
+
+			$rootScope.mainData.search.page++;
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+			getTourGuideArrangeList(function(response) {
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+				response.data.list.forEach(guideFilter);
+				$rootScope.mainData.list = $rootScope.mainData.list.concat(response.data.list);
+			}, {
+				json: JSON.stringify(angular.extend({}, $rootScope.mainData.search, time))
+			});
+		};
+	}
+
+	function tourGuideTravelsCtrl($scope, $rootScope, getTourGuideTravelsList, ngDialog, addTourGuideTravels, showWarningBox, closeSubView, deleteTourGuideTravels, addRefreshPageByID, editTourGuideTravels, showErrorInfo) {
+		$scope.searchList = function() {
+			$rootScope.mainData.search.page = 1;
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+			getTourGuideTravelsList(function(response) {
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+				$rootScope.mainData.list = response.data.list;
+			}, {
+				json: JSON.stringify($rootScope.mainData.search)
+			});
+		};
+
+		$scope.loadList = function() {
+			$rootScope.mainData.search.page++;
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+			getTourGuideTravelsList(function(response) {
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+				$rootScope.mainData.list = $rootScope.mainData.list.concat(response.data.list);
+			}, {
+				json: JSON.stringify($rootScope.mainData.search)
+			});
+		};
+
+		$scope.uploadPic = function(obj) {
+			ngDialog.open({
+				id: 'fromAService',
+				template: '/public/angularView/common/components/crop.html',
+				controller: 'crop',
+				className: 'ngdialog-theme-default w-500',
+				data: {
+					imgRatio: 400 / 783,
+					resImgWidth: 783,
+					resImgHight: 400,
+					uploadPicCallBack: function(data) {
+						if ($rootScope[position[2]].data)
+							$rootScope[position[2]].data.DefaultPic = data.url;
+						else
+							$rootScope[position[2]].data = {
+								DefaultPic: data.url
+							};
+					}
+				}
+			});
+		};
+
+		$scope.save = function(flag) {
+			if(!$rootScope[position[2]].data.Title){
+				$rootScope[position[2]].info = '请填写标题';
+				return;
+			}
+
+			if(!$rootScope[position[2]].data.GADDRsId){
+				$rootScope[position[2]].info = '请填写目的地';
+				return;
+			}
+
+			if(!$rootScope[position[2]].data.Content){
+				$rootScope[position[2]].info = '请填写内容';
+				return;
+			}
+
+			if(!$rootScope[position[2]].data.viewNum){
+				$rootScope[position[2]].info = "请填写行程天数";	
+				return;
+			}
+
+			if ($rootScope[position[2]].isEditMode) {
+				var data = {
+					Content: $rootScope[position[2]].data.Content,
+					Publish: flag,
+					DefaultPic: $rootScope[position[2]].data.DefaultPic,
+					GADDRsId: $rootScope[position[2]].data.GADDRsId,
+					id: $rootScope[position[2]].ID,
+					Title: $rootScope[position[2]].data.Title,
+					viewNum: $rootScope[position[2]].data.viewNum
+				};
+
+				if ($rootScope[position[2]].data.LineNumber) data.LineNumber = $rootScope[position[2]].data.LineNumber;
+
+				editTourGuideTravels(function() {
+					$scope.hideSubHead();
+					addRefreshPageByID($scope.subHead.url.id);
+					$scope.fetch($scope.subHead.url.targetUrl);
+					$scope.searchList();
+				}, {
+					json: angular.toJson(data)
+				});
+			} else{
+				addTourGuideTravels(function(response) {
+					addRefreshPageByID($rootScope[switchType[2]].id);
+					$scope.fetch('tourGuideCenter/TourGuideTravels/detail?ID=' + response.data);
+					showErrorInfo('添加成功');
+					$scope.searchList();
+					closeSubView();
+				}, {
+					json: angular.toJson(angular.extend({}, $rootScope[position[2]].data, {
+						Publish: flag
+					}))
+				});
+			}
+
+			$scope.searchList();
+		};
+
+		$scope.delete = function() {
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+			showWarningBox("是否确认删除", function() {
+				deleteTourGuideTravels(function(response) {
+					$rootScope.isloadList = false;
+					$rootScope.showProcessBar = false;
+					closeSubView();
+					$scope.searchList();
+				}, {
+					id: $rootScope[position[2]].ID
+				});
+			});
+		};
+	}
+
+	function tourGuideManageCtrl($scope, $rootScope, getTourGuideManageList, addTourGuide, closeSubView, deleteTourGuide, showWarningBox, saveTourGuide, addRefreshPageByID, showErrorInfo) {
+		$scope.searchList = function() {
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+			$rootScope.mainData.search.page = 1;
+			getTourGuideManageList(function(response) {
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+				$rootScope.mainData.list = response.data.list;
+			}, {
+				json: JSON.stringify(withoutFlaseKey($rootScope.mainData.search))
+			});
+		};
+
+		$scope.loadList = function() {
+			$rootScope.mainData.search.page++;
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+			getTourGuideManageList(function(response) {
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+				$rootScope.mainData.list = $rootScope.mainData.list.concat(response.data.list);
+			}, {
+				json: JSON.stringify(withoutFlaseKey($rootScope.mainData.search))
+			});
+		};
+
+		$scope.save = function(invalid) {
+			if(invalid) return;
+
+			if ($rootScope[position[2]].isEditMode) {
+				saveTourGuide(function(response) {
+					$scope.hideSubHead();
+					addRefreshPageByID($scope.subHead.url.id);
+					$scope.fetch($scope.subHead.url.targetUrl);
+				}, {
+					json: JSON.stringify(angular.extend({}, $rootScope[position[2]].data, {
+						id: $rootScope[position[2]].ID
+					}))
+				});
+			} else {
+				addTourGuide(function(response) {
+					addRefreshPageByID($rootScope[switchType[2]].id);
+					$scope.searchList();
+					$scope.fetch('tourGuideCenter/TourGuideManagement/detail?ID='+ response.data);
+					showErrorInfo('添加成功');
+					closeSubView();
+				}, {
+					json: JSON.stringify($rootScope[position[2]].data)
+				});
+			}
+		};
+
+		$scope.delete = function() {
+			showWarningBox('是否确定删除', function() {
+				deleteTourGuide(function(response) {
+					$scope.searchList();
+					closeSubView();
+				}, {
+					id: $rootScope[position[2]].ID
+				});
+			});
+		};
+
+		$scope.closeAddView = function(){
+			if($rootScope[position[2]].isEditMode){
+				$scope.hideSubHead();
+				$scope.fetch($scope.subHead.url.targetUrl);	
+			} else {
+				addRefreshPageByID($rootScope[switchType[2]].id);
+				$scope.closeSubView();
+			}
+		};
+	}
+
+	function tourGuideHonorCtrl($scope, $rootScope, getTourGuideHonorList, addTourGuideHonor, closeSubView, showWarningBox, deleteTourGuideHonor, editTourGuideHonor, addRefreshPageByID, showErrorInfo) {
+		$scope.staff = [];
+
+		$scope.selectStaff = function(p) {
+			$rootScope[position[2]].staff = p;
+		};
+
+		$scope.searchList = function() {
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+			$rootScope.mainData.search.page = 1;
+			getTourGuideHonorList(function(response) {
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+				$rootScope.mainData.list = response.data.list;
+			}, {
+				json: JSON.stringify($rootScope.mainData.search)
+			});
+		};
+
+		$scope.loadList = function() {
+			$rootScope.mainData.search.page++;
+			$rootScope.isloadList = true;
+			$rootScope.showProcessBar = true;
+			getTourGuideHonorList(function(response) {
+				$rootScope.isloadList = false;
+				$rootScope.showProcessBar = false;
+				$rootScope.mainData.list = $rootScope.mainData.list.concat(response.data.list);
+			}, {
+				json: JSON.stringify($rootScope.mainData.search)
+			});
+		};
+
+		$scope.save = function() {
+			if ($rootScope[position[2]].isEditMode)
+				editTourGuideHonor(function(response) {
+					$scope.hideSubHead();
+					addRefreshPageByID($scope.subHead.url.id);
+					$scope.fetch($scope.subHead.url.targetUrl);
+				}, {
+					json: JSON.stringify({
+						id: $rootScope[position[2]].ID,
+						personID: $rootScope[position[2]].staff._id.$id,
+						Title: $rootScope[position[2]].data.Title,
+						Content: $rootScope[position[2]].data.Content
+					})
+				});
+			else
+				addTourGuideHonor(function(response) {
+					addRefreshPageByID($rootScope[switchType[2]].id);
+					$scope.searchList();
+					$scope.fetch('tourGuideCenter/TourGuideHonor/detail?ID='+response.data);
+					showErrorInfo('添加成功');
+					closeSubView();
+				}, {
+					json: JSON.stringify({
+						personID: $rootScope[position[2]].staff._id.$id,
+						Title: $rootScope[position[2]].data.Title,
+						Content: $rootScope[position[2]].data.Content
+					})
+				});
+		};
+
+		$scope.delete = function() {
+			showWarningBox('是否确认删除?', function() {
+				$rootScope.isloadList = true;
+				$rootScope.showProcessBar = true;
+				deleteTourGuideHonor(function(response) {
+					$rootScope.isloadList = false;
+					$rootScope.showProcessBar = false;
+					closeSubView();
+					$scope.searchList();
+				}, {
+					id: $rootScope[position[2]].ID
+				});
+			});
+		};
+
+		$scope.closeAddView = function(){
+			if($rootScope[position[2]].isEditMode){
+				$scope.hideSubHead();
+				$scope.fetch($scope.subHead.url.targetUrl);	
+			} else {
+				addRefreshPageByID($rootScope[switchType[2]].id);
+				$scope.closeSubView();
+			}
+		};
+	}
+}();+ function() {
+	app.controller('teamInfoCtrl', teamInfoCtrl);
+
+	function teamInfoCtrl($scope, $rootScope, saveTeamNotes) {
+		detailData = $rootScope.detailData;
+
+		if (!detailData.team.TeamNotes) $scope.teamNotesModify = true;
+
+		$scope.modifyTeamNotes = function() {
+			$scope.teamNotes = detailData.team.TeamNotes;
+			$scope.teamNotesModify = !!!$scope.teamNotesModify;
+		};
+
+		$scope.editTeamNotes = function() {
+			saveTeamNotes(function(response) {
+				detailData.info = "保存成功";
+				detailData.team.TeamNotes = $scope.teamNotes;
+				$scope.teamNotesModify = false;
+			}, {
+				TeamID: detailData.ID,
+				Notes: $scope.teamNotes
+			});
+		};
+
+		$scope.cancelTeamNotes = function() {
+			$scope.teamNotesModify = false;
+		};
+	}
+
+}();

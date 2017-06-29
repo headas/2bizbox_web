@@ -1,0 +1,1503 @@
+productRoute.service("team", function($rootScope, _, getProductTeamList, getProductTeamDetail, getEnumeration) {
+  var teamRoute = {};
+
+  teamRoute.list = function(callback, param){
+    var data = {};
+    getProductTeamList(param, function(listInfo){
+      listInfo.list.forEach(function(item){
+        item.showUrl = "product/team/detail?id=" + item.ID;
+      });
+      data = listInfo;
+      data.search = {
+        TeamStatus: 1,
+        iPageIndex: 1
+      };
+      callback(data);
+    });
+  };
+
+  teamRoute.detail = function(callback, param){
+    var data = {};
+    getProductTeamDetail(param.id, function(detailInfo){
+      data = detailInfo;
+      data.InsureTotalMoney = 0;
+      data.InsureInfo.forEach(function(item){
+        data.InsureTotalMoney += item.TotalMoney;
+      });
+      data.isNeedFullGuide = 0;
+      data.isNeedSendGuide = 0;
+      callback(data);
+    });
+  };
+
+  return teamRoute;
+});
+productRoute.service("freetourPlanFore", function(_, getProductPlanList, getTeamtourPlanDetail, getOrdersByPlanID) {
+  var productPlanRoute = {};
+
+  productPlanRoute.list = function(callBack, params) {
+    var data = {};
+    data.search = {
+      type: 2,
+      keyword: params.keyword,
+      Station: params.Station,
+      StartTime: params.StartTime,
+      page: params.page,
+      order: params.order === 0 || params.order ===1 ? params.order : 2,
+      expire: params.expire ? params.expire : 0
+    };
+    getProductPlanList(data.search, function(response) {
+      data.list = response.data.list;
+
+      data.list.forEach(function(item) {
+        item.showUrl = 'product/freetourPlanFore/detail?id=' + item._id.$id + "&ProductName=" + item.ProductName;
+        item.HotelNumber = 0;
+        item.TrafficsNumber = 0;
+        item.PlanProject.forEach(function(project) {
+          if (project.ProductType.ProductTypeName == '交通') {
+            item.TrafficsNumber++;
+          } else if (project.ProductType.ProductTypeName == '酒店') {
+            item.HotelNumber++;
+          }
+        });
+      });
+      callBack(data);
+    });
+  };
+
+  productPlanRoute.detail = function(callBack, params) {
+    var data = {};
+    getTeamtourPlanDetail(params.id, function(response) {
+      data.planInfo = response;
+
+      if(data.planInfo.ReserveTime){
+        data.planInfo.FinalorderDay = Math.floor(data.planInfo.ReserveTime/ 24);
+      data.planInfo.FinalorderHour = data.planInfo.ReserveTime % 24;
+      }else{
+      data.planInfo.FinalorderDay = Math.floor((data.planInfo.StartTime.sec - data.planInfo.Finalorder.sec) / 3600 / 24);
+      data.planInfo.FinalorderHour = ((data.planInfo.StartTime.sec - data.planInfo.Finalorder.sec) / 3600) % 24;
+      }
+      console.log(data.planInfo);
+
+
+      data.planInfo.PlanProject.forEach(function(project) {
+        project.AdultPriceTraffic = 0;
+        project.ChildPriceTraffic = 0;
+        project.AllHotelPrice = 0;
+        if (project.ProductType.ProductTypeName === '交通' && project.Traffics) {
+          project.Traffics.forEach(function(traffic) {
+            if (traffic.IsSingleSold === true)
+              return;
+            project.AdultPriceTraffic += traffic.AdultSellingPrice;
+            project.ChildPriceTraffic += traffic.ChildSellingPrice;
+          });
+        } else if (project.ProductType.ProductTypeName === "酒店") {
+          project.Hotels.forEach(function(hotel) {
+            if (hotel.IsSingleSold === true)
+              return;
+            hotel.Hotel.Rooms.forEach(function(room) {
+              project.AllHotelPrice += room.DefaultPrice;
+            });
+          });
+        }
+      });
+      data.showTransportScheme = true;
+      data.planInfo.showNormalPrice = true;
+      getOrdersByPlanID(params.id, function(orders) {
+        data.orderInfo = orders.data;
+        data.ProductName = params.ProductName;
+        callBack(data);
+      });
+    });
+  };
+
+  return productPlanRoute;
+});
+productRoute.service("teamtour", function($rootScope, getTeamtourList, _, getTeamtourDetail, getScheduleClass, getCompleteSchedule, getAddProductBasicInfo,
+  selectCheckbox) {
+  var productRoute = {};
+
+  productRoute.list = function(callback, param) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getTeamtourList(data.search, function(response) {
+      response.list.forEach(function(item) {
+        item.showUrl = 'product/teamtour/detail?id=' + item._id.$id;
+      });
+      data.list = response.list;
+      callback(data);
+    });
+  };
+
+  productRoute.detail = function(callback, param) {
+    var data = {};
+    getTeamtourDetail(param.id, function(response) {
+      data = response;
+      data.editUrl = 'product/teamtour/edit?id=' + data._id.$id;
+      data.planUrl = 'product/teamtourPlan/list?ProductID=' + param.id + '&ProductName=' + response.Title + '&TravelDay=' + response.TravelDays;
+      getScheduleClass(data._id.$id, function(response2) {
+        data.ScheduleClass = response2.list;
+        if (response2.list.length > 0) {
+          data.currentScheduleID = response2.list[0]._id.$id;
+          getCompleteSchedule(response2.list[0]._id.$id, function(scheduleResponse) {
+            data.currentSchedule = scheduleResponse.list;
+            console.log(data.currentSchedule);
+            callback(data);
+          });
+        } else {
+          callback(data);
+        }
+      });
+    });
+  };
+
+  productRoute.add = function(callback, param) {
+    var data = {};
+    data.isEditMode = false;
+    getAddProductBasicInfo(function(response1) {
+      data.step1 = response1;
+      data.step1.GoTraffic = response1.BasicsTraffic[0];
+      data.step1.ReturnTraffic = response1.BasicsTraffic[0];
+      data.step1.LineType = response1.LineTypeAll[0];
+      data.step1.IsVisa = 0;
+      data.step1.GADDR2 = global.ProductAllAddr;
+      data.step1.VisaList = [];
+      data.step1.VisaTemp = [];
+      data.step1.StartGADDR = response1.AllStartDestination[_.findIndex(response1.AllStartDestination, {
+        Title: '宁波'
+      })];
+      data.step1.station = _.find(global.Station, function(item) {
+        return item.Station_Name == '宁波';
+      });
+      data.step1.Pics = [];
+      for (var i = 0; i < 3; i++) {
+        data.step1.Pics.push({});
+      }
+      data.finishedStatus = 0;
+      callback(data);
+    });
+  };
+
+  productRoute.edit = function(callback, param) {
+    var data = {};
+    getTeamtourDetail(param.id, function(response) {
+      data = response;
+      data.showUrl = 'product/teamtour/detail?id=' + param.id;
+      data.planUrl = 'product/teamtourPlan/list?ProductID=' + param.id + '&ProductName=' + response.Title + "&ProductNo=" + response.ProductNo;
+      data.isEditMode = true;
+      getScheduleClass(data._id.$id, function(response2) {
+        data.ScheduleClass = response2.list;
+        if (response2.list.length > 0) {
+          getCompleteSchedule(response2.list[0]._id.$id, function(scheduleResponse) {
+            data.currentSchedule = response2.list[0]._id.$id;
+            data.Schedule = {};
+            data.Schedule[response2.list[0]._id.$id] = scheduleResponse.list;
+          });
+        }
+      });
+      getAddProductBasicInfo(function(response1) {
+        data.step1 = response1;
+        data.step1.GoTraffic = response1.BasicsTraffic[0];
+        data.step1.ReturnTraffic = response1.BasicsTraffic[0];
+        data.step1.LineType = response1.LineTypeAll[0];
+        data.step1.IsVisa = data.IsVisa;
+        data.step1.GADDR2 = global.ProductAllAddr;
+        data.step1.StartGADDR = response1.AllStartDestination[_.findIndex(response1.AllStartDestination, {
+          Title: '宁波'
+        })];
+        data.step1.station = _.find(global.Station, function(item) {
+          return item.Station_Name == '宁波';
+        });
+        //组团游基本信息
+        data.step1.Title = data.Title;
+        if (data.SubTitle) {
+          data.step1.needSubTitle = true;
+          data.step1.SubTitle = data.SubTitle;
+        }
+        data.step1.LateNight = data.LateNight;
+        data.step1.TravelDays = data.TravelDays;
+        data.step1.StartGADDR = data.step1.AllStartDestination[_.findIndex(data.step1.AllStartDestination, {
+          Title: data.StartGADDR.Title
+        })];
+        if (data.GADDRs) {
+          data.step1.destination = [];
+          data.GADDRs.forEach(function(item) {
+            var index = _.findIndex(data.step1.GADDR2, {
+              Title: item.Title
+            });
+            if (index > -1) {
+              data.step1.destination.push(data.step1.GADDR2[index]);
+            } else {
+              console.log("未找到目的地");
+            }
+          });
+        }
+        data.step1.MainDestination = _.find(data.step1.GADDR2, function(item) {
+          return item.Title == data.ProductGADDR.Title;
+        });
+        data.step1.GoTraffic = _.find(data.step1.BasicsTraffic, function(item) {
+          return item.Name == data.GoTraffic.Name;
+        });
+        data.step1.ReturnTraffic = data.step1.BasicsTraffic[_.findIndex(data.step1.BasicsTraffic, {
+          Name: data.ReturnTraffic.Name
+        })];
+        data.step1.LineType = data.step1.LineTypeAll[_.findIndex(data.step1.LineTypeAll, {
+          ID: data.LineType.ID
+        })];
+        data.step1.LineFeatures = data.LineFeatures;
+        data.step1.LineOwnership = selectCheckbox(data.step1.LineOwnership, data.LineOwnership, 'Name');
+        data.step1.ProductLineAttribute = selectCheckbox(data.step1.ProductLineAttribute, data.LineAttribute, 'Name');
+        data.step1.TravelGoods.forEach(function(item) {
+          var d = _.find(data.Gift, function(gift) {
+            return gift.ForeignKeyID.$id === item.ID;
+          });
+          if(undefined !== d){
+            item.isSelect = true;
+          }
+        });
+        data.step1.ProductFormAll = selectCheckbox(data.step1.ProductFormAll, data.ProductForm, 'ID');
+        data.step1.DefaultPic = data.DefaultPic;
+        data.step1.Pics = [];
+        data.step1.VisaList = angular.copy(data.VisaCountry);
+        data.step1.VisaTemp = angular.copy(data.VisaCountry);
+        for (var i = 0; i < 3; i++) {
+          if (data.Pics[i]) {
+            data.step1.Pics.push(data.Pics[i]);
+          } else {
+            data.step1.Pics.push({});
+          }
+        }
+        data.finishedStatus = 6;
+        for (var x = 0; x < data.StepStatus.length; x++) {
+          if (data.StepStatus[x].status === 0) {
+            break;
+          }
+          data.finishedStatus = data.StepStatus[x].Step;
+        }
+        callback(data);
+      });
+    });
+  };
+
+  return productRoute;
+});
+productRoute.service("teamtourPlan", function(_, getTeamtourPlanList, getTeamtourPlanDetail,
+	getTeamtourPlanPrice){
+	var productPlanRoute = {};
+
+	productPlanRoute.list = function(callBack, params){
+		var data = {};
+		getTeamtourPlanList(params, function(response){
+			data = response;
+			if(!data){
+				data = {};
+			}
+			data.isEditMode = false;
+      data.ProductName = params.ProductName;
+      data.ProductNo = params.ProductNo;
+      data.TravelDay = params.TravelDay;
+			callBack(data);
+		});
+	};
+
+	productPlanRoute.detail = function(callBack, params){
+		var data = {};
+		getTeamtourPlanDetail(params.id, function(response){
+			data = response;
+			if(null !== data.ProductPlanPrice_isDefault1){
+				data.showNormalPrice = true;
+			}else if(null !== data.ProductPlanPrice_isDefault0){
+				data.showNormalPrice = false;
+				data.showUpgradePrice = true;
+			}else{
+				data.ProductPlanPrice_isDefault1 = [];
+				data.showNormalPrice = true;
+			}
+			if(null !== data.ActivityPrices){
+				data.hasActivity = true;
+			}
+			callBack(data);
+		});
+	};
+
+	return productPlanRoute;
+});
+
+productRoute.service("cruisePlan", function(_, getTeamtourPlanList, getTeamtourPlanDetail,
+	getTeamtourPlanPrice){
+	var productPlanRoute = {};
+
+	productPlanRoute.list = function(callBack, params){
+		var data = {};
+		getTeamtourPlanList(params, function(response){
+			data = response;
+			if(!data){
+				data = {};
+			}
+			data.isEditMode = false;
+			data.ProductName = params.ProductName;
+      data.ProductNo = params.ProductNo;
+      data.TravelDay = params.TravelDay;
+			callBack(data);
+		});
+	};
+
+	productPlanRoute.detail = function(callBack, params){
+		var data = {};
+		getTeamtourPlanDetail(params.id, function(response){
+			data = response;
+			if(null !== data.ProductPlanPrice_isDefault1){
+				data.showNormalPrice = true;
+			}else if(null !== data.ProductPlanPrice_isDefault0){
+				data.showNormalPrice = false;
+				data.showUpgradePrice = true;
+			}else{
+				data.ProductPlanPrice_isDefault1 = [];
+				data.showNormalPrice = true;
+			}
+			if(null !== data.ActivityPrices){
+				data.hasActivity = true;
+			}
+			callBack(data);
+		});
+	};
+
+	return productPlanRoute;
+});
+
+productRoute.service("freetourPlan", function(_, getTeamtourPlanList, getTeamtourPlanDetail,
+	getTeamtourPlanPrice){
+	var productPlanRoute = {};
+
+	productPlanRoute.list = function(callBack, params){
+		var data = {};
+		getTeamtourPlanList(params, function(response){
+			data = response;
+			if(!data){
+				data = {};
+			}
+			data.isEditMode = false;
+      data.ProductName = params.ProductName;
+      data.ProductNo = params.ProductNo;
+      data.TravelDay = params.TravelDay;
+			callBack(data);
+		});
+	};
+
+	productPlanRoute.detail = function(callBack, params){
+		var data = {};
+		getTeamtourPlanDetail(params.id, function(response){
+			data = response;
+			callBack(data);
+		});
+	};
+
+	return productPlanRoute;
+});
+productRoute.service("visa", function(_, getVisaList, getVisaDetail, getVisaBasicData) {
+  var productVisaRoute = {};
+
+  productVisaRoute.list = function(callBack, params) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1
+    };
+    if (params) {
+      data.search = _.extend(data.search, params);
+    }
+    getVisaList(data.search, function(response) {
+      response.data.list.forEach(function(item) {
+        item.showUrl = 'product/visa/detail?id=' + item._id.$id;
+      });
+      data.list = response.data.list;
+      callBack(data);
+    });
+  };
+
+  productVisaRoute.detail = function(callBack, params) {
+    var data = {};
+    getVisaDetail(params.id, function(response) {
+      data = response;
+			data.showUrl = 'product/visa/detail?id=' + data._id.$id;
+      data.editUrl = 'product/visa/edit?id=' + data._id.$id;
+			if(data.Insurances && data.Insurances.length > 0){
+				data.hasInsurance = true;
+			}
+			if(data.Materials && data.Materials.length > 0){
+				data.showMaterialId = data.Materials[0].Typeid.$id;
+			}
+      getVisaBasicData(function(response2) {
+        data.visaTypes = response2.visaTypes;
+        data.materialTypes = response2.materialTypes;
+        data.showMaterialId = data.materialTypes[0].ID;
+        callBack(data);
+      });
+    });
+  };
+
+  productVisaRoute.add = function(callBack) {
+    var data = {};
+    getVisaBasicData(function(response) {
+			data.countries = global.VisaAddress;
+			data.materialTypes = response.materialTypes;
+			data.visaTypes = response.visaTypes;
+      data.addVisaStep = 0;
+      data.Materials = [];
+      data.step0 = {};
+      data.step0.Immigration = '单次入境';
+      data.step0.DefaultPrice = 0;
+      data.step0.AgentDefaultPrice = 0;
+      data.step0.CostDefaultPrice = 0;
+      data.step0.BeforeHour = 0;
+      data.step0.BookingMin = 0;
+      data.step0.VouchersPrice = 0;
+      callBack(data);
+    });
+  };
+
+  productVisaRoute.edit = function(callBack, params) {
+    var data = {};
+    getVisaDetail(params.id, function(response) {
+      data = response;
+      data.isEditMode = true;
+      data.addVisaStep = 0;
+      data.step0 = {};
+      data.step0.Title = data.Title;
+      data.step0.VisaUseful = data.VisaUseful;
+      data.step0.StopDate = data.StopDate;
+			data.step0.DefaultPic = data.DefaultPic;
+			data.step0.AgencyAddress = data.AgencyAddress;
+			data.step0.AgencyDate = data.AgencyDate;
+			data.step0.DefaultPrice = data.DefaultPrice;
+			data.step0.AgentDefaultPrice = data.AgentDefaultPrice;
+			data.step0.CostDefaultPrice = data.CostDefaultPrice;
+			data.step0.BeforeHour = data.BeforeHour;
+			data.step0.BookingMin = data.BookingMin;
+			data.step0.VouchersPrice = data.VouchersPrice;
+			data.step0.Immigration = data.Immigration;
+			data.step0.IncomeRange = data.IncomeRange;
+			if(data.step0.VisaUseful == "以领馆批出为准"){
+				data.step0.fromDepartment = true;
+			}
+      if(undefined === data.Materials || null === data.Materials || "" === data.Materials){
+        data.Materials = [];
+      }
+			data.step0.IsIncludeFee = data.IsIncludeFee;
+			data.step0.Interview = data.Interview;
+			data.step0.IsOpenBook = data.IsOpenBook;
+
+      getVisaBasicData(function(nResponse) {
+        data.countries = global.VisaAddress;
+        data.visaTypes = nResponse.visaTypes;
+        data.materialTypes = nResponse.materialTypes;
+				if(null !== data.VisaType && data.VisaType !== ""){
+					data.step0.VisaType = _.find(data.visaTypes, function(item){
+            return item._id.$id === data.VisaType.ForeignKeyID.$id;
+          });
+				}
+				if(null !== data.VisaGADDR && data.VisaGADDR !== ""){
+					data.step0.VisaGADDR = _.find(data.countries, function(item){
+            return item._id.$id === data.VisaGADDR.ForeignKeyID.$id;
+          });
+				}
+        callBack(data);
+      });
+    });
+  };
+
+  return productVisaRoute;
+});
+productRoute.service('freetour', function(getFreetourList, $timeout, getFreetourDetail, getScheduleClass, getCompleteSchedule,
+  getAddProductBasicInfo, selectCheckbox, getFreetourExpand) {
+  var freetour = {};
+
+  freetour.list = function(callback, param) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getFreetourList(data.search, function(response) {
+      response.list.forEach(function(item) {
+        item.showUrl = 'product/freetour/detail?id=' + item._id.$id;
+      });
+      data.list = response.list;
+      callback(data);
+    });
+  };
+
+  freetour.detail = function(callback, param) {
+    var data = {};
+    getFreetourDetail(param.id, function(response) {
+      data = response;
+      data.editUrl = 'product/freetour/edit?id=' + data._id.$id;
+      data.showUrl = 'product/freetour/detail?id=' + data._id.$id;
+      data.planUrl = 'product/freetourPlan/list?ProductID=' + data._id.$id + '&ProductName=' + response.Title + '&TravelDay=' + response.TravelDays + "&ProductNo=" + response.ProductNo;
+      //扩展信息
+      getFreetourExpand(data._id.$id, function(response1) {
+        data.expand = response1;
+        callback(data);
+      });
+    });
+  };
+
+  freetour.add = function(callback, param) {
+    var data = {};
+    getAddProductBasicInfo(function(response1) {
+      data.step1 = response1;
+			data.addStep = 0;
+      data.step1.GoTraffic = response1.BasicsTraffic[0];
+      data.step1.ReturnTraffic = response1.BasicsTraffic[0];
+      data.step1.LineType = response1.LineTypeAll[0];
+      data.step1.IsVisa = 0;
+      data.step1.VisaList = [];
+      data.step1.VisaTemp = [];
+      data.step1.GADDR2 = global.ProductAllAddr;
+      data.step1.StartGADDR = response1.AllStartDestination[_.findIndex(response1.AllStartDestination, {
+        Title: '宁波'
+      })];
+      data.step1.station = _.find(global.Station, function(item){
+				return item.Station_Name == '宁波';
+			});
+      data.step1.Pics = [];
+      for (var i = 0; i < 3; i++) {
+        data.step1.Pics.push({});
+      }
+      data.finishedStatus = 0;
+      callback(data);
+    });
+  };
+
+  freetour.edit = function(callback, param) {
+    var data = {};
+    getFreetourDetail(param.id, function(response) {
+      data = response;
+			data.addStep = 0;
+			data.isEditMode = true;
+			data.showUrl = 'product/freetour/detail?id=' + param.id;
+      data.planUrl = 'product/freetourPlan/list?ProductID=' + param.id + '&ProductName=' + response.Title + '&TravelDay=' + response.TravelDays + "&ProductNo=" + response.ProductNo;
+      getScheduleClass(data._id.$id, function(response2) {
+        data.ScheduleClass = response2.list;
+        if (response2.list.length > 0) {
+          getCompleteSchedule(response2.list[0]._id.$id, function(scheduleResponse) {
+            data.currentSchedule = response2.list[0]._id.$id;
+            data.Schedule = {};
+            data.Schedule[response2.list[0]._id.$id] = scheduleResponse.list;
+          });
+        }
+      });
+      getAddProductBasicInfo(function(response1) {
+        data.step1 = response1;
+        data.step1.Keywords = data.Keywords;
+        data.step1.GoTraffic = response1.BasicsTraffic[0];
+        data.step1.ReturnTraffic = response1.BasicsTraffic[0];
+        data.step1.LineType = response1.LineTypeAll[0];
+        data.step1.IsVisa = data.IsVisa;
+        data.step1.GADDR2 = global.ProductAllAddr;
+        data.step1.StartGADDR = response1.AllStartDestination[_.findIndex(response1.AllStartDestination, {
+          Title: '宁波'
+        })];
+        data.step1.station = _.find(global.Station, function(item){
+					return item.Station_Name == '宁波';
+				});
+        data.step1.Title = data.Title;
+        if (data.SubTitle) {
+          data.step1.needSubTitle = true;
+          data.step1.SubTitle = data.SubTitle;
+        }
+        data.step1.LateNight = data.LateNight;
+        data.step1.TravelDays = data.TravelDays;
+        if (data.StartGADDR) {
+          data.step1.StartGADDR = data.step1.AllStartDestination[_.findIndex(data.step1.AllStartDestination, {
+            Title: data.StartGADDR.Title
+          })];
+        }
+        if (data.GADDRs) {
+          data.step1.destination = [];
+          data.GADDRs.forEach(function(item) {
+            data.step1.destination.push(data.step1.GADDR2[_.findIndex(data.step1.GADDR2, {
+              Title: item.Title
+            })]);
+          });
+        }
+        if (data.ProductGADDR) {
+          data.step1.MainDestination = data.step1.GADDR2[_.findIndex(data.step1.GADDR2, {
+            Title: data.ProductGADDR.Title
+          })];
+        }
+        if(data.GoTraffic){
+          data.step1.GoTraffic = data.step1.BasicsTraffic[_.findIndex(data.step1.BasicsTraffic, {
+            Name: data.GoTraffic.Name
+          })];
+        }
+        if(data.ReturnTraffic){
+          data.step1.ReturnTraffic = data.step1.BasicsTraffic[_.findIndex(data.step1.BasicsTraffic, {
+            Name: data.ReturnTraffic.Name
+          })];
+        }
+        data.step1.LineType = data.step1.LineTypeAll[_.findIndex(data.step1.LineTypeAll, {
+          ID: data.LineType.ID
+        })];
+        data.step1.Productfeatures = data.Productfeatures;
+        data.step1.LineOwnership = selectCheckbox(data.step1.LineOwnership, data.LineOwnership, 'Name');
+        data.step1.ProductLineAttribute = selectCheckbox(data.step1.ProductLineAttribute, data.LineLabels, 'Name');
+        data.step1.TravelGoods.forEach(function(item) {
+          var d = _.find(data.Gift, function(gift) {
+            return gift.ForeignKeyID.$id === item.ID;
+          });
+          if(undefined !== d){
+            item.isSelect = true;
+          }
+        });
+        data.step1.ProductFormAll = selectCheckbox(data.step1.ProductFormAll, data.ProductForm, 'ID');
+        data.step1.DefaultPic = data.DefaultPic;
+        data.step1.Pics = [];
+				data.step1.VisaList = angular.copy(data.VisaCountry);
+        data.step1.VisaTemp = angular.copy(data.VisaCountry);
+        for (var i = 0; i < 3; i++) {
+          if (data.Pics[i]) {
+            data.step1.Pics.push(data.Pics[i]);
+          } else {
+            data.step1.Pics.push({});
+          }
+        }
+        data.finishedStatus = 6;
+        for (var x = 0; x < data.StepStatus.length; x++) {
+          if (data.StepStatus[x].status === 0) {
+            break;
+          }
+          data.finishedStatus = data.StepStatus[x].Step;
+        }
+        callback(data);
+      });
+    });
+  };
+
+  return freetour;
+});
+productRoute.service("cruise", function(_, getCruiseList, getCruiseDetail, getCruiseAll, getCruiseRouteAll, getCruiseRouteTypeAll, getCruiseBasicData, selectCheckbox,getScheduleClass,getCompleteSchedule) {
+	var productCruiseRoute = {};
+
+	productCruiseRoute.list = function(callBack, params) {
+		var data = {};
+		data.search = {
+			limit: pageLimit,
+			page: 1
+		};
+		if (params) {
+			data.search = _.extend(data.search, params);
+		}
+		getCruiseList(data.search, function(response) {
+			response.list.forEach(function(item) {
+				item.showUrl = 'product/cruise/detail?id=' + item._id.$id;
+				var parentId = item.StartGADDR.ForeignKeyID.$id;
+				if (parentId == "000000000000000000000000" || parentId == "000000000000000000000001") {
+					item.startAddress = item.StartGADDR.Title;
+				} else {
+					if (item.StartGADDR.Parents.length > 2) {
+						item.startAddress = item.StartGADDR.Parents[1].Name;
+					}
+				}
+			});
+			data.list = response.list;
+			callBack(data);
+		});
+	};
+
+	productCruiseRoute.detail = function(callBack, params) {
+		var data = {};
+		getCruiseDetail(params.id, function(response) {
+			data = response;
+			data.editUrl = 'product/cruise/edit?id=' + data._id.$id;
+			data.planUrl = 'product/cruisePlan/list?ProductID=' + data._id.$id+'&ProductName='+response.Title+'&TravelDay='+response.TravelDays + "&ProductNo=" + response.ProductNo;
+			data.addPlanUrl = 'product/cruisePlan/add';
+		 getScheduleClass(data._id.$id, function(response2) {
+        data.ScheduleClass = response2.list;
+        if (response2.list.length > 0) {
+          data.currentScheduleID = response2.list[0]._id.$id;
+          getCompleteSchedule(response2.list[0]._id.$id, function(scheduleResponse) {
+            data.currentSchedule = scheduleResponse.list;
+            callBack(data);
+          });
+        } else {
+          callBack(data);
+        }
+      });
+		});
+	};
+
+	productCruiseRoute.add = function(callBack) {
+		var data = {};
+		getCruiseBasicData(function(response) {
+			data.allCruises = response.allCruises;
+			data.allCruiseRoutes = response.allCruiseRoutes;
+			data.allCruiseRouteTypes = response.allCruiseRouteTypes;
+			data.allDestinations = global.ProductAllAddr;
+			data.allStartDestinations = response.allStartDestinations;
+			data.productLineOwnership = response.productLineOwnership;
+			data.productFormAll = response.productFormAll;
+			data.travelGoodsAll = response.travelGoodsAll;
+			data.productLineAttribute = response.productLineAttribute;
+			data.lineTypeAll = response.lineTypeAll;
+			data.addCruiseStep = 0;
+			data.step0 = {};
+			data.step3 = {};
+			data.step0.IsVisa = 0;
+		  	data.step0.StartGADDR = _.find(response.allStartDestinations, function(item) {
+					return item.Title == "宁波";
+				});
+
+		  data.step0.LineType = response.lineTypeAll[2];
+		  data.step0.RouteType = response.allCruiseRouteTypes[0];
+			data.step0.Pics = [];
+			for (var i = 0; i < 3; i++) {
+				data.step0.Pics.push({});
+			}
+			data.step0.VisaCountry = [];
+			data.step0.VisaTemp = [];
+			data.step0.VisaList = [];
+			data.step3.Packages = [];
+			data.isEditMode = false;
+ 			data.finishedStatus = 0;
+			callBack(data);
+		});
+	};
+
+	productCruiseRoute.edit = function(callBack, params) {
+		var data = {};
+		getCruiseDetail(params.id, function(response) {
+			data = response;
+			data.addCruiseStep = 0;
+			data.showUrl = 'product/cruise/detail?id=' + params.id;
+			data.planUrl = 'product/cruisePlan/list?ProductID=' + params.id + '&ProductName=' + response.Title + "&ProductNo=" + response.ProductNo;
+			   getScheduleClass(data._id.$id, function(response2) {
+        data.ScheduleClass = response2.list;
+        if (response2.list.length > 0) {
+          getCompleteSchedule(response2.list[0]._id.$id, function(scheduleResponse) {
+            data.currentSchedule = response2.list[0]._id.$id;
+            data.Schedule = {};
+            data.Schedule[response2.list[0]._id.$id] = scheduleResponse.list;
+          });
+        }
+      });
+			data.step0 = {};
+			data.step0.Title = data.Title;
+			//data.step0.ViaLand = data.ViaLand;
+			if (null === data.SubTitle || "" === data.SubTitle) {
+				data.step0.needSubTitle = false;
+			} else {
+				data.step0.needSubTitle = true;
+				data.step0.SubTitle = data.SubTitle;
+			}
+			data.step0.Pics = [];
+			for (var i = 0; i < 3; i++) {
+				if (data.Pics[i]) {
+					data.step0.Pics.push(data.Pics[i]);
+				} else {
+					data.step0.Pics.push({});
+				}
+			}
+			if (null === data.DefaultPic || "" === data.DefaultPic) {
+				data.step0.DefaultPic = data.step0.Pics[0].PicPath;
+			} else {
+				data.step0.DefaultPic = data.DefaultPic;
+			}
+			data.step0.IsVisa = data.IsVisa;
+			data.step0.VisaList = angular.copy(data.VisaCountry);
+			data.step0.VisaTemp = angular.copy(data.VisaCountry);
+			getCruiseBasicData(function(nResponse) {
+				data.allCruises = nResponse.allCruises;
+				data.allCruiseRoutes = nResponse.allCruiseRoutes;
+				data.allCruiseRouteTypes = nResponse.allCruiseRouteTypes;
+				data.allDestinations = global.ProductAllAddr;
+				data.allStartDestinations = nResponse.allStartDestinations;
+				data.productLineOwnership = nResponse.productLineOwnership;
+				data.productFormAll = nResponse.productFormAll;
+				data.travelGoodsAll = nResponse.travelGoodsAll;
+				data.productLineAttribute = nResponse.productLineAttribute;
+				data.lineTypeAll = nResponse.lineTypeAll;
+
+				//获取航线
+				if (null !== data.CruiseRoute && data.CruiseRoute !== "") {
+					data.step0.CruiseRoute = _.find(data.allCruiseRoutes, function(item){
+            return item._id.$id === data.CruiseRoute.ForeignKeyID.$id;
+          });
+				}
+				//获取类别
+				if (null !== data.RouteType && data.RouteType !== "") {
+					data.step0.RouteType = data.allCruiseRouteTypes[_.findIndex(data.allCruiseRouteTypes, {
+						Name: data.RouteType.Name
+					})];
+				}
+				/*//获取所有目的地
+				if (data.GADDRs) {
+          data.step0.GADDRs = [];
+          data.GADDRs.forEach(function(item) {
+            data.step0.GADDRs.push(data.allDestinations[_.findIndex(data.allDestinations, {
+              Title: item.Title
+            })]);
+          });
+        }*/
+
+
+				if (data.GADDRs) {
+					data.step0.destination = [];
+					data.GADDRs.forEach(function(item) {
+						var index = _.findIndex(data.allStartDestinations, {
+							Title: item.Title
+						});
+						if (index > -1) {
+							data.step0.destination.push(data.allStartDestinations[index]);
+						} else {
+							console.log("未找到目的地");
+						}
+					});
+				}
+				data.step0.MainDestination = _.find(data.allStartDestinations, function(item) {
+					return item.Title == data.ProductGADDR.Title;
+				});
+
+
+				//获取主目的地
+				if (data.ProductGADDR) {
+					data.step0.ProductGADDR = data.allDestinations[_.findIndex(data.allDestinations, {
+						Title: data.ProductGADDR.Title
+					})];
+				}
+
+
+				//获取出发地
+				if (data.StartGADDR) {
+					data.step0.StartGADDR = data.allStartDestinations[_.findIndex(data.allStartDestinations, {
+						Title: data.StartGADDR.Title
+					})];
+				}
+
+				//获取邮轮
+				if (data.Cruise) {
+					data.step0.cruise = _.find(data.allCruises, function(item){
+            return item._id.$id === data.Cruise.ForeignKeyID.$id;
+          });
+         //取得线路
+
+         if(data.CruiseLine){
+					data.step0.CruiseLines = _.find(data.step0.cruise.CruiseLines, function(item) {
+					return item.ForeignKeyID.$id == data.CruiseLine.ForeignKeyID.$id;
+			   	});
+         }
+				}
+
+				//获取线路类型
+				if (data.LineType) {
+					data.step0.LineType = data.lineTypeAll[_.findIndex(data.lineTypeAll, {
+						ID: data.LineType.ID
+					})];
+				}
+
+
+				//标签等内容
+				data.step0.LineOwnership = data.LineOwnership;
+				data.step0.ProductForm = data.ProductForm;
+				data.step0.Gift = data.Gift;
+				//data.step0.LineAttribute = data.LineAttribute;
+				data.productLineOwnership = selectCheckbox(data.productLineOwnership, data.LineOwnership, 'Name');
+				data.productFormAll = selectCheckbox(data.productFormAll, data.ProductForm, 'Name');
+				data.travelGoodsAll.forEach(function(item) {
+					var d = _.find(data.Gift, function(gift) {
+						return gift.ForeignKeyID.$id === item.ID;
+					});
+					if (undefined !== d) {
+						item.isSelect = true;
+					}
+				});
+ 				data.productLineAttribute = selectCheckbox(data.productLineAttribute, data.LineAttribute, 'Name');
+				data.isEditMode = true;
+
+			data.finishedStatus = 6;
+        for (var x = 0; x < data.StepStatus.length; x++) {
+          if (data.StepStatus[x].status === 0) {
+            break;
+          }
+          data.finishedStatus = data.StepStatus[x].Step;
+        }
+
+				callBack(data);
+			});
+		});
+	};
+
+	return productCruiseRoute;
+});
+productRoute.service("customizedtour", function(getCustomizedtourList, getCustomizedtourDetail, getAddProductBasicInfo, selectCheckbox) {
+
+  var customizedtour = {};
+
+  customizedtour.list = function(callback, param) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getCustomizedtourList(data.search, function(response) {
+      response.list.forEach(function(item) {
+        item.showUrl = 'product/customizedtour/detail?id=' + item._id.$id;
+      });
+      data.list = response.list;
+      callback(data);
+    });
+  };
+
+  customizedtour.detail = function(callback, param) {
+    var data = {};
+    getCustomizedtourDetail(param.id, function(resonse) {
+      data = resonse;
+      data.editUrl = 'product/customizedtour/edit?id=' + data._id.$id;
+      callback(data);
+    });
+  };
+
+  customizedtour.add = function(callback, param) {
+    var data = {};
+    getAddProductBasicInfo(function(response1) {
+      data.step1 = response1;
+      data.step1.GoTraffic = response1.BasicsTraffic[0];
+      data.step1.ReturnTraffic = response1.BasicsTraffic[0];
+      data.step1.LineType = response1.LineTypeAll[0];
+      data.step1.IsVisa = 0;
+      data.step1.VisaList = [];
+      data.step1.VisaTemp = [];
+      data.step1.allCost = [];
+      data.step1.Cost = {};
+      data.step1.GADDR2 = global.ProductAllAddr;
+      data.step1.StartGADDR = response1.AllStartDestination[_.findIndex(response1.AllStartDestination, {
+        Title: '宁波'
+      })];
+      data.step1.station = _.find(global.StationAll, function(item) {
+        return item.Station_Name == '宁波';
+      });
+      data.step1.Pics = [];
+      for (var i = 0; i < 3; i++) {
+        data.step1.Pics.push({});
+      }
+      data.finishedStatus = 0;
+      callback(data);
+    });
+  };
+
+  customizedtour.edit = function(callback, param) {
+    var data = {};
+    getCustomizedtourDetail(param.id, function(resonse) {
+      data = resonse;
+      data.showUrl = 'product/customizedtour/detail?id=' + data._id.$id;
+      getAddProductBasicInfo(function(response1) {
+        data.step1 = response1;
+        data.isEditMode = true;
+        data.step1.Cost = data.CostInfo;
+        data.step1.allCost = [];
+        data.step1.GoTraffic = response1.BasicsTraffic[0];
+        data.step1.ReturnTraffic = response1.BasicsTraffic[0];
+        data.step1.LineType = response1.LineTypeAll[0];
+        data.step1.IsVisa = response1.IsVisa == "1" ? 1 : 0;
+        data.step1.GADDR2 = global.ProductAllAddr;
+        data.step1.StartGADDR = response1.AllStartDestination[_.findIndex(response1.AllStartDestination, {
+          Title: '宁波'
+        })];
+        data.step1.station = _.find(global.StationAll, function(item) {
+          return item.Station_Name == '宁波';
+        });
+        //组团游基本信息
+        data.step1.Title = data.Title;
+        if (data.SubTitle) {
+          data.step1.needSubTitle = true;
+          data.step1.SubTitle = data.SubTitle;
+        }
+        data.step1.LateNight = data.LateNight;
+        data.step1.TravelDays = data.TravelDays;
+        data.step1.StartGADDR = data.step1.AllStartDestination[_.findIndex(data.step1.AllStartDestination, {
+          Title: data.StartGADDR.Title
+        })];
+        if (data.GADDRs) {
+          data.step1.destination = [];
+          data.GADDRs.forEach(function(item) {
+            var index = _.findIndex(data.step1.GADDR2, {
+              Title: item.Title
+            });
+            if (index > -1) {
+              data.step1.destination.push(data.step1.GADDR2[index]);
+            } else {
+              console.log("未找到目的地");
+            }
+          });
+        }
+        data.step1.MainDestination = data.step1.GADDR2[_.findIndex(data.step1.GADDR2, {
+          Title: data.ProductGADDR.Title
+        })];
+        data.step1.GoTraffic = data.step1.BasicsTraffic[_.findIndex(data.step1.BasicsTraffic, {
+          Name: data.GoTraffic.Name
+        })];
+        data.step1.ReturnTraffic = data.step1.BasicsTraffic[_.findIndex(data.step1.BasicsTraffic, {
+          Name: data.ReturnTraffic.Name
+        })];
+        data.step1.LineType = data.step1.LineTypeAll[_.findIndex(data.step1.LineTypeAll, {
+          ID: data.LineType.ID
+        })];
+        data.step1.Linefeatures = data.Linefeatures;
+        data.step1.LineOwnership = selectCheckbox(data.step1.LineOwnership, data.LineBelongings, 'Name');
+        data.step1.ProductLineAttribute = selectCheckbox(data.step1.ProductLineAttribute, data.LineAttribute, 'Name');
+        data.step1.TravelGoods.forEach(function(item) {
+          var d = _.find(data.Gift, function(gift) {
+            return gift.ForeignKeyID.$id === item.ID;
+          });
+          if(undefined !== d){
+            item.isSelect = true;
+          }
+        });
+        // data.step1.TravelGoods = selectCheckbox(data.step1.TravelGoods, , 'TravelGoodName');
+        data.step1.ProductFormAll = selectCheckbox(data.step1.ProductFormAll, data.Producttypes, 'ID');
+        data.step1.DefaultPic = data.DefaultPic;
+        data.step1.Pics = [];
+        data.step1.VisaList = angular.copy(data.VisaCountry);
+        data.step1.VisaTemp = angular.copy(data.VisaCountry);
+        for (var i = 0; i < 3; i++) {
+          if (data.Pics[i]) {
+            data.step1.Pics.push(data.Pics[i]);
+          } else {
+            data.step1.Pics.push({});
+          }
+        }
+        data.step1.MinPrice = data.MinPrice;
+        data.step1.Keywords = data.Keywords;
+        data.finishedStatus = 6;
+        for (var x = 0; x < data.StepStatus.length; x++) {
+          if (data.StepStatus[x].status === 0) {
+            break;
+          }
+          data.finishedStatus = data.StepStatus[x].Step;
+        }
+        callback(data);
+      });
+    });
+  };
+
+  return customizedtour;
+
+});
+productRoute.service("cruisePlanFore", function(_, getTeamtourPlanList, getTeamtourPlanDetail, getProductPlanList,getOrdersByPlanID) {
+  var productPlanRoute = {};
+
+  productPlanRoute.list = function(callBack, params) {
+    var data = {};
+    params.type = 3;
+    getProductPlanList(params, function(response) {
+      data = response.data;
+      data.search = {
+        order: 2
+      };
+      data.list.forEach(function(item) {
+        item.showUrl = 'product/cruisePlanFore/detail?id=' + item._id.$id + "&ProductName=" + item.ProductName;
+      });
+      callBack(data);
+    });
+  };
+
+  productPlanRoute.detail = function(callBack, params) {
+    var data = {};
+    getTeamtourPlanDetail(params.id, function(response) {
+      data.planInfo = response;
+      data.planInfo.FinalorderDay = Math.floor((data.planInfo.StartTime.sec - data.planInfo.Finalorder.sec) / 3600 / 24);
+      data.planInfo.FinalorderHour = ((data.planInfo.StartTime.sec - data.planInfo.Finalorder.sec) / 3600) % 24;
+      data.planInfo.FinalreservationDay = Math.floor((data.planInfo.StartTime.sec - data.planInfo.Finalreservation.sec) / 3600 / 24);
+      data.planInfo.FinalreservationHour = ((data.planInfo.StartTime.sec - data.planInfo.Finalreservation.sec) / 3600) % 24;
+
+      data.planInfo.ReserveDay = Math.floor(data.planInfo.ReserveTime / 24);
+      data.planInfo.ReserveHour = data.planInfo.ReserveTime % 24;
+      data.ProductID = data.planInfo.ProductID.$id;
+
+     /* data.planInfo.PlanTypeID = data.planInfo.PlanType ? data.planInfo.PlanType.ID : data.planInfo.PlanTypeID.ID;*/
+
+      data.showNormalPrice = true;
+
+      if (data.planInfo.ActivityPrices && data.planInfo.ActivityPrices.length > 0) {
+        data.hasActivity = true;
+      }
+		data.planInfo.showNormalPrice = true;
+		getOrdersByPlanID(params.id, function(orders){
+			data.orderInfo = orders.data;
+      data.ProductName = params.ProductName;
+      callBack(data);
+		});
+    });
+  };
+
+  return productPlanRoute;
+});
+productRoute.service('drivingtour', function(getDrivingtourList, $timeout, getDrivingtourDetail, getScheduleClass, getAddProductBasicInfo,
+  selectCheckbox, getCompleteSchedule) {
+  var drivingtour = {};
+
+  drivingtour.list = function(callback, param) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1
+    };
+    if (param) {
+      data.search = _.extend(data.search, param);
+    }
+    getDrivingtourList(data.search, function(response) {
+      response.list.forEach(function(item) {
+        item.showUrl = 'product/drivingtour/detail?id=' + item._id.$id;
+      });
+      data.list = response.list;
+      callback(data);
+    });
+  };
+
+  drivingtour.detail = function(callback, param) {
+    var data = {};
+    getDrivingtourDetail(param.id, function(response) {
+      data = response;
+      data.editUrl = 'product/drivingtour/edit?id=' + data._id.$id;
+      callback(data);
+      getScheduleClass(data._id.$id, function(response2) {
+        data.ScheduleClass = response2.list;
+        if (response2.list.length > 0) {
+          data.currentScheduleID = response2.list[0]._id.$id;
+          getCompleteSchedule(data.currentScheduleID, function(scheduleResponse) {
+            data.currentSchedule = scheduleResponse.list;
+            callback(data);
+          });
+        } else {
+          callback(data);
+        }
+      });
+    });
+  };
+
+  drivingtour.add = function(callback, param) {
+    var data = {};
+    getAddProductBasicInfo(function(response1) {
+      data.step1 = response1;
+      data.step1.GoTraffic = response1.BasicsTraffic[0];
+      data.step1.ReturnTraffic = response1.BasicsTraffic[0];
+      data.step1.LineType = response1.LineTypeAll[0];
+      data.step1.IsVisa = 0;
+			data.step1.VisaList = [];
+      data.step1.VisaTemp = [];
+      data.step1.GADDR2 = global.ProductAllAddr;
+      data.step1.StartGADDR = response1.AllStartDestination[_.findIndex(response1.AllStartDestination, {
+        Title: '宁波'
+      })];
+      data.step1.station = _.find(global.StationAll, function(item){
+				return item.Station_Name == '宁波';
+			});
+      data.step1.Pics = [];
+      for (var i = 0; i < 3; i++) {
+        data.step1.Pics.push({});
+      }
+      data.finishedStatus = 0;
+      callback(data);
+    });
+  };
+
+  drivingtour.edit = function(callback, param) {
+    var data = {};
+    getDrivingtourDetail(param.id, function(resonse) {
+      data = resonse;
+			data.isEditMode = true;
+      getScheduleClass(data._id.$id, function(response2) {
+        data.ScheduleClass = response2.list;
+        if (response2.list.length > 0) {
+          getCompleteSchedule(response2.list[0]._id.$id, function(scheduleResponse) {
+            data.currentSchedule = response2.list[0]._id.$id;
+            data.Schedule = {};
+            data.Schedule[response2.list[0]._id.$id] = scheduleResponse.list;
+          });
+        }
+      });
+      getAddProductBasicInfo(function(response1) {
+        data.step1 = response1;
+        console.log(response1);
+        data.step1.GoTraffic = response1.BasicsTraffic[0];
+        data.step1.ReturnTraffic = response1.BasicsTraffic[0];
+        data.step1.LineType = response1.LineTypeAll[0];
+        data.step1.IsVisa = 0;
+        data.step1.GADDR2 = global.ProductAllAddr;
+        data.step1.StartGADDR = response1.AllStartDestination[_.findIndex(response1.AllStartDestination, {
+          Title: '宁波'
+        })];
+        data.step1.station = _.find(global.StationAll, function(item){
+					return item.Station_Name == '宁波';
+				});
+        //组团游基本信息
+        data.step1.Title = data.Title;
+        if (data.SubTitle) {
+          data.step1.needSubTitle = true;
+          data.step1.SubTitle = data.SubTitle;
+        }
+        data.step1.LateNight = data.LateNight;
+        data.step1.TravelDays = data.TravelDays;
+        if (data.StartGADDR) {
+          data.step1.StartGADDR = data.step1.AllStartDestination[_.findIndex(data.step1.AllStartDestination, {
+            Title: data.StartGADDR.Title
+          })];
+        }
+        if (data.GADDRs) {
+          data.step1.destination = [];
+          data.GADDRs.forEach(function(item) {
+            data.step1.destination.push(data.step1.GADDR2[_.findIndex(data.step1.GADDR2, {
+              Title: item.Title
+            })]);
+          });
+        }
+        if (data.ProductGADDR) {
+          data.step1.MainDestination = data.step1.GADDR2[_.findIndex(data.step1.GADDR2, {
+            Title: data.ProductGADDR.Title
+          })];
+        }
+        if (data.LineType) {
+          data.step1.LineType = data.step1.LineTypeAll[_.findIndex(data.step1.LineTypeAll, {
+            ID: data.LineType.ID
+          })];
+        }
+
+        data.step1.Keywords = data.Keywords;
+        data.step1.Productfeatures = data.Productfeatures;
+        data.step1.LineOwnership = selectCheckbox(data.step1.LineOwnership, data.LineOwnership, 'Name');
+        data.step1.ProductLineAttribute = selectCheckbox(data.step1.ProductLineAttribute, data.LineLabels, 'Name');
+         data.step1.TravelGoods.forEach(function(item) {
+          var d = _.find(data.Gift, function(gift) {
+            return gift.ForeignKeyID.$id === item.ID;
+          });
+          if(undefined !== d){
+            item.isSelect = true;
+          }
+        });
+        data.step1.ProductFormAll = selectCheckbox(data.step1.ProductFormAll, data.ProductForm, 'ID');
+        data.step1.DefaultPic = data.DefaultPic;
+        data.step1.Pics = [];
+        data.step1.VisaList = angular.copy(data.VisaCountry);
+        data.step1.VisaTemp = angular.copy(data.VisaCountry);
+        for (var i = 0; i < 3; i++) {
+          if (data.Pics[i]) {
+            data.step1.Pics.push(data.Pics[i]);
+          } else {
+            data.step1.Pics.push({});
+          }
+        }
+        data.finishedStatus = 6;
+        for (var x = 0; x < data.StepStatus.length; x++) {
+          if (data.StepStatus[x].status === 0) {
+            break;
+          }
+          data.finishedStatus = data.StepStatus[x].Step;
+        }
+        callback(data);
+      });
+    });
+  };
+
+  return drivingtour;
+});
+productRoute.service("ticket", function(_, getScenicList, getScenicDetail, getScenicTickets,
+  getAddrList, getScenicBasicData, getProductLineOwnershipData) {
+  var productTicketRoute = {};
+
+  productTicketRoute.list = function(callBack, params) {
+    var data = {};
+    data.search = {
+      limit: pageLimit,
+      page: 1
+    };
+    if (params) {
+      data.search = _.extend(data.search, params);
+    }
+    getScenicList(data.search, function(response) {
+			var responseData = response.data;
+      responseData.list.forEach(function(item) {
+        item.showUrl = 'product/ticket/detail?id=' + item._id.$id;
+				var parentId = item.ProductGADDR.ForeignKeyID.$id;
+				if(parentId == "000000000000000000000000" || parentId == "000000000000000000000001"){
+					item.countryName = item.ProductGADDR.Title;
+				}else{
+					item.countryName = item.ProductGADDR.Parents[1].Name;
+				}
+      });
+      data.list = responseData.list;
+      callBack(data);
+    });
+  };
+
+  productTicketRoute.detail = function(callBack, params) {
+    var data = {};
+    getScenicDetail(params.id, function(response) {
+      data = response;
+      data.editUrl = 'product/ticket/edit?id=' + data._id.$id;
+      getScenicTickets(function(nResponse) {
+        if (nResponse && nResponse.length > 0) {
+          data.hasTickets = true;
+          data.tickets = nResponse;
+        }
+        callBack(data);
+      }, data._id.$id);
+    });
+  };
+
+  productTicketRoute.add = function(callBack) {
+    var data = {};
+    getScenicBasicData(function(response) {
+			data.countries = response.countries;
+			data.scenicTypes = response.scenicTypes;
+      data.addTicketStep = 0;
+      data.finishedStatus = 0;
+      data.step0 = {};
+      data.step0.Pics = [];
+      for (var i = 0; i < 3; i++) {
+        data.step0.Pics.push({});
+      }
+			getProductLineOwnershipData(function(ownerships){
+				data.ownerships = ownerships.list;
+				callBack(data);
+			}, 3);
+    });
+  };
+
+  productTicketRoute.edit = function(callBack, params) {
+    var data = {};
+    getScenicDetail(params.id, function(response) {
+      data = response;
+			data.isEditMode = true;
+			data.showUrl = "product/ticket/detail?id=" + params.id;
+      data.finishedStatus = 4;
+      data.addTicketStep = 0;
+      data.step0 = {};
+      data.status = {};
+      data.step0.Title = data.Title;
+      data.step0.Theme = data.Theme;
+      data.step0.countryTmp = data.ProductGADDR.Parents[0];
+      data.step0.regionTmp = data.ProductGADDR.Parents[1];
+      data.step0.cityTmp = data.ProductGADDR.Parents[2];
+      data.step0.Address = data.Address;
+      data.step0.BrieDescription = data.BrieDescription;
+      data.step0.Pics = [];
+			if(null === data.DefaultPic || "" === data.DefaultPic){
+				if(data.step0.Pics.length > 0){
+					data.step0.DefaultPic = data.step0.Pics[0].PicPath;
+				}
+			}else{
+				data.step0.DefaultPic = data.DefaultPic;
+			}
+			for (var i = 0; i < 3; i++) {
+				if(data.Pics[i]){
+					data.step0.Pics.push(data.Pics[i]);
+				}else{
+					data.step0.Pics.push({});
+				}
+      }
+      getScenicBasicData(function(nResponse) {
+        data.countries = nResponse.countries;
+        data.scenicTypes = nResponse.scenicTypes;
+				if(null !== data.Type && data.Type !== ""){
+					data.step0.Type = _.find(data.scenicTypes, function(item){
+						return item._id.$id === data.Type.ForeignKeyID.$id;
+					});
+				}
+        getProductLineOwnershipData(function(ownerships){
+          data.ownerships = ownerships.list;
+					if(!data.step0.Theme){
+						data.step0.Theme = [];
+					}
+          data.step0.Theme.forEach(function(t){
+            var index = _.findIndex(data.ownerships, {Name: t.Name});
+            if(index > -1){
+              data.ownerships[index].isSelected = true;
+            }
+          });
+          if (data.step0.countryTmp) {
+  					data.step0.country = _.find(data.countries, function(item){
+  						return item.Title == data.step0.countryTmp.Name;
+  					});
+            getAddrList(function(nnResponse) {
+              data.step0.regions = nnResponse;
+              if (data.step0.regionTmp) {
+  							data.step0.region = nnResponse[_.findIndex(nnResponse, {
+  	              Title: data.step0.regionTmp.Name
+  	            })];
+                getAddrList(function(nnnResponse) {
+                  data.step0.cities = nnnResponse;
+  								if(data.step0.cityTmp){
+  									data.step0.city = nnnResponse[_.findIndex(nnnResponse, {
+  	                  Title: data.step0.cityTmp.Name
+  	                })];
+  								}
+  								callBack(data);
+                }, data.step0.region._id.$id);
+              } else {
+                callBack(data);
+              }
+            }, data.step0.country._id.$id);
+          } else {
+            callBack(data);
+          }
+        }, 3);
+      });
+    });
+  };
+
+  return productTicketRoute;
+});
+productRoute.service("teamtourPlanFore", function(_, getProductPlanList, getTeamtourPlanDetail, getOrdersByPlanID){
+	var productPlanRoute = {};
+
+	productPlanRoute.list = function(callBack, params){
+		var data = {};
+		getProductPlanList(params, function(response){
+			data.list = response.data.list;
+      data.search = {
+        order: 2,
+		page:1,
+        expire: 0
+      };
+      data.list.forEach(function(item){
+        item.showUrl = 'product/teamtourPlanFore/detail?id=' + item._id.$id + "&ProductName=" + item.ProductName;
+      });
+			callBack(data);
+		});
+	};
+
+	productPlanRoute.detail = function(callBack, params){
+		var data = {};
+		getTeamtourPlanDetail(params.id, function(response){
+
+			data.planInfo = response;
+      data.planInfo.showNormalPrice = true;
+      data.planInfo.FinalorderDay = Math.floor((data.planInfo.StartTime.sec - data.planInfo.Finalorder.sec) / 3600 / 24);
+      data.planInfo.FinalorderHour = ((data.planInfo.StartTime.sec - data.planInfo.Finalorder.sec) / 3600) % 24;
+      data.planInfo.FinalreservationDay = Math.floor((data.planInfo.StartTime.sec - data.planInfo.Finalreservation.sec) / 3600 / 24);
+      data.planInfo.FinalreservationHour = ((data.planInfo.StartTime.sec - data.planInfo.Finalreservation.sec) / 3600) % 24;
+
+      data.planInfo.ReserveDay = Math.floor(data.planInfo.ReserveTime / 24);
+      data.planInfo.ReserveHour = data.planInfo.ReserveTime % 24;
+      getOrdersByPlanID(params.id, function(orders){
+        data.orderInfo = orders.data;
+        data.ProductName = params.ProductName;
+        callBack(data);
+      });
+		});
+	};
+
+	return productPlanRoute;
+});

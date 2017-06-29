@@ -1,0 +1,3554 @@
+
+//获取机票订单列表
+orderManagementService.factory('getAirTicketOrderList', function($http, showErrorInfo) {
+  var getAirTicketOrderList = function(param1, callBack) {
+    var param = _.extend({
+      SearchKey: "",
+      StartTime: "",
+      EndTime: "",
+      OrderStatus: "",
+      PayStatus: "",
+      PageIndex: 1,
+      PageSize: pageLimit,
+    }, param1);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/GetAirTicketList",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getAirTicketOrderList;
+});
+
+//根据订单ID获取机票订单详情
+orderManagementService.factory('getAirTicketOrderByOrderID', function($http, showErrorInfo) {
+  var getAirTicketOrderByOrderID = function(id, callBack) {
+    var param = {
+      OrderID: id
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/GetAirTicketOrderByOrderID",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getAirTicketOrderByOrderID;
+});
+
+//添加机票订单
+orderManagementService.factory('addAirTicketOrder', function($http, showErrorInfo) {
+  var getAirTicketOrderByOrderID = function(param,callBack) {
+    console.log({
+      AirTicketOrder: JSON.stringify(param)
+    });
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/AddAirTicketOrder",
+        data: {
+          AirTicketOrder: JSON.stringify(param)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {
+      });
+  };
+  return getAirTicketOrderByOrderID;
+});
+
+//修改机票订单标题
+orderManagementService.factory('modifyAirTicekProductTitle', function($http, showErrorInfo) {
+  var modifyAirTicekProductTitle = function(OrderID, ProductTitle, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/ModifyAirTicekProductTitle",
+        data: {
+          OrderID: OrderID,
+          ProductTitle: ProductTitle
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyAirTicekProductTitle;
+});
+
+//修改机票订单客户信息
+orderManagementService.factory('modifyAirTicekCustomer', function($http, showErrorInfo) {
+  var modifyAirTicekCustomer = function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/ModifyAirTicekCustomer",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyAirTicekCustomer;
+});
+
+//修改机票订单航班信息
+orderManagementService.factory('modifyAirTicekFlights', function($http, showErrorInfo) {
+  var modifyAirTicekFlights = function(OrderID, AirTicketFlight, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/ModifyAirTicekFlight",
+        data: {
+          OrderID: OrderID,
+          AirTicketFlight: JSON.stringify(AirTicketFlight)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyAirTicekFlights;
+});
+
+//修改机票订单订单备注
+orderManagementService.factory('modifyAirTicekOrderNote', function($http, showErrorInfo) {
+  var modifyAirTicekOrderNote = function(OrderID, OrderNote, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/ModifyAirTicekOrderNote",
+        data: {
+          OrderID: OrderID,
+          OrderNote: OrderNote
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyAirTicekOrderNote;
+});
+
+//修改机票订单业务员
+orderManagementService.factory('modifyAirTicekSalesman', function($http, showErrorInfo) {
+  var modifyAirTicekSalesman = function(OrderID, SalesmanID, SalesmanName, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/ModifyAirTicekSalesman",
+        data: {
+          OrderID: OrderID,
+          SalesmanID: SalesmanID,
+          SalesmanName: SalesmanName
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyAirTicekSalesman;
+});
+
+//修改机票价格
+orderManagementService.factory('modifyAirTicekPrice', function($http, showErrorInfo) {
+  var modifyAirTicekPrice = function(OrderID, TotalFinalPrice, FeeDescription, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/ModifyAirTicekPrice",
+        data: {
+          OrderID: OrderID,
+          TotalFinalPrice: TotalFinalPrice,
+          FeeDescription: FeeDescription
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyAirTicekPrice;
+});
+
+//添加修改游客信息
+orderManagementService.factory('saveOrderTouristsToPlanTicket', function($http, showErrorInfo) {
+  var saveOrderTouristsToPlanTicket = function(Tourist, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/SaveOrderTouristsToPlanTicket",
+        data: {
+          Tourist: JSON.stringify(Tourist),
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return saveOrderTouristsToPlanTicket;
+});
+
+//删除游客信息
+orderManagementService.factory('removeOrderTouristByTouristID', function($http, showErrorInfo) {
+  var saveOrderTouristsToPlanTicket = function(TouristID, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/RemoveOrderTouristByTouristID",
+        data: {
+          TouristID: TouristID,
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return saveOrderTouristsToPlanTicket;
+});
+orderManagementService.factory('getFreeTourOrderList', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderList/AllOrderList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+})
+.factory('getFreeTourOrderDetail', function($http, showErrorInfo) {
+  return function(param, callback){
+    var params = {
+      Guid:param
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderIndependenttravel/GetOrderInfo",
+        data: withoutFlaseKey(params),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+})
+.factory('getFreeTourOrderCustomerList', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/GetTouristsByOrderID",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+})
+.factory('saveFreeTourTourist', function($http, showErrorInfo){
+  return function(param, success, error) {
+    HYhttp($http, {
+      url: dreamFlyUrl + "Order/OrderTourist/SaveOrderTouristsToFreedom",
+      data: withoutFlaseKey(param),
+      method: "POST"
+    }).then(
+    function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        success(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+        error && error();
+      }
+    });
+  };
+})
+.factory('saveFreeTourSaleMan', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamSalesman",
+      data: withoutFlaseKey(param),
+      method: "POST"
+    }).then(
+    function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    });
+  };
+})
+.factory('saveFreeTourOrderNotes', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamOrderNote",
+      data: withoutFlaseKey(param),
+      method: "POST"
+    }).then(
+    function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    });    
+  };
+})
+.factory('getProductGift',  function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp($http, {
+      url: baseUrl + 'common/Order/getProductGiftByOrderID',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data);
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+})
+.factory('updateOrderTravelGood', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Order/OrderTravelGood/UpdateOrderTravelGood',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data);
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+})
+.factory('delOrderTravelGood', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Order/OrderTravelGood/DelOrderTravelGood',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data);
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+})
+.factory('backOrderTravelGood', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Order/OrderTravelGood/BackOrderTravelGood',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data);
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+})
+.factory('saveOrderProject', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Order/OrderIndependenttravel/SaveOrderProject',
+      method: 'POST',
+      data: param
+    }).then(function(response) {
+      if(response.data.code >= 700 && response.data.code < 800){
+        callback(response.data);
+      } else {
+        showErrorInfo(response);
+      }
+    });
+  };
+})
+.factory('confirmOrder', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Order/OrderInfo/ConfirmOrder',
+      method: 'POST',
+      data: param
+    }).then(function(response) {
+      if(response.data.code >= 700 && response.data.code < 800){
+        success(response.data);
+      } else {
+        showErrorInfo(response.data.message);
+        if(error) error();
+      }
+    });
+  };
+})
+.factory('recoveryOrderApply', function($http, showErrorInfo){
+  return function(param, success, error){
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Order/OrderInfo/RecoveryOrderApply',
+      method: 'POST',
+      data: param
+    }).then(function(response) {
+      if(response.data.code >= 700 && response.data.code < 800){
+        success(response.data);
+      } else {
+        showErrorInfo(response.data.message);
+        if(error) error();
+      }
+    });   
+  };
+});
+orderManagementService.factory('getPickUpOrderList', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderList/AllOrderList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getPickUpOrderDetail', function($http, showErrorInfo) {
+  return function(param, callback) {
+    var params = {
+      OrderId: param
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/GroundOrderAdd/GetOrderInfo",
+        data: withoutFlaseKey(params),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('addGroundOrder', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/GroundOrderAdd/AddGroundOrder",
+        data: {
+          RequestData: JSON.stringify(param)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//修改地接订单产品信息
+orderManagementService.factory('updateGroundOrderProductInfo', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/GroundOrderAdd/UpdateProductInfo",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//修改地接订单组团社
+orderManagementService.factory('updateGroundOrderReceptionCompany', function($http, showErrorInfo) {
+  return function(OrderId, FinanceCompanyID, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/GroundOrderAdd/UpdateReceptionCompany",
+        data: {
+          OrderId: OrderId,
+          FinanceCompanyID: FinanceCompanyID
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//添加,编辑地接游客信息
+orderManagementService.factory('saveOrderTouristsToReception', function($http, showErrorInfo) {
+  return function(Tourist, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/SaveOrderTouristsToReception",
+        data: {
+          Tourist: JSON.stringify(Tourist)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+orderManagementService.factory('getCustomTourOrderList', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderList/AllOrderList",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+orderManagementService.factory('getCustomTourOrderDetail', function($http, showErrorInfo) {
+    return function(param, callback) {
+        var params = {
+            Guid: param
+        };
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderCustomTour/GetOrderInfo",
+                data: withoutFlaseKey(params),
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * {"OrderID": "000000000000000000299397",
+	"Tourists": "[\"000000000000000000662744\"]",
+	"ExitTeamNotes": "家里的老人生病了，需要看护，无法去了。"}
+ * @param  {[type]} 'quitTeamFromOrder' [description]
+ * @param  {[type]} function($http,     showErrorInfo [description]
+ * @return {[type]}                     [description]
+ */
+orderManagementService.factory('quitTeamFromOrder', function($http, showErrorInfo) {
+    return function(param, callback, error) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderTourist/TouristExitTeamApply",
+                data: withoutFlaseKey(param),
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                    if(error) error(); 
+                }
+            },
+            function() {
+               if(error) error(); 
+            });
+    };
+});
+
+//定制游添加游客
+orderManagementService.factory('saveOrderTouristsToCustomized', function($http, showErrorInfo) {
+    return function(Tourist, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderTourist/SaveOrderTouristsToCustomized",
+                data: {
+                    Tourist: JSON.stringify(Tourist)
+                },
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+//电子签约 添加合同邮件
+orderManagementService.factory('saveOrderEmailContractByOrderID', function($http, showErrorInfo) {
+    return function(param, callback,error) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderContract/SaveOrderEmailContractByOrderID",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                    error();
+                }
+            },
+            function() {
+                error();
+            });
+    };
+});
+
+//电子签约 添加传真合同
+orderManagementService.factory('saveOrderFaxContractByOrderID', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderContract/SaveOrderFaxContractByOrderID",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+//获取邮件签约合同清单
+orderManagementService.factory('getOrderEmailContractByOrderID', function($http, showErrorInfo) {
+    return function(OrderID, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderContract/GetOrderEmailContractByOrderID",
+                data: {
+                    OrderID: OrderID
+                },
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+//发送邮件
+orderManagementService.factory('sendEmailByRecordID', function($http, showErrorInfo) {
+    return function(RecordID, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "BasicData/SystemOperation/SendEmailByRecordID",
+                data: {
+                    RecordID: RecordID
+                },
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+//取消发送邮件
+orderManagementService.factory('cancelSendEmailByRecordID', function($http, showErrorInfo) {
+    return function(RecordID, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "BasicData/SystemOperation/CancelSendEmailByRecordID",
+                data: {
+                    RecordID: RecordID
+                },
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+//保存定制游订单套餐信息
+orderManagementService.factory('saveCustomTourOrderProject', function($http, showErrorInfo) {
+    return function(OrderID, RequestData, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderCustomTour/SaveOrderProject",
+                data: {
+                    OrderID: OrderID,
+                    RequestData: JSON.stringify(RequestData)
+                },
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+//订单转让
+orderManagementService.factory('orderTransferOP', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderTransfer/OrderTransferOP",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+//订单转让记录
+orderManagementService.factory('getOrderTransferList', function($http, showErrorInfo) {
+    return function(OrderID, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderTransfer/GetOrderTransferList",
+                data: {
+                    OrderID: OrderID
+                },
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+//分配签约
+orderManagementService.factory('orderAppointmentContractSignApply', function($http, showErrorInfo) {
+    return function(param, callback, error) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderInfo/OrderAppointmentContractSignApply",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    error();
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {
+                error();
+            });
+    };
+});
+
+orderManagementService.factory('saveCustomTourOrderProjectEntrust', function($http, showErrorInfo) {
+    return function(OrderID, RequestData, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderCustomTour/SaveOrderProjectEntrust",
+                data: {
+                    OrderID: OrderID,
+                    RequestData: JSON.stringify(RequestData)
+                },
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+orderManagementService.factory('getVisaOrderList', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderList/AllOrderList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getVisaOrderDetail', function($http, showErrorInfo) {
+  return function(param, callback) {
+    var params = {
+      Guid: param
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderVisa/GetOrderInfo",
+        data: withoutFlaseKey(params),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getVisaOrderCustomerList', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/GetTouristsByOrderID",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('saveOrderTouristsToVisa', function($http, showErrorInfo) {
+  return function(Tourist, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/SaveOrderTouristsToVisa",
+        data: {
+          Tourist: JSON.stringify(Tourist)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//无计划订单改期
+orderManagementService.factory('orderRescheduleApplyToOther', function($http, showErrorInfo) {
+  return function(param, success, error) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInfo/OrderRescheduleApplyToOther",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          success(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+          error && error();
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 获取邮轮游订单列表
+ * @param  {[type]} 'getCruiseOrderList' [description]
+ * @param  {[type]} function($http,        showErrorInfo [description]
+ * @return {[type]}                        [description]
+ */
+orderManagementService.factory('getCruiseOrderList', function($http, showErrorInfo) {
+  return function(param, callback){
+    var param = _.extend({
+      TypeId:"000000000000000000000018",
+      TimeType: null,
+      OrderPayStatus:null,
+      InsureStatus:null,
+      CensusStatus:null,
+      ProductType: null,
+      SearchInfo: "",
+      STime: '',
+      ETime: '',
+      StationId: null,
+      iPageIndex: 1,
+      iPageSize: pageLimit
+    }, param);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderList/AllOrderList",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+/**
+ * 获取邮轮游订单详情页信息
+ * @param  {[type]} 'getCruiseOrderDetail' [description]
+ * @param  {[type]} function($http,          showErrorInfo [description]
+ * @return {[type]}                          [description]
+ */
+orderManagementService.factory('getCruiseOrderDetail', function($http, showErrorInfo) {
+  return function(param, callback){
+    var params = {
+      OrderId:param
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/TeamOrder/GetOrderInfo",
+        data: withoutFlaseKey(params),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+/**
+ * 获取邮轮游订单游客列表
+ * @param  {[type]} 'getTeamtourOrderCustomerList' [description]
+ * @param  {[type]} function($http,                showErrorInfo [description]
+ * @return {[type]}                                [description]
+ */
+orderManagementService.factory('getCruiseOrderCustomerList', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/GetTouristsByOrderID",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+/**
+ * 添加修改游客信息
+ * @param  {[type]} 'saveOrderTouristsToCruises' [description]
+ * @param  {[type]} function($http,                showErrorInfo [description]
+ * @return {[type]}                                [description]
+ */
+orderManagementService.factory('saveOrderTouristsToCruises', function($http, showErrorInfo) {
+  var saveOrderTouristsToCruises = function(Tourist, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/SaveOrderTouristsToCruises",
+        data: {
+          Tourist: JSON.stringify(Tourist),
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return saveOrderTouristsToCruises;
+});
+
+//修改邮轮订单业务员
+orderManagementService.factory('modifyCruiseSalesman', function($http, showErrorInfo) {
+  var modifyCruiseSalesman = function(OrderID,SalesmanID,SalesmanName, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/AirticketOrder/ModifyAirTicekSalesman",
+         data: {
+          OrderID: OrderID,
+          SalesmanID: SalesmanID,
+          SalesmanName: SalesmanName
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyCruiseSalesman;
+});
+
+//得到船舱类型
+
+orderManagementService.factory('getShipRoomTypes', function($http, showErrorInfo) {
+  return function(callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/EShippingSpaceTypes",
+
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+
+
+//修改船舱数量
+
+orderManagementService.factory('editShipRoom', function($http, showErrorInfo) {
+  return function(id,param1,callback){
+    var param = {
+      OrderID:id,
+      CruiseRooms: angular.toJson(param1)
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInfo/ModifyOrderCruiseRoom",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//添加费用清单
+orderManagementService.factory('insertOrderPriceRecord', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInfo/InsertOrderPriceRecord",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+//修改邮轮订单客户信息接口
+orderManagementService.factory('modifyCruiseCustomer', function($http, showErrorInfo) {
+  var modifyCruiseCustomer = function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamCustomer",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyCruiseCustomer;
+});
+//获取订单回追记录
+orderManagementService.factory('orderTrackingReminder', function($http, showErrorInfo) {
+  return function(Guid, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderIndependenttravel/OrderTrackingReminder",
+        method: "POST",
+        data: {
+          Guid: Guid
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//新增订单回访记录
+orderManagementService.factory('saveOrderTrackingReminder', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderIndependenttravel/SaveOrderTrackingReminder",
+        method: "POST",
+        data: param
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//修改邮轮订单客户信息接口
+orderManagementService.factory('modifyOrderConvention', function($http, showErrorInfo) {
+  var modifyOrderConvention = function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamContractEnlarge",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyOrderConvention;
+});
+
+
+
+//修改订单备注接口
+orderManagementService.factory('modifyOrderNotes', function($http, showErrorInfo) {
+  var modifyOrderNotes = function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamOrderNote",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyOrderNotes;
+});
+
+
+//修改岸上观光接口
+orderManagementService.factory('UpdateOrderViewLight', function($http, showErrorInfo) {
+  var UpdateOrderViewLight = function(param1, callBack) {
+     var param = {
+      RequestData: JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInfo/UpdateOrderViewLight",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return UpdateOrderViewLight;
+});
+
+
+//修改费用清单接口
+orderManagementService.factory('modifyHandleFeeInfo', function($http, showErrorInfo) {
+  var modifyHandleFeeInfo = function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInfo/InsertOrderPriceRecord",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return modifyHandleFeeInfo;
+});
+
+
+/**
+ * 根据产品id获取同期计划id
+ * @param  {[type]} 'getSameProductPlanByPlanId' [description]
+ * @param  {[type]} function($http,              showErrorInfo [description]
+ * @return {[type]}                              [description]
+ */
+orderManagementService.factory('getSameProductPlanByPlanId', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetSameProductPlanByProductPlanID",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 根据计划id获取车辆的相关信息
+ * @param  {[type]} 'getCarsByOrderIdnPlanId' [description]
+ * @param  {[type]} function($http,           showErrorInfo [description]
+ * @return {[type]}                           [description]
+ */
+orderManagementService.factory('getCarsByOrderIdnPlanId', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetArrangeCars",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 根据订单id和车辆信息获取车辆占座信息
+ * @param  {[type]} 'getCarsTouristsByOrderIdnCar' [description]
+ * @param  {[type]} function($http,                showErrorInfo [description]
+ * @return {[type]}                                [description]
+ */
+orderManagementService.factory('getCarsTouristsByOrderIdnCar', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetArrangeCarsTourists",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 游客占座
+ * @param  {[type]} 'touristOccupyCarSeatArrange' [description]
+ * @param  {[type]} function($http,               showErrorInfo [description]
+ * @return {[type]}                               [description]
+ */
+orderManagementService.factory('touristOccupyCarSeatArrange', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeCarSeat/TouristOccupyCarSeatArrange",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 取消游客占座
+ * @param  {[type]} 'cancelCarSeatArrange' [description]
+ * @param  {[type]} function($http,        showErrorInfo [description]
+ * @return {[type]}                        [description]
+ */
+orderManagementService.factory('cancelCarSeatArrange', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeCarSeat/CancelCarSeatArrange",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 获取订单已占座人员信息
+ * @param  {[type]} 'getCarArrangeTouristsInfo' [description]
+ * @param  {[type]} function($http,             showErrorInfo [description]
+ * @return {[type]}                             [description]
+ */
+orderManagementService.factory('getCarArrangeTouristsInfo', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetCarArrangeTouristsInfo",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 获取订单未占座人员信息
+ * @param  {[type]} 'getNoneCarArrangeTouristsInfo' [description]
+ * @param  {[type]} function($http,                 showErrorInfo [description]
+ * @return {[type]}                                 [description]
+ */
+orderManagementService.factory('getNoneCarArrangeTouristsInfo', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetNoneCarArrangeTouristsInfo",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 订单随机占座
+ * @param  {[type]} 'randomSeatingArrangement' [description]
+ * @param  {[type]} function($http,            showErrorInfo [description]
+ * @return {[type]}                            [description]
+ */
+orderManagementService.factory('randomSeatingArrangement', function($http, showErrorInfo) {
+  return function(param, callback){
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeCarSeat/RandomSeatingArrangement",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//删除游客信息
+orderManagementService.factory('removeOrderTouristByTouristID', function($http, showErrorInfo) {
+  var saveOrderTouristsToCruises = function(TouristID, callBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/RemoveOrderTouristByTouristID",
+        data: {
+          TouristID: TouristID,
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return saveOrderTouristsToCruises;
+});
+
+/**
+ * 获取订单房间安排情况 {OrderID:}
+ * @param  {[type]} 'getOrderTouristRoomArrangeByOrderID' [description]
+ * @param  {[type]} function($http,                       showErrorInfo [description]
+ * @return {[type]}                                       [description]
+ */
+orderManagementService.factory('getOrderTouristRoomArrangeByOrderID', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/GetOrderTouristRoomArrangeByOrderID",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 根据订单id获取需要安排房价房间的游客{
+  "OrderID": "000000000000000000262175",
+  "PageIndex": 1,
+  "PageSize": 1000,
+  "SearchInfo": ""
+}
+ * @param  {[type]} 'getArrangeTouristsByOrderID' [description]
+ * @param  {[type]} function($http,               showErrorInfo [description]
+ * @return {[type]}                               [description]
+ */
+orderManagementService.factory('getArrangeTouristsByOrderID', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/GetComboxRoomArrangeTouristsByOrderID",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 随机安排房间{OrderID:}
+ * @param  {[type]} 'getArrangeTouristsByOrderID' [description]
+ * @param  {[type]} function($http,               showErrorInfo [description]
+ * @return {[type]}                               [description]
+ */
+orderManagementService.factory('orderRandomRoomArrangement', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/RandomRoomArrangement",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+
+/**
+ * 订单游客房价安排{
+  "OrderID": "000000000000000000262175",
+  "TouristRoomStatus": 2,
+  "RoomTourists": "[{\"InTouristID\":\"000000000000000000341114\",\"OutTouristID\":\"000000000000000000341100\"}]",
+  "RoomNumber": "10002"
+}
+ * @param  {[type]} 'orderTouristRoomArrange' [description]
+ * @param  {[type]} function($http,           showErrorInfo [description]
+ * @return {[type]}                           [description]
+ */
+orderManagementService.factory('orderTouristRoomArrange', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/TouristRoomArrange",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/**
+ * 取消订单游客房间安排{
+  "Tourists": "[\"000000000000000000341114\",\"000000000000000000341108\"]"
+}
+ * @param  {[type]} 'orderCancelRoomArrange' [description]
+ * @param  {[type]} function($http,          showErrorInfo [description]
+ * @return {[type]}                          [description]
+ */
+orderManagementService.factory('orderCancelRoomArrange', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/CancelRoomArrange",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+orderManagementService.factory('getDriveTourOrderList', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderList/AllOrderList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getSelfdrivingtourOrderDetail', function($http, showErrorInfo) {
+  return function(OrderId, callback) {
+    var params = {
+      OrderId: OrderId
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderSelfdrivingtour/GetOrderInfo",
+        data: withoutFlaseKey(params),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+orderManagementService.factory('getDriveTourOrderCustomerList', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/GetTouristsByOrderID",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('saveOrderTouristsToSelfDriving', function($http, showErrorInfo) {
+  return function(Tourist, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/SaveOrderTouristsToSelfDriving",
+        data: {
+          Tourist: JSON.stringify(Tourist)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//添加费用清单
+orderManagementService.factory('insertOrderPriceRecord', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInfo/InsertOrderPriceRecord",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//修改自驾游套餐
+orderManagementService.factory('updateSelfDrivingPackageInfo', function($http, showErrorInfo) {
+  return function(RequestData, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderSelfdrivingtour/UpdateSelfDrivingPackageInfo",
+        data: {RequestData:JSON.stringify(RequestData)},
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+orderManagementService.factory('getAttractionTicketOrderList', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderList/AllOrderList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getAttractionTicketOrderCustomerList', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/GetTouristsByOrderID",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getScenicOrderInfo', function($http, showErrorInfo) {
+  return function(OrderId, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderScenic/GetOrderInfo",
+        data: {
+          OrderId: OrderId
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('saveOrderTouristsToTicket', function($http, showErrorInfo) {
+  return function(Tourist, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/SaveOrderTouristsToTicket",
+        data: {
+          Tourist: JSON.stringify(Tourist)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//更新订单门票信息
+orderManagementService.factory('updateScenicTicketInfo', function($http, showErrorInfo) {
+  return function(RequestData, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderScenic/UpdateScenicTicketInfo",
+        data: {
+          RequestData: JSON.stringify(RequestData)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+/**
+ * 获取组团游订单详情页信息
+ * @param  {[type]} 'getTeamtourOrderDetail' [description]
+ * @param  {[type]} function($http,          showErrorInfo [description]
+ * @return {[type]}                          [description]
+ */
+orderManagementService.factory('getTeamtourOrderDetail', function($http, showErrorInfo) {
+    return function(param, callback) {
+        var params = {
+            OrderId: param
+        };
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/TeamOrder/GetOrderInfo",
+                data: withoutFlaseKey(params),
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+
+//修改订单约定接口
+orderManagementService.factory('modifyOrderConvention', function($http, showErrorInfo) {
+    var modifyOrderConvention = function(param, callBack) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamContractEnlarge",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callBack(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+    return modifyOrderConvention;
+});
+
+
+
+//修改订单备注接口
+orderManagementService.factory('modifyOrderNotes', function($http, showErrorInfo) {
+    var modifyOrderNotes = function(param, callBack) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamOrderNote",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callBack(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+    return modifyOrderNotes;
+});
+
+//添加费用清单
+orderManagementService.factory('insertOrderPriceRecord', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderInfo/InsertOrderPriceRecord",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+/**
+ * 获取组团游订单列表
+ * @param  {[type]} 'getTeamtourOrderList' [description]
+ * @param  {[type]} function($http,        showErrorInfo [description]
+ * @return {[type]}                        [description]
+ */
+orderManagementService.factory('getTeamtourOrderList', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "/Order/OrderList/AllOrderList",
+                data: withoutFlaseKey(param),
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 获取组团游订单游客列表
+ * @param  {[type]} 'getTeamtourOrderCustomerList' [description]
+ * @param  {[type]} function($http,                showErrorInfo [description]
+ * @return {[type]}                                [description]
+ */
+orderManagementService.factory('getTeamtourOrderCustomerList', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderTourist/GetTouristsByOrderID",
+                data: withoutFlaseKey(param),
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+
+/**
+ * 获取组团游订单游客关系
+ * @param  {[type]} 'getTouristRelationTypes' [description]
+ * @param  {[type]} function($http,                showErrorInfo [description]
+ * @return {[type]}                                [description]
+ */
+orderManagementService.factory('getTouristRelationTypes', function($http, showErrorInfo) {
+    return function(callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/Orderinfo/GetTouristRelationTypes",
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 修改组团游订单游客关系
+ * @param  {[type]} 'UpdateOrderTouristRelationship' [description]
+ * @param  {[type]} function($http,                showErrorInfo [description]
+ * @return {[type]}                                [description]
+ */
+orderManagementService.factory('UpdateOrderTouristRelationship', function($http, showErrorInfo) {
+    return function(param,callback) {
+        var params = {
+            OrderID:param.OrderID,
+            TouristRelationTypes:JSON.stringify(param.TouristRelationTypes)
+        };
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderTourist/UpdateOrderTouristRelationship",
+                data:withoutFlaseKey(params),
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+
+
+
+/**
+ * 根据产品id获取同期计划id
+ * @param  {[type]} 'getSameProductPlanByPlanId' [description]
+ * @param  {[type]} function($http,              showErrorInfo [description]
+ * @return {[type]}                              [description]
+ */
+orderManagementService.factory('getSameProductPlanByPlanId', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetSameProductPlanByProductPlanID",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 根据计划id获取车辆的相关信息
+ * @param  {[type]} 'getCarsByOrderIdnPlanId' [description]
+ * @param  {[type]} function($http,           showErrorInfo [description]
+ * @return {[type]}                           [description]
+ */
+orderManagementService.factory('getCarsByOrderIdnPlanId', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetArrangeCars",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 根据订单id和车辆信息获取车辆占座信息
+ * @param  {[type]} 'getCarsTouristsByOrderIdnCar' [description]
+ * @param  {[type]} function($http,                showErrorInfo [description]
+ * @return {[type]}                                [description]
+ */
+orderManagementService.factory('getCarsTouristsByOrderIdnCar', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetArrangeCarsTourists",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 游客占座
+ * @param  {[type]} 'touristOccupyCarSeatArrange' [description]
+ * @param  {[type]} function($http,               showErrorInfo [description]
+ * @return {[type]}                               [description]
+ */
+orderManagementService.factory('touristOccupyCarSeatArrange', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeCarSeat/TouristOccupyCarSeatArrange",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 取消游客占座
+ * @param  {[type]} 'cancelCarSeatArrange' [description]
+ * @param  {[type]} function($http,        showErrorInfo [description]
+ * @return {[type]}                        [description]
+ */
+orderManagementService.factory('cancelCarSeatArrange', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeCarSeat/CancelCarSeatArrange",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 获取订单已占座人员信息
+ * @param  {[type]} 'getCarArrangeTouristsInfo' [description]
+ * @param  {[type]} function($http,             showErrorInfo [description]
+ * @return {[type]}                             [description]
+ */
+orderManagementService.factory('getCarArrangeTouristsInfo', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetCarArrangeTouristsInfo",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 获取订单未占座人员信息
+ * @param  {[type]} 'getNoneCarArrangeTouristsInfo' [description]
+ * @param  {[type]} function($http,                 showErrorInfo [description]
+ * @return {[type]}                                 [description]
+ */
+orderManagementService.factory('getNoneCarArrangeTouristsInfo', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetNoneCarArrangeTouristsInfo",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 订单随机占座
+ * @param  {[type]} 'randomSeatingArrangement' [description]
+ * @param  {[type]} function($http,            showErrorInfo [description]
+ * @return {[type]}                            [description]
+ */
+orderManagementService.factory('randomSeatingArrangement', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeCarSeat/RandomSeatingArrangement",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 根据订单id获取签约传真签约信息
+ * @param  {[type]} 'randomSeatingArrangement' [description]
+ * @param  {[type]} function($http,            showErrorInfo [description]
+ * @return {[type]}                            [description]
+ */
+orderManagementService.factory('getOrderFaxContractByOrderID', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderContract/GetOrderFaxContractByOrderID",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 获取可选的合同内容数据
+ * @param  {[type]} 'getComboxContentMainTypes' [description]
+ * @param  {[type]} function($http,             showErrorInfo [description]
+ * @return {[type]}                             [description]
+ */
+orderManagementService.factory('getComboxContentMainTypes', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderContract/GetComboxContentMainTypes",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 获取订单房间安排情况 {OrderID:}
+ * @param  {[type]} 'getOrderTouristRoomArrangeByOrderID' [description]
+ * @param  {[type]} function($http,                       showErrorInfo [description]
+ * @return {[type]}                                       [description]
+ */
+orderManagementService.factory('getOrderTouristRoomArrangeByOrderID', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/GetOrderTouristRoomArrangeByOrderID",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 根据订单id获取需要安排房价房间的游客{
+	"OrderID": "000000000000000000262175",
+	"PageIndex": 1,
+	"PageSize": 1000,
+	"SearchInfo": ""
+}
+ * @param  {[type]} 'getArrangeTouristsByOrderID' [description]
+ * @param  {[type]} function($http,               showErrorInfo [description]
+ * @return {[type]}                               [description]
+ */
+orderManagementService.factory('getArrangeTouristsByOrderID', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/GetComboxRoomArrangeTouristsByOrderID",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 随机安排房间{OrderID:}
+ * @param  {[type]} 'getArrangeTouristsByOrderID' [description]
+ * @param  {[type]} function($http,               showErrorInfo [description]
+ * @return {[type]}                               [description]
+ */
+orderManagementService.factory('orderRandomRoomArrangement', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/RandomRoomArrangement",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+
+/**
+ * 订单游客房价安排{
+	"OrderID": "000000000000000000262175",
+	"TouristRoomStatus": 2,
+	"RoomTourists": "[{\"InTouristID\":\"000000000000000000341114\",\"OutTouristID\":\"000000000000000000341100\"}]",
+	"RoomNumber": "10002"
+}
+ * @param  {[type]} 'orderTouristRoomArrange' [description]
+ * @param  {[type]} function($http,           showErrorInfo [description]
+ * @return {[type]}                           [description]
+ */
+orderManagementService.factory('orderTouristRoomArrange', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/TouristRoomArrange",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+/**
+ * 取消订单游客房间安排{
+	"Tourists": "[\"000000000000000000341114\",\"000000000000000000341108\"]"
+}
+ * @param  {[type]} 'orderCancelRoomArrange' [description]
+ * @param  {[type]} function($http,          showErrorInfo [description]
+ * @return {[type]}                          [description]
+ */
+orderManagementService.factory('orderCancelRoomArrange', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp(
+            $http, {
+                url: dreamFlyUrl + "Order/OrderArrangeTouristRoom/CancelRoomArrange",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callback(response.data.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+
+/**
+ * @description 获取价格类型
+ */
+
+orderManagementService.factory('getTeamProductPriceByPlanID', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderTourist/GetComboxTeamProductPlanPriceByProducePlanID',
+            data: param,
+            method: 'POST'
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        });
+    };
+});
+
+/**
+ * @description 添加/修改游客信息
+ */
+orderManagementService.factory('saveTeamTourTourist', function($http, showErrorInfo) {
+    return function(param, success, error) {
+        HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderTourist/SaveOrderTouristsToGroup',
+            data: param,
+            method: 'POST'
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                success(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+                if(error) error();
+            }
+        });
+    };
+});
+
+orderManagementService.factory('orderRescheduleApplyToGroup', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderInfo/OrderRescheduleApplyToGroup',
+            data: param,
+            method: 'POST'
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        });
+    };
+});
+
+orderManagementService.factory('orderDelayApply', function($http, showErrorInfo) {
+    return function(param, callback) {
+        HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderInfo/OrderDelayApply',
+            data: param,
+            method: 'POST'
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        });
+    };
+});
+
+//取消订单
+orderManagementService.factory('cancelOrder', function($http, showErrorInfo) {
+    return function(OrderID, CancelReasonTypeID, CancelReason, callback, error) {
+        HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderInfo/CancelOrder',
+            data: {
+                OrderID: OrderID,
+                CancelReasonTypeID: CancelReasonTypeID,
+                CancelReason: CancelReason
+            },
+            method: 'POST'
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+                if(error) error();
+            }
+        }, function(){
+            if(error) error();
+        });
+    };
+});
+
+//获取取消订单的原因
+orderManagementService.factory('getComboxCancelOrderReasonTypes', function($http, showErrorInfo) {
+    return function(callback) {
+        HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderInfo/GetComboxCancelOrderReasonTypes',
+            method: 'POST'
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        });
+    };
+});
+
+orderManagementService.factory('orderTransferCustomer', function($http, showErrorInfo){
+    return function(param, callback){
+         HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderCustomer/OrderTransferCustomer',
+            method: 'POST',
+            data: param
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        });
+    };
+});
+
+orderManagementService.factory('getComboxTouristRoomStatus', function($http, showErrorInfo){
+    return function(callback){
+         HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderArrangeTouristRoom/GetComboxTouristRoomStatus',
+            method: 'POST'
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        });
+    };
+});
+
+orderManagementService.factory('updateOrderPriceRecord', function($http, showErrorInfo){
+    return function(param, callback){
+         HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderInfo/UpdateOrderPriceRecord',
+            method: 'POST',
+            data: param
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        });
+    };
+});
+
+orderManagementService.factory('delOrderPriceRecord', function($http, showErrorInfo){
+    return function(param, callback){
+         HYhttp($http, {
+            url: dreamFlyUrl + 'Order/OrderInfo/DelOrderPriceRecord',
+            method: 'POST',
+            data: param
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        });
+    };
+});
+orderManagementService.factory('getOneTeamOrderList', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderList/AllOrderList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+//添加费用清单
+orderManagementService.factory('insertOrderPriceRecord', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInfo/InsertOrderPriceRecord",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+orderManagementService.factory('getOneTeamOrderByOrderID', function($http, showErrorInfo) {
+  return function(id, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OneTeamOrder/GetOneTeamOrderByOrderID",
+        data: {
+          OrderID: id
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('modifyOneTeamCustomer', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamCustomer",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('modifyOneTeamIsNeedGuideStatus', function($http, showErrorInfo) {
+  return function(OrderID, IsNeedGuide, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamIsNeedGuideStatus",
+        data: {
+          OrderID: OrderID,
+          IsNeedGuide: IsNeedGuide
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('saveOrderTouristsToOneGroup', function($http, showErrorInfo) {
+  return function(Tourist, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTourist/SaveOrderTouristsToOneGroup",
+        data: {
+          Tourist: JSON.stringify(Tourist),
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getComboxProductInsurancesByProductID', function($http, showErrorInfo) {
+  return function(ProductTypeID, ProductID, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetComboxProductInsurancesByProductID",
+        data: {
+          ProductTypeID: ProductTypeID,
+          ProductID: ProductID
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getOrderInsurancesByOrderID', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetOrderInsurancesByOrderID",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('batchSelectedInsurances', function($http, showErrorInfo) {
+  return function(OrderID, Tourists, ProductInsurances, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/BatchSelectedInsurances",
+        data: {
+          OrderID: OrderID,
+          Tourists: JSON.stringify(Tourists),
+          ProductInsurances: JSON.stringify(ProductInsurances)
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getComboxInsuranceStatus', function($http, showErrorInfo) {
+  return function(callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetComboxInsuranceStatus",
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getOrderInsurancesByTouristID', function($http, showErrorInfo) {
+  return function(TouristID, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetOrderInsurancesByTouristID",
+        method: "POST",
+        data: {
+          TouristID: TouristID
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('batchBuyInsurances', function($http, showErrorInfo) {
+  return function(TouristInsurances, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/BatchBuyInsurances",
+        method: "POST",
+        data: {
+          TouristInsurances: JSON.stringify(TouristInsurances)
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('localCancelInsurances', function($http, showErrorInfo) {
+  return function(TouristID, ProductInsuranceID, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/LocalCancelInsurances",
+        method: "POST",
+        data: {
+          TouristID: TouristID,
+          ProductInsuranceID: ProductInsuranceID
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('cancelSelectInsurance', function($http, showErrorInfo) {
+  return function(TouristID, ProductInsuranceID, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/CancelSelectInsurance",
+        method: "POST",
+        data: {
+          TouristID: TouristID,
+          ProductInsuranceID: ProductInsuranceID
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('batchLocalCancelInsurances', function($http, showErrorInfo) {
+  return function(OrderID, Tourists, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/BatchLocalCancelInsurances",
+        method: "POST",
+        data: {
+          OrderID: OrderID,
+          Tourists: JSON.stringify(Tourists)
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('batchCancelSelectInsurances', function($http, showErrorInfo) {
+  return function(OrderID, Tourists, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/BatchCancelSelectInsurances",
+        method: "POST",
+        data: {
+          OrderID: OrderID,
+          Tourists: JSON.stringify(Tourists)
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('modifyInsuranceExecutiveTime', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/ModifyInsuranceExecutiveTime",
+        method: "POST",
+        data: param
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getComboxInsureCompanies', function($http, showErrorInfo) {
+  return function(callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetComboxInsureCompanies",
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getInsuresByInsureCompanyID', function($http, showErrorInfo) {
+  return function(InsureCompanyID, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetInsuresByInsureCompanyID",
+        method: "POST",
+        data: {
+          InsureCompanyID: InsureCompanyID
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('batchBuyThirdPartInsurances', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/BatchBuyThirdPartInsurances",
+        method: "POST",
+        data: param
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getOrderInsurancesTourists', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetOrderInsurancesTourists",
+        method: "POST",
+        data: param
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getAssemblyInsurancesTourists', function($http, showErrorInfo) {
+  return function(ProductInsurances, InsuranceTourists, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/GetAssemblyInsurancesTourists",
+        method: "POST",
+        data: {
+          ProductInsurances: JSON.stringify(ProductInsurances),
+          InsuranceTourists: JSON.stringify(InsuranceTourists)
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('batchLocalCancelInsurancesToHigh', function($http, showErrorInfo) {
+  return function(OrderID, SelectTouristsInsurances, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/BatchLocalCancelInsurancesToHigh",
+        method: "POST",
+        data: {
+          OrderID: OrderID,
+          SelectTouristsInsurances: JSON.stringify(SelectTouristsInsurances)
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('batchCancelSelectInsurancesToHigh', function($http, showErrorInfo) {
+  return function(OrderID, SelectTouristsInsurances, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderInsurance/BatchCancelSelectInsurancesToHigh",
+        method: "POST",
+        data: {
+          OrderID: OrderID,
+          SelectTouristsInsurances: JSON.stringify(SelectTouristsInsurances)
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getOrderFinanceByOrder', function($http, showErrorInfo) {
+  return function(OrderID, Type, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderFinance/GetOrderFinanceByOrder",
+        method: "POST",
+        data: {
+          OrderID: OrderID,
+          Type: Type
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//添加订单收款或退款信息
+orderManagementService.factory('insertOrderFinance', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderFinance/InsertOrderFinance",
+        method: "POST",
+        data: param
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//更新收退款记录
+orderManagementService.factory('updateOrderFinanceRecord', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderFinance/UpdateOrderFinanceRecord",
+        method: "POST",
+        data: param
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//删除订单收款退款记录
+orderManagementService.factory('delOrderFinanceRecord', function($http, showErrorInfo) {
+  return function(RecordID, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderFinance/DelOrderFinanceRecord",
+        method: "POST",
+        data: {
+          RecordID: RecordID
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//获取订单回追记录
+orderManagementService.factory('orderTrackingReminder', function($http, showErrorInfo) {
+  return function(Guid, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderIndependenttravel/OrderTrackingReminder",
+        method: "POST",
+        data: {
+          Guid: Guid
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//新增订单回访记录
+orderManagementService.factory('saveOrderTrackingReminder', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderIndependenttravel/SaveOrderTrackingReminder",
+        method: "POST",
+        data: param
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//收款类型
+orderManagementService.factory('getMoneyTypes', function($http, showErrorInfo) {
+  return function(callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/MoneyTypes",
+        method: "POST",
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//收款方式
+orderManagementService.factory('getPaymentTypes', function($http, showErrorInfo) {
+  return function(callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/PaymentTypes",
+        method: "POST",
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//获取收款银行
+orderManagementService.factory('getFinancePayBank', function($http, showErrorInfo) {
+  return function(callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/FinancePayBank",
+        method: "POST",
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//获取收推款信息详情
+orderManagementService.factory('getOrderPriceFinanceByID', function($http, showErrorInfo) {
+  return function(RecordID, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderFinance/GetOrderPriceFinanceByID",
+        method: "POST",
+        data: {
+          RecordID: RecordID
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//获取订单旅游用品预领
+orderManagementService.factory('getOrderTravelGoodByOrder', function($http, showErrorInfo) {
+  return function(param, callback) {
+    var param1 = _.extend({
+      OrderID: "000000000000000000305490",
+      iPageIndex: 1,
+      iPageSize: embeddedPageLimt
+    }, param);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTravelGood/GetOrderTravelGoodByOrder",
+        method: "POST",
+        data: param1
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//添加订单预领
+orderManagementService.factory('insertOrderTravelGood', function($http, showErrorInfo) {
+  return function(RequestData, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderTravelGood/InsertOrderTravelGood",
+        method: "POST",
+        data: {
+          RequestData: JSON.stringify(RequestData)
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//修改委托社
+orderManagementService.factory('modifyOneTeamReceptionCompany', function($http, showErrorInfo) {
+  return function(OrderID, ReceptionCompanyID, ReceptionCompanyName, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OneTeamOrder/ModifyOneTeamReceptionCompany",
+        method: "POST",
+        data: {
+          OrderID: OrderID,
+          ReceptionCompanyID: ReceptionCompanyID,
+          ReceptionCompanyName: ReceptionCompanyName
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//获取委托社详情
+orderManagementService.factory('closingNnitOneInOneTeam', function($http, showErrorInfo) {
+    return function (ID, callback) {
+        console.log(ID);
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/ClosingNnit/ClosingNnitOne",
+        method: "POST",
+        data: {
+          ID: ID,
+        }
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getSameProductPlanByOrderID', function($http, showErrorInfo) {
+  return function(param, callback) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderArrangeCarSeat/GetSameProductPlanByOrderID",
+        method: "POST",
+        data: param
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callback(response.data.data);
+        } else {
+          showErrorInfo(response.data.message);
+        }
+      },
+      function() {});
+  };
+});
+
+orderManagementService.factory('getOrderInsurancesMoreByOrderID', function($http, showErrorInfo){
+  return function(param, callback){
+    HYhttp($http, {
+      url: dreamFlyUrl + "Order/OrderInsurance/GetOrderInsurancesMoreByOrderID",
+      method: "POST",
+      data: param
+    }).then(function(response){
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data.message);
+      }
+    });
+  };
+});

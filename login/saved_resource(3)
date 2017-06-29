@@ -1,0 +1,343 @@
+/**
+ * 全局控制器
+ */
+app.controller('MainInfoController', function($scope, $templateCache, getCrmRemindBusinessIdById, changeInformationStatus,
+  $rootScope, showLoading, hideLoading, $timeout, _, $http, HYRoute, setListHeight, openSubView, $filter,
+  sendICGTDMessage, setCache, closeSubView, addRefreshPageByID, saveScreenShot, removeScreenShot, replaceScreenShot) {
+
+  $rootScope.setScreenShot = function(url, type) {
+    $timeout(function(){
+      saveScreenShot(url, type);
+    }, 500);
+  };
+
+  $rootScope.openImpressMode = function() {
+    $rootScope.impressmode = true;
+    $scope.impressContainerClass = {
+      width: angular.element(document.body).width(),
+      height: angular.element(document.body).height()
+    };
+    impress().init();
+  };
+
+  $scope.setCache = function(view, temp) {
+    var cacheIndex = _.findIndex($rootScope.lastViewList, {
+      id: view.id
+    });
+    if (cacheIndex >= 0) $rootScope.lastViewList.splice(cacheIndex, 1);
+
+    if ($rootScope.lastViewList.length >= cacheMaxNum) {
+      $templateCache.remove($rootScope.lastViewList.shift(0));
+    }
+
+    var index = _.findLastIndex($rootScope.lastViewList, {
+      httpUrl: view.httpUrl
+    });
+    if (index > -1) {
+      view.index = $rootScope.lastViewList[index].index + 1;
+    } else {
+      view.index = 0;
+    }
+    $rootScope.lastViewList.push(view);
+    $templateCache.put(view.id, temp);
+  };
+
+  /**
+   * 加载页面
+   * @param {type} url 需要加载的url
+   * @param {type} className 使用的class名称
+   */
+  $rootScope.fetch = function(url, className) {
+    // 显示进度条
+    showLoading();
+
+    console.log(url);
+
+    var switchVal = createID(url);
+    if (!switchVal) {
+      hideLoading();
+      return;
+    }
+
+    var view = getUrlByHttpUrl(url, $rootScope.urlConfig);
+
+    var newV = {
+      id: view.id,
+      type: view.type,
+      title: view.title,
+      httpUrl: view.httpUrl,
+      targetUrl: view.targetUrl,
+      templateUrl: view.templateUrl
+    };
+
+    $rootScope[current[view.type]] = view.id;
+
+    var newNoCacheUrlIndex = _.find(noCacheUrls, function(item) {
+      if (item == newV.httpUrl) {
+        return true;
+      }
+    });
+
+    if (!newNoCacheUrlIndex) {
+      //最近使用
+      var cacheIndex = _.findIndex($rootScope.lastViewList, {
+        httpUrl: newV.httpUrl
+      });
+      var removeCache = [];
+      if (cacheIndex > -1) removeCache = $rootScope.lastViewList.splice(cacheIndex, 1);
+
+      $rootScope.lastViewList.unshift(newV);
+
+      // if (removeCache.length > 0) {
+      //     $rootScope.lastViewList.unshift(removeCache[0]);
+      // } else {
+      // var cacheView = '';
+      // var viewTypeList = [];
+      // _.find($rootScope.lastViewList, function(item) {
+      //     if (item.httpUrl == newV.httpUrl) {
+      //         viewTypeList.push(item);
+      //     }
+      // });
+      // if (viewTypeList.length > 0) {
+      //     cacheView = _.max(viewTypeList, function(item) {
+      //         return item.index;
+      //     });
+      // }
+      // var viewListIndex = 0;
+      // if (cacheView) {
+      //     viewListIndex = cacheView.index + 1;
+      // }
+      // newV.index = viewListIndex;
+
+      // $rootScope.lastViewList.unshift(newV);
+      // }
+    }
+
+    if (className) {
+      $rootScope[activeStatus[view.type]] = {};
+      $rootScope[activeStatus[view.type]][className] = 'active';
+    }
+
+    var noCacheUrlIndex = _.find(noCacheUrls, function(item) {
+      if (item == $rootScope[switchType[view.type]].httpUrl) {
+        return true;
+      }
+    });
+    if (!noCacheUrlIndex) { //需要缓存的页面
+      //记录当前页面状态
+
+      if ($rootScope[switchType[view.type]].id) {
+        // $templateCache.put($rootScope[switchType[view.type]].id, $scope[position[view.type]]);
+        setCache($rootScope[switchType[view.type]], $scope[position[view.type]]);
+      }
+
+      //判断页面是否加载过
+      if ($templateCache.get(switchVal)) { //如果加载过 则从缓存中读取数据，然后返回
+        var index = _.indexOf($rootScope.refreshPage, switchVal);
+        //判断页面是否需要刷新
+        if (index < 0) { //页面不需要刷新
+          $rootScope[position[view.type]] = {};
+          $rootScope[switchType[view.type]] = newV;
+          if (view.type == 1) {
+            $timeout(function() {
+              $rootScope[position[view.type]] = $templateCache.get(switchVal);
+              console.log($rootScope[position[view.type]]);
+            });
+          } else {
+            $rootScope[position[view.type]] = $templateCache.get(switchVal);
+          }
+          // $timeout(function() {
+          //   setListHeight(view.id, view.type);
+          // }, 30);
+          // 隐藏进度条
+          hideLoading();
+          return;
+        }
+        //从刷新页面中移除
+        $rootScope.refreshPage = _.without($rootScope.refreshPage, switchVal);
+      }
+    }
+
+    $rootScope[switchType[view.type]] = {};
+    if (view.type == 1) {
+      $rootScope[switchType[view.type]] = {
+        id: 'listLoading',
+        templateUrl: '/public/angularView/common/loading/list_loading.html?'
+      };
+    } else {
+      $rootScope[switchType[view.type]] = {
+        id: 'detailLoading',
+        templateUrl: '/public/angularView/common/loading/detail_loading.html?'
+      };
+    }
+
+    $rootScope[position[view.type]] = {};
+
+    var applyData = HYRoute.getRoute(newV.httpUrl);
+    var param = HYRoute.getParam(url);
+
+    applyData(function(data) {
+      $rootScope.showProgressBar = false;
+      // 隐藏进度条
+      hideLoading(newV.id);
+      if (newV.id == $rootScope[current[view.type]]) {
+        $rootScope[switchType[view.type]] = newV;
+        $rootScope[position[newV.type]] = _.extend($rootScope[position[newV.type]], data);
+        console.log($rootScope[position[newV.type]]);
+      }
+
+
+      if (!$scope.$$phase) {
+        $scope.$apply();
+        $rootScope.setScreenShot(newV.targetUrl, newV.type);
+      } else {
+        $timeout(function() {
+          $scope.$apply();
+          $rootScope.setScreenShot(newV.targetUrl, newV.type);
+        });
+      }
+    }, param);
+
+  };
+
+  /**
+   * [toggleMask description]
+   * @param  {[Boolean]} flag [关闭或者打开遮罩层]
+   */
+  $rootScope.toggleMask = function(flag) {
+    var detailPanel = angular.element(document.querySelector('.sub-panel>#zz_info'));
+
+    if (flag) {
+      detailPanel.addClass('mask-blur');
+      $rootScope.detailLoading = true;
+    } else {
+      detailPanel.removeClass('mask-blur');
+      $rootScope.detailLoading = false;
+    }
+  };
+
+  $rootScope.reFetchDetail = function(url) {
+    var detailPanel = angular.element(document.querySelector('.sub-panel>#zz_info'));
+    detailPanel.addClass('mask-blur');
+    $rootScope.detailLoading = true;
+    var view = getUrlByHttpUrl(url, $rootScope.urlConfig);
+
+    var newV = {
+      id: view.id,
+      type: view.type,
+      title: view.title,
+      httpUrl: view.httpUrl,
+      targetUrl: view.targetUrl,
+      templateUrl: view.templateUrl
+    };
+
+    $rootScope[current[view.type]] = view.id;
+
+    var applyData = HYRoute.getRoute(newV.httpUrl);
+    var param = HYRoute.getParam(url);
+
+    applyData(function(data) {
+      $rootScope.detailLoading = false;
+      detailPanel.removeClass('mask-blur');
+      if (newV.id == $rootScope[current[view.type]]) {
+        $rootScope[position[newV.type]] = _.extend({}, data);
+      }
+
+      if (!$scope.$$phase) {
+        $scope.$apply();
+      } else {
+        $timeout(function() {
+          $scope.$apply();
+        });
+      }
+    }, param);
+  };
+
+  $scope.openItem = function() {
+    openSubView();
+    $rootScope.showGlobalNavi = false;
+  };
+
+  $rootScope.showTargetContent = function(note) {
+    if (!note.hasBusinessId) {
+      var target = $filter('ICFetchUrlFilter')(note);
+      $rootScope.fetch(target.url);
+      if (target.needOpenSubView) {
+        openSubView();
+      }
+    } else {
+      getCrmRemindBusinessIdById(note.targetId, function(response) {
+        note.businessId = response.businessID;
+        var target = $filter('ICFetchUrlFilter')(note);
+        $rootScope.fetch(target.url);
+        if (target.needOpenSubView) {
+          openSubView();
+        }
+      });
+    }
+    $rootScope.showNoticeList = false;
+    if(note.subType != 47){
+      changeInformationStatus({
+        remindId: note._id,
+        isRead: true,
+        isDisplay: false
+      }, function(response) {
+        $rootScope.notice = _.without($rootScope.notice, note);
+      });
+    }
+  };
+
+  $rootScope.changeNoteShowStatus = function(note) {
+    changeInformationStatus({
+      remindId: note._id,
+      isRead: true,
+      isDisplay: false
+    }, function(response) {
+      $rootScope.notice = _.without($rootScope.notice, note);
+    });
+  };
+
+  /**
+   * 根据viewID打开已经加载过的页面
+   * @param {type} viewID
+   * @param {type} viewType
+   * @returns {undefined}
+   */
+  $scope.fetchByViewID = function(viewID, viewType) {
+    // $rootScope[switchType[viewType]] = viewID;
+    console.log(viewID);
+    $scope.fetch(viewID.targetUrl);
+  };
+
+  $rootScope.fetchData = function(url, type) {
+    if (type == 2) {
+      $scope.openItem();
+    } else {
+      closeSubView();
+    }
+    $rootScope.fetch(url);
+    $rootScope.functionMenuStatus = false;
+  };
+
+  $scope.removeLastView = function(id) {
+    var index = _.findIndex($rootScope.lastViewList, {
+      id: id
+    });
+    if (index > -1) {
+      $rootScope.lastViewList = _.without($rootScope.lastViewList, $rootScope.lastViewList[index]);
+      addRefreshPageByID(id);
+    }
+  };
+
+  $rootScope.sendIntentionMessage = function(recordID, recverID) {
+    //var substract = moment().format('x');
+    //$timeout(sendICGTDMessage,  10 * 1000, true, recordID);
+    sendICGTDMessage(recordID, recverID);
+  };
+
+  $rootScope.addRefreshPageByIDAndFetch = function(view){
+    addRefreshPageByID(view.id);
+    $rootScope.fetch(view.targetUrl);
+  };
+
+});

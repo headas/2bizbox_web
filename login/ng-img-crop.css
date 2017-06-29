@@ -1,0 +1,13 @@
+/* line 1, http://gsm.wanmagps.com/http://gsm.wanmagps.com/source/scss/ng-img-crop.scss */
+img-crop { width: 100%; height: 100%; display: block; position: relative; overflow: hidden; }
+/* line 7, http://gsm.wanmagps.com/http://gsm.wanmagps.com/source/scss/ng-img-crop.scss */
+img-crop canvas { display: block; position: absolute; top: 50%; left: 50%; outline: none; -webkit-tap-highlight-color: rgba(255, 255, 255, 0); z-index: 300;/* mobile webkit */
+}
+.cropArea { background: #E4E4E4; margin: auto; overflow: hidden; }
+.cropArea.big { height: 250px; }
+.cropArea.medium { width: 500px; height: 350px; }
+.cropArea.small { width: 300px; height: 200px; }
+.btn_addPic { cursor: pointer; overflow: hidden; position: relative; width: 90px; height: 90px; display: block; position: absolute; left: 50%; top: 50%; margin: -27px 0 0 -45px; z-index: 100; text-align: center; }
+.btn_addPic i { width: 40px; height: 35px; display: inline-block; background: url(http://gsm.wanmagps.com/images/add_icon.png) no-repeat center center; margin: 12px 0 5px; }
+.btn_addPic span { display: block; font-weight: normal; line-height: 29px; }
+#fileInput { cursor: pointer; display: block; font-size: 100px; height: 100%; left: 0; opacity: 0; position: absolute; top: 0; width: 100%; }

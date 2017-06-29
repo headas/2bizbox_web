@@ -1,0 +1,4596 @@
+app.controller('productOrderTicketController', function($scope, $rootScope, POTicket, $filter,
+  getAddrList, findInnerObjIndex, getAllScenicTypes, showSubHead, getProductInsurancesByProductIDWithTime,
+  closeSubView, showErrorInfo, bookingScenicTicketsOrder,getCustomerDetail,sendOrderInfo, showWarningBox) {
+
+  $scope.arrowConf = {
+    left: 130,
+    useArrow: true
+  };
+
+  $scope.popConf = {
+    left: 10,
+    position: "bottom"
+  };
+
+  $scope.nowTime = new Date().getTime();
+
+  $scope.searchTicket = function(disType) {
+    if (disType == 1) {
+      $rootScope[position[1]].ProductGADDR = $rootScope[position[1]].country;
+      $rootScope[position[1]].region = null;
+      $rootScope[position[1]].regions = null;
+      $rootScope[position[1]].city = null;
+      $rootScope[position[1]].cities = null;
+    } else if (disType == 2) {
+      $rootScope[position[1]].ProductGADDR = $rootScope[position[1]].region;
+      $rootScope[position[1]].city = null;
+      $rootScope[position[1]].cities = null;
+    } else if (disType == 3) {
+      $rootScope[position[1]].ProductGADDR = $rootScope[position[1]].city;
+    }
+    var scenicTypeId = "";
+    if ($rootScope[position[1]].scenicType && $rootScope[position[1]].scenicType._id) {
+      scenicTypeId = $rootScope[position[1]].scenicType._id.$id;
+    }
+    $rootScope[position[1]].search = {
+      iPageIndex: 1,
+      SearchInfo: $rootScope[position[1]].Title,
+      GaddrID: $rootScope[position[1]].ProductGADDR ? $rootScope[position[1]].ProductGADDR._id.$id : '',
+      ViewspotTypeID: scenicTypeId,
+    };
+    POTicket.list(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  //获取选择省份的城市
+  $scope.getCities = function(region, pos) {
+    if (region) {
+      var regionId = region._id.$id;
+      getAddrList(function(response) {
+        if (pos) {
+          $rootScope[position[pos]].step0.cities = response;
+        } else {
+          $scope.cities = response;
+        }
+      }, regionId);
+    }
+  };
+
+  //获取选择国家的省份
+  $scope.getRegions = function(country, pos) {
+    if (country) {
+      var contryId = country._id.$id;
+      getAddrList(function(response) {
+        if (pos) {
+          $rootScope[position[pos]].step0.regions = response;
+        } else {
+          $scope.regions = response;
+        }
+      }, contryId);
+    }
+  };
+
+  //获取所有景点级别
+  $scope.getScenicTypes = function() {
+    if (!$scope.scenicTypes) {
+      getAllScenicTypes(function(response) {
+        $scope.scenicTypes = response.list;
+      });
+    }
+  };
+
+  $scope.toggleShowTictetDetail = function(item) {
+    if (item.showDetail) {
+      item.showDetail = false;
+    } else {
+      item.showDetail = true;
+    }
+  };
+
+  $scope.$watch('detailData.tickets', function(value) {
+    if (value !== undefined) {
+      $rootScope[position[2]].totalPrice = 0;
+      var note = '';
+      $rootScope[position[2]].tickets.forEach(function(item) {
+        if (item.count) {
+          $rootScope[position[2]].totalPrice += item.DefaultPrice * item.count;
+          note += item.Title + '*' + item.count + ';';
+        }
+
+      });
+      if ($rootScope[position[2]].OrderPriceRecord) {
+        if ($rootScope[position[2]].totalPrice === 0) {
+          var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+            type: 'ticket'
+          });
+          if (removeIndex > -1) {
+            $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+          }
+          return;
+        }
+        var cost = {
+          BusinessTypeName: '门票费用',
+          type: 'ticket',
+          Price: $rootScope[position[2]].totalPrice,
+          PriceNote: note,
+          BusinessMainTypeID: 1,
+          BusinessTypeID: 10005
+        };
+        var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+          type: 'ticket'
+        });
+        if (index > -1) {
+          $rootScope[position[2]].OrderPriceRecord[index] = cost;
+        } else {
+          $rootScope[position[2]].OrderPriceRecord.push(cost);
+        }
+      }
+    }
+  }, true);
+
+  $scope.status = {
+    StartTime: false,
+    EndTime: false
+  };
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  $scope.openDatePickerContract = function($even, type, item) {
+    item[type] = true;
+  };
+
+  //滚动到最后加载数据
+  $scope.loadListData = function(viewID) {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.iPageIndex += 1;
+    POTicket.list(function(data) {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.$watch('detailData.orderCount', function(orderCount) {
+    if (orderCount !== undefined) {
+      var persostence = $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].DefaultPrice * $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].ChildPrice * $rootScope[position[2]].orderCount.childCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].BabyPrice * $rootScope[position[2]].orderCount.babyCount;
+      $rootScope[position[2]].orderPrice = {
+        persistence: persostence,
+        direct: persostence,
+        peer: $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerDefaultPrice * $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerChildPrice * $rootScope[position[2]].orderCount.childCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerBabyPrice * $rootScope[position[2]].orderCount.babyCount,
+      };
+    }
+  }, true);
+
+  $scope.chooseCustomer = function(customer) {
+    if ($rootScope[position[2]].mode == 'order') {
+      getCustomerDetail(customer._id.$id,function(detail){
+        $rootScope[position[2]].MemberDetail = detail;
+
+        _.extend($rootScope[position[2]].customer, {
+          CustomerMobile: detail.CustomerMobile,
+          CustomerName: detail.CustomerName,
+          _id: detail._id
+        });
+
+        $rootScope[position[2]].showChangeCustomer = false;
+      });
+    } else {
+      showSubHead('下单详情', $rootScope.detailSwitchVal);
+      var url = 'productOrder/POTicket/ticketOrder?mode=order&customerID=' + customer._id.$id;
+      url += '&ProductId=' + $rootScope[position[2]]._id.$id;
+      var param = {
+        tickets: []
+      };
+      $rootScope[position[2]].tickets.forEach(function(item) {
+        if (item.count) {
+          param.tickets.push({
+            id: item._id.$id,
+            count: item.count
+          });
+        }
+      });
+      url += '&tickets=' + JSON.stringify(param);
+      $rootScope.fetch(url, '');
+    }
+  };
+
+  $scope.getInsurancePrice = function() {
+    if ($rootScope[position[2]].StartTimeDate && $rootScope[position[2]].EndTimeDate) {
+      var timeDiff = Math.abs($rootScope[position[2]].EndTimeDate - $rootScope[position[2]].StartTimeDate);
+      $rootScope[position[2]].days = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+      if ($rootScope[position[2]].days < 1) {
+        $rootScope[position[2]].info = "请选择正确的出团时间";
+        return;
+      }
+      getProductInsurancesByProductIDWithTime({
+        ProductTypeID: "000000000000000000000003",
+        ProductID: $rootScope[position[2]].productDetail._id.$id,
+        StartTime: $filter('date')($rootScope[position[2]].StartTimeDate, "yyyy-MM-dd"),
+        EndTime: $filter('date')($rootScope[position[2]].EndTimeDate, "yyyy-MM-dd")
+      }, function(response) {
+        var selectInsurance = {};
+        $rootScope[position[2]].insurance.forEach(function(item) {
+          if (item.isSelected) {
+            selectInsurance[item.ProductInsuranceNo] = true;
+          }
+        });
+        $rootScope[position[2]].insurance = response;
+        $rootScope[position[2]].insurance.forEach(function(item) {
+          if (selectInsurance[item.ProductInsuranceNo]) {
+            item.isSelected = true;
+          }
+        });
+      });
+      $scope.insuranceWatchFun();
+    }
+  };
+
+  $scope.insuranceWatchFun = function() {
+    var price = 0;
+    var note = '';
+
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      if (item.isSelected) {
+        price += item.ProductInsurancePrice * $rootScope[position[2]].totalCount;
+        note += ' ' + item.ProductInsuranceName + " " + $rootScope[position[2]].totalCount + ' 份，';
+      }
+    });
+    note = note.replace(/，$/, '');
+
+    if (price === 0) {
+      var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'insurance'
+      });
+      if (removeIndex > -1) {
+        $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+      }
+      return;
+    }
+    var cost = {
+      BusinessTypeName: '保险费用',
+      type: 'insurance',
+      Price: price,
+      PriceNote: note,
+      BusinessMainTypeID: 1,
+      BusinessTypeID: 10001
+    };
+    var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+      type: 'insurance'
+    });
+    if (index > -1) {
+      $rootScope[position[2]].OrderPriceRecord[index] = cost;
+    } else {
+      $rootScope[position[2]].OrderPriceRecord.push(cost);
+    }
+  };
+
+  $scope.changeCustomer = function(isShow) {
+    $rootScope[position[2]].showChangeCustomer = isShow;
+  };
+
+  $scope.showAddCost = function(isShow, type) {
+    if(!$rootScope[position[2]].cost) $rootScope[position[2]].cost = {};
+
+    $rootScope[position[2]].cost.BusinessTypeName='';
+    $rootScope[position[2]].cost.Price='';
+    $rootScope[position[2]].cost.PriceNote='';
+    if (type) {
+      $rootScope[position[2]].costType = type;
+      if (type == 2) {
+        $rootScope[position[2]].showAddCost = isShow;
+        $rootScope[position[2]].showReduceCost = !isShow;
+      } else {
+        $rootScope[position[2]].showReduceCost = isShow;
+        $rootScope[position[2]].showAddCost = !isShow;
+      }
+    } else {
+      $rootScope[position[2]].showReduceCost = false;
+      $rootScope[position[2]].showAddCost = false;
+    }
+  };
+
+  $scope.addCost = function(flag) {
+    if(flag) return;
+
+    var param = angular.copy($rootScope[position[2]].cost);
+    param.BusinessMainTypeID = $rootScope[position[2]].costType;
+    $rootScope[position[2]].cost = {};
+    $rootScope[position[2]].OrderPriceRecord.push(param);
+
+    showAddCost(false);
+  };
+
+  $scope.$watch('detailData.OrderPriceRecord', function() {
+    $rootScope[position[2]].totalCost = 0;
+    if ($rootScope[position[2]].OrderPriceRecord !== undefined) {
+      $rootScope[position[2]].OrderPriceRecord.forEach(function(item) {
+        if (item.BusinessMainTypeID != 3) {
+          $rootScope[position[2]].totalCost += parseInt(item.Price);
+        } else {
+          $rootScope[position[2]].totalCost -= parseInt(item.Price);
+        }
+      });
+    }
+  }, true);
+
+  $scope.selectAllInsurance = function() {
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      item.isSelected = $rootScope[position[2]].isSelectAllInsurance;
+    });
+  };
+
+  $scope.$watch('detailData.peopleCount', function(value) {
+    if (value !== undefined) {
+      var removeIndexs = [];
+      var adultCount = 0;
+      var childCount = 0;
+      var babyCount = 0;
+      if ($rootScope[position[2]].OrderTourists) {
+        $rootScope[position[2]].OrderTourists.forEach(function(item) {
+          if (item.TouristType.id == 1 || item.TouristType.id == 2) {
+            if (adultCount >= value.AdultCount) {
+              removeIndexs.push(item.index);
+            }
+            adultCount++;
+          } else if (item.TouristType.id == 3) {
+            if (childCount >= value.ChildCount) {
+              removeIndexs.push(item.index);
+            }
+            childCount++;
+          } else if (item.TouristType.id == 4) {
+            if (babyCount >= value.BabyCount) {
+              removeIndexs.push(item.index);
+            }
+            babyCount++;
+          }
+        });
+      }
+      //删除多余的客户
+      removeIndexs.forEach(function(item) {
+        var removeCustomerIndex = _.findIndex($rootScope[position[2]].OrderTourists, {
+          index: item
+        });
+        $rootScope[position[2]].OrderTourists = _.without($rootScope[position[2]].OrderTourists, $rootScope[position[2]].OrderTourists[removeCustomerIndex]);
+      });
+      var customer = {
+        index: 0,
+        TouristType: {
+          id: 2,
+          value: '成人'
+        },
+        TouristName: '游客',
+        TouristMobile: '',
+        GenderTypeID: 1,
+        Certificate: {
+          id: 1,
+          value: '身份证'
+        },
+        TouristBirthday: '1949-10-01',
+        IsOccupying: true
+      };
+      //添加不够的客户
+      for (var i = 0; i < value.AdultCount - adultCount; i++) {
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var x = 0; x < value.ChildCount - childCount; x++) {
+        customer.TouristType = {
+          id: 3,
+          value: '小孩'
+        };
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var y = 0; y < value.BabyCount - babyCount; y++) {
+        customer.TouristType = {
+          id: 4,
+          value: '婴儿'
+        };
+        customer.IsOccupying = false;
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      //排序
+      var newIndex = 1;
+      $rootScope[position[2]].OrderTourists.forEach(function(item) {
+        item.index = newIndex;
+        newIndex++;
+      });
+
+      $rootScope[position[2]].totalCount = parseInt($rootScope[position[2]].peopleCount.AdultCount) + parseInt($rootScope[position[2]].peopleCount.BabyCount) + parseInt($rootScope[position[2]].peopleCount.ChildCount);
+      $scope.insuranceWatchFun();
+    }
+  }, true);
+
+  $scope.$watch('detailData.OrderTourists', function(value) {
+    if (value !== undefined) {
+
+    }
+  }, true);
+
+  $scope.showPrice = function() {
+    $rootScope[position[2]].isShowPrice = !$rootScope[position[2]].isShowPrice;
+  };
+
+  $scope.saveOrder = function() {
+    var param = {};
+
+    param.ProductId = $rootScope[position[2]].productDetail._id.$id;
+    param.CustomerId = $rootScope[position[2]].customer._id.$id;
+    param.IntentOrderId = $rootScope[position[2]].IntentOrderID || '';
+    param.OrderStartStatus = 3;
+    param.OrderSource = 2;
+
+    if ($rootScope.userinfo.Department.ID.$id == "000000000000000000000794")
+      param.OrderSource = 10;
+
+    var salesman = $rootScope[position[2]].Salesman;
+    param.SalesmanId = salesman._id ? salesman._id.$id : '';
+    param.SalesmanName = salesman._id ? salesman.FullName : '';
+    param.AdultCount = $rootScope[position[2]].peopleCount.AdultCount;
+    param.BabyCount = $rootScope[position[2]].peopleCount.BabyCount;
+    param.ChildCount = $rootScope[position[2]].peopleCount.ChildCount;
+    if(param.AdultCount === 0&&param.BabyCount === 0&&param.ChildCount === 0){
+    $rootScope[position[2]].info = '请填添加游客';
+    return;
+    }
+
+    param.TotalNumber = param.AdultCount + param.BabyCount + param.ChildCount;
+    param.TotalSiteNumber = 0;
+    $rootScope[position[2]].OrderTourists.forEach(function(item) {
+      item.CertificatesTypeID = item.Certificate.id;
+      item.CertificatesTypeName = item.Certificate.value;
+      item.TouristTypeID = item.TouristType.id;
+      if (item.IsOccupying) {
+        param.TotalSiteNumber++;
+      }
+    });
+    param.OrderTourists = $rootScope[position[2]].OrderTourists;
+    param.TeamStartTime = $filter('date')($rootScope[position[2]].StartTimeDate, "yyyy-MM-dd");
+    param.TeamEndTime = $filter('date')($rootScope[position[2]].EndTimeDate, "yyyy-MM-dd");
+    param.TotalFinalPrice = $rootScope[position[2]].totalCost;
+    param.TotalSalesPrice = $rootScope[position[2]].totalPrice;
+    param.CustomerEnlarge = {
+      CertificatesTypeID: $rootScope[position[2]].customer.Enlarge.CertificatesType.ForeignKeyID.$id,
+      CustomerEMail: $rootScope[position[2]].customer.CustomerEMail,
+      CustomerID: $rootScope[position[2]].customer._id.$id,
+      CustomerLocation: {
+        AreaID: $rootScope[position[2]].address.AreaID,
+        CityID: $rootScope[position[2]].address.city,
+        CountryID: $rootScope[position[2]].address.country,
+        CustomerPositionDetail: $rootScope[position[2]].address.CustomerPositionDetail,
+        ProvinceID: $rootScope[position[2]].address.region,
+        StreetID: $rootScope[position[2]].address.StreetID
+      },
+      CertificatesTypeName: $rootScope[position[2]].customer.Enlarge.CertificatesType.CertificatesTypeName,
+      CustomerMobile: $rootScope[position[2]].customer.CustomerMobile,
+      CustomerName: $rootScope[position[2]].customer.CustomerName,
+      TouristDocumentNumber: $rootScope[position[2]].customer.Enlarge.CustomerDocumentNumber,
+      EmergencyContactNotes: $rootScope[position[2]].EmergencyContactNotes,
+      BodyStateNotes: $rootScope[position[2]].BodyStateNotes
+    };
+    param.Insures = [];
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      if (item.isSelected) {
+        item.InsurancePrice = item.ProductInsurancePrice;
+        item.TotalInsurancePrice = item.InsurancePrice * param.TotalNumber;
+        param.Insures.push(item);
+      }
+    });
+    param.OrderNotes = $rootScope[position[2]].OrderNotes;
+    param.PriceRecord = $rootScope[position[2]].OrderPriceRecord;
+    param.ContractPayTypeAndTime = $rootScope[position[2]].ContractPayTypeAndTime;
+    param.OrderScenicTickets = [];
+
+    $rootScope[position[2]].tickets.forEach(function(item) {
+      if (item.count) {
+        param.OrderScenicTickets.push({
+          TicketId: item._id.$id,
+          BookingCount: item.count,
+          TicketTotalPrice: item.DefaultPrice * item.count
+        });
+      }
+    });
+  $scope.isSubmit = true;
+    bookingScenicTicketsOrder(param, function(response) {
+      $scope.isSubmit = false;
+      if(param.IntentOrderId) $rootScope.sendIntentionMessage(param.IntentOrderId);
+      sendOrderInfo(response);
+      // closeSubView();
+      // showErrorInfo('下单成功');
+      $rootScope.fetch('orderManagement/OMAttractionTicket/detail?id='+response,'');
+      // $rootScope.fetch('productOrder/POTicket/list');
+      $scope.searchTicket();
+    },function(){
+      $scope.isSubmit = false;
+    });
+  };
+
+  $scope.getPriceTitle = function(id) {
+    var index = _.findIndex($rootScope[position[2]].ProductPlanPrice.data, {
+      _id: id
+    });
+    return $rootScope[position[2]].ProductPlanPrice.data[index].Pricetitle;
+  };
+
+  $scope.agreeContract = [{
+    id: true,
+    value: '同意'
+  }, {
+    id: false,
+    value: '不同意'
+  }];
+
+  $scope.editFee = function(cost){
+    $rootScope[position[2]].feeTemp = angular.copy(cost);
+  };
+
+  $scope.deleteSubFee = function(cost){
+    showWarningBox("确定要删除该费用吗", function(){
+      $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, cost);
+    });
+  };
+
+  $scope.saveEditFeeInfo = function(cost){
+    cost.BusinessTypeName = $rootScope[position[2]].feeTemp.BusinessTypeName;
+    cost.Price = $rootScope[position[2]].feeTemp.Price;
+    cost.PriceNote = $rootScope[position[2]].feeTemp.PriceNote;
+    cost.isEdit = false;
+  };
+
+  $scope.cancelHandleFee = function(cost){
+    cost.isEdit = false;
+  };
+
+});
+app.controller('productOrderTeamtourController', function($scope, $rootScope, POteamtour, $filter, getTeamtourPlanList,
+  findInnerObjIndex, HyDate, getTeamtourPlanDetail, showSubHead, bookingTeamOrder, closeSubView, showErrorInfo, showWarningBox,addRefreshPageByID,getBookingOrderList,
+  getCustomerDetail,sendOrderInfo, getSeatInfoByPlanAndCar) {
+
+  $scope.arrowConf = {
+    left: 130,
+    useArrow: true
+  };
+
+  $scope.popConf = {
+    left: 10,
+    position: "bottom"
+  };
+
+  $scope.searchTeamtourPlan = function(type) {
+    $rootScope[position[1]].search.iPageIndex = 1;
+    $rootScope[position[1]].search.iPageSize = $rootScope.pageLimit;
+    $rootScope[position[1]].search.SearchInfo = $rootScope[position[1]].search.SearchInfo;
+    $rootScope[position[1]].search.StartTime = $filter('date')($rootScope[position[1]].search.StartTimeDate, 'yyyy-MM-dd');
+    $rootScope[position[1]].search.EndTime = $filter('date')($rootScope[position[1]].search.EndTimeDate, 'yyyy-MM-dd');
+    $rootScope[position[1]].search.StationId = $rootScope[position[1]].search.station ? $rootScope[position[1]].search.station._id.$id : '';
+    $rootScope[position[1]].search.ProductType = 1;
+    $rootScope[position[1]].search.TravelDays = $rootScope[position[1]].search.TravelDays;
+    $rootScope[position[1]].search.TravelType = $rootScope[position[1]].search.TravelType;
+
+    if (type === 1) {
+      $rootScope[position[1]].search.GaddrId = $rootScope[position[1]].search.abroad ? $rootScope[position[1]].search.abroad.GADDRID.$id : '';
+      $rootScope[position[1]].search.domestic = '';
+    } else if (type === 0) {
+      $rootScope[position[1]].search.GaddrId = $rootScope[position[1]].search.domestic ? $rootScope[position[1]].search.domestic.GADDRID.$id : '';
+      $rootScope[position[1]].search.abroad = '';
+    }
+    POteamtour.list(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.status = {
+    StartTime: false,
+    EndTime: false
+  };
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  $scope.openDatePickerContract = function($even, type, item) {
+    item[type] = true;
+  };
+
+  $scope.loadTeamourListData = function() {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.iPageIndex += 1;
+    POteamtour.list(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $rootScope[position[2]].operate = {
+  // $scope.operate = {
+    showPlanDetail: function(planDetailId) {
+      // if (this.showPlanDetailId == planDetailId) {
+      //   this.showPlanDetailId = "";
+      // } else {
+        this.showPlanDetailId = planDetailId;
+        $scope.changePlan(planDetailId);
+      // }
+    },
+    showPlanDetailId: $rootScope[position[2]].PlanId
+  };
+
+  //日历的配置
+  $rootScope[position[2]].calendarOptions = {
+    calendarClass: "datetimePicker",
+    headClass: "calHead",
+    bodyClass: "calBody",
+    footClass: "calFoot",
+    headDateClass: "calHeadDate",
+    useShort: true,
+    viewDate: $rootScope[position[2]].PlanStartTime ? $rootScope[position[2]].PlanStartTime.substr(0, 10) : new Date(),
+
+    fillDay: function(day, date) {
+      if (!$rootScope[position[2]].prductPlanList) {
+        $rootScope[position[2]].prductPlanList = [];
+      }
+      var planDetail = _.find($rootScope[position[2]].prductPlanList, function(item) {
+        return item.StartTime.sec === date.getTime() / 1000;
+      });
+      var html = '<div class="cell_date">' + $filter('date')(date, 'dd') + '</div>';
+
+      if (undefined !== planDetail) {
+        html = '<div ng-click="operate.showPlanDetail(\'' + planDetail._id.$id + '\');" ng-class="{\'day-active\':operate.showPlanDetailId==\'' + planDetail._id.$id + '\'}"><div class="cell_date yw">' + $filter('date')(date, 'dd') + '</div>';
+
+        var MorethanNumber = planDetail.MorethanNumber || 0;
+        MorethanNumber = parseInt(MorethanNumber);
+        // MorethanNumber = MorethanNumber > 9 ? '<span class="gT">库存充足</span>' : '库存：<font>' + MorethanNumber + '</font>';
+        MorethanNumber = '库存:<font>' + MorethanNumber + '</font>';
+
+        var price = '价格无';
+        var ProductPlanPrice = _.find(planDetail.ProductPlanPrice, {isDefault: 1});
+
+        if (ProductPlanPrice && ProductPlanPrice.DefaultPrice) {
+          if (ProductPlanPrice.Deductiblevoucher) {
+            html = '<span class="offset">抵</span>' + html;
+          }
+          price = '￥' + ProductPlanPrice.DefaultPrice;
+        }else if(angular.isArray(planDetail.ProductPlanPrice) && (planDetail.ProductPlanPrice.length > 0)){
+          ProductPlanPrice = planDetail.ProductPlanPrice[0];
+          if (ProductPlanPrice.Deductiblevoucher) {
+            html = '<span class="offset">抵</span>' + html;
+          }
+          price = '￥' + ProductPlanPrice.DefaultPrice;
+        }
+
+        html += '<div class="priceRow">' + price + '</div><div class="seatRow">' + MorethanNumber + '</div></div>';
+      }
+      return html;
+    },
+    monthChange: function(datetime) {
+      getTeamtourPlanList({
+        ProductID: $rootScope[position[2]]._id.$id,
+        StartTime: $filter('date')(datetime, 'yyyy-MM')
+      }, function(response) {
+        $rootScope[position[2]].prductPlanList = response.list;
+        $rootScope[position[2]].reFill = true;
+      });
+    }
+  };
+
+  $scope.$watch('detailData.orderCount', function(orderCount) {
+    if (orderCount !== undefined) {
+      if ($rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1.length <= 0) return;
+
+      var persostence = $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].DefaultPrice * $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].ChildPrice * $rootScope[position[2]].orderCount.childCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].BabyPrice * $rootScope[position[2]].orderCount.babyCount;
+      $rootScope[position[2]].orderPrice = {
+        persistence: persostence,
+        direct: persostence,
+        peer: $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerDefaultPrice * $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerChildPrice * $rootScope[position[2]].orderCount.childCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerBabyPrice * $rootScope[position[2]].orderCount.babyCount,
+      };
+    }
+  }, true);
+
+  $scope.findPlanNameById = function(id) {
+    var index = findInnerObjIndex($rootScope[position[2]].schedule, ['_id', '$id'], id);
+    if (index > -1) {
+      $rootScope[position[2]].TripName = $rootScope[position[2]].schedule[index].Title;
+    }
+  };
+
+  $scope.changePlan = function(id) {
+    getTeamtourPlanDetail(id, function(response) {
+      $rootScope[position[2]].planDetail = response;
+      $scope.findPlanNameById(response.TripID.$id);
+    });
+  };
+
+  $scope.chooseOrderType = function(type, isShow) {
+    if (type === 1) {
+      console.log($rootScope[position[2]].planDetail.AddTime.sec);
+    }
+    if (new Date().getTime() / 1000 > $rootScope[position[2]].planDetail.Finalorder.sec) {
+      $rootScope[position[2]].info = '已过下单截止时间';
+      return;
+    }
+    var count = parseInt($rootScope[position[2]].orderCount.adultCount) + parseInt($rootScope[position[2]].orderCount.childCount) + parseInt($rootScope[position[2]].orderCount.babyCount);
+    var leftCount = $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0] ? $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].MorethanNumber : 0;
+    if (count > leftCount) {
+      $rootScope[position[2]].info = '余位不足';
+      $rootScope[position[2]].orderType = 0;
+      return;
+    } else {
+      if(count <= 0){
+        $rootScope[position[2]].info = '请选择出游人数';
+        $rootScope[position[2]].orderType = 0;
+        return;
+      }
+      if ($rootScope[position[2]].orderType == type) {
+        $rootScope[position[2]].orderType = 0;
+      }
+      else {
+        $rootScope[position[2]].orderType = type;
+      }
+      // $rootScope[position[2]].isShowChooseCustomer = !$rootScope[position[2]].isShowChooseCustomer;
+    }
+  };
+
+  $scope.chooseCustomer = function(customer) {
+    if ($rootScope[position[2]].mode == 'order') {
+      getCustomerDetail(customer._id.$id,function(detail){
+        $rootScope[position[2]].MemberDetail = detail;
+
+        _.extend($rootScope[position[2]].ContactInfo, {
+          CustomerMobile: detail.CustomerMobile,
+          CustomerName: detail.CustomerName,
+          _id: detail._id.$id
+        });
+
+        $rootScope[position[2]].showChangeCustomer = false;
+      });
+    } else {
+      showSubHead('下单详情', $rootScope.detailSwitchVal);
+      var url = 'productOrder/POteamtour/teamtourOrder?mode=order&customerID=' + customer._id.$id;
+      url += '&ProductId=' + $rootScope[position[2]].ProductId + '&PlanId=' + $rootScope[position[2]].operate.showPlanDetailId || $rootScope[position[2]].PlanId;
+      // url += '&ProductId=' + $rootScope[position[2]].ProductId + '&PlanId=' + $scope.operate.showPlanDetailId || $rootScope[position[2]].PlanId;
+      url += '&adultCount=' + $rootScope[position[2]].orderCount.adultCount;
+      url += '&childCount=' + $rootScope[position[2]].orderCount.childCount;
+      url += '&babyCount=' + $rootScope[position[2]].orderCount.babyCount;
+      url += '&orderType=' + $rootScope[position[2]].orderType;
+      url += '&peerCompanyName=' + $rootScope[position[2]].planDetail.PeerCompanyName;
+      $rootScope.fetch(url, '');
+    }
+  };
+
+  $scope.changeCustomer = function(isShow) {
+    $rootScope[position[2]].showChangeCustomer = isShow;
+  };
+
+  $scope.showAddCost = function(isShow, type) {
+    if (!$rootScope[position[2]].cost) $rootScope[position[2]].cost = {};
+
+    $rootScope[position[2]].cost.BusinessTypeName = '';
+    $rootScope[position[2]].cost.Price = '';
+    $rootScope[position[2]].cost.PriceNote = '';
+    if (type) {
+      $rootScope[position[2]].costType = type;
+      if (type == 2) {
+
+        $rootScope[position[2]].showAddCost = isShow;
+        $rootScope[position[2]].showReduceCost = !isShow;
+      } else {
+        $rootScope[position[2]].showReduceCost = isShow;
+        $rootScope[position[2]].showAddCost = !isShow;
+      }
+    } else {
+      $rootScope[position[2]].showReduceCost = false;
+      $rootScope[position[2]].showAddCost = false;
+    }
+  };
+
+  $scope.addCost = function(flag) {
+    if (flag) return; //如果表单未填完整
+
+    var param = angular.copy($rootScope[position[2]].cost);
+    param.BusinessMainTypeID = $rootScope[position[2]].costType;
+    $rootScope[position[2]].cost = {};
+    $rootScope[position[2]].OrderPriceRecord.push(param);
+
+    $scope.showAddCost(false);
+  };
+
+  $scope.$watch('detailData.OrderPriceRecord', function() {
+    $rootScope[position[2]].totalCost = 0;
+    if ($rootScope[position[2]].OrderPriceRecord !== undefined) {
+      $rootScope[position[2]].OrderPriceRecord.forEach(function(item) {
+        if (item.BusinessMainTypeID != 3) {
+          $rootScope[position[2]].totalCost += parseInt(item.Price);
+        } else {
+          $rootScope[position[2]].totalCost -= parseInt(item.Price);
+        }
+      });
+    }
+  }, true);
+
+  $scope.addOrderHolidayAppointment = function() {
+    var item = {
+      CompanyBreachOfContractRatio: 0,
+      EndDay: 0,
+      StartDay: 0,
+      EndDayDate: new Date(),
+      StartDayDate: new Date(),
+      TouristBreachOfContractRatio: 0
+    };
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment.push(item);
+  };
+
+  $scope.delOrderHolidayAppointment = function(item) {
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment = _.without($rootScope[position[2]].OrderContract.OrderHolidayAppointment, item);
+  };
+
+  $scope.selectAllInsurance = function() {
+    $rootScope[position[2]].InsureInfo.data.forEach(function(item) {
+      item.isSelected = $rootScope[position[2]].isSelectAllInsurance;
+    });
+  };
+
+  $scope.$watch('detailData.peopleCount', function(value) {
+    if (value !== undefined) {
+      if($rootScope[position[2]].ProductPlanPrice === null || $rootScope[position[2]].ProductPlanPrice === undefined){
+          return;
+      }
+      var priceIndex = _.findIndex($rootScope[position[2]].ProductPlanPrice.data, {
+        isDefault: 1
+      });
+      var selectedPrice = {};
+      if (priceIndex > -1) {
+        selectedPrice = $rootScope[position[2]].ProductPlanPrice.data[priceIndex];
+      } else {
+        selectedPrice = $rootScope[position[2]].ProductPlanPrice.data[0];
+      }
+      var removeIndexs = [];
+      var adultCount = 0;
+      var childCount = 0;
+      var babyCount = 0;
+      if ($rootScope[position[2]].OrderTourists) {
+        $rootScope[position[2]].OrderTourists.forEach(function(item) {
+          if (item.TouristType.id == 1 || item.TouristType.id == 2) {
+            if (adultCount >= value.AdultCount) {
+              removeIndexs.push(item.index);
+            }
+            adultCount++;
+          } else if (item.TouristType.id == 3) {
+            if (childCount >= value.ChildCount) {
+              removeIndexs.push(item.index);
+            }
+            childCount++;
+          } else if (item.TouristType.id == 4) {
+            if (babyCount >= value.BabyCount) {
+              removeIndexs.push(item.index);
+            }
+            babyCount++;
+          }
+        });
+      }
+      //删除多余的客户
+      removeIndexs.forEach(function(item) {
+        var removeCustomerIndex = _.findIndex($rootScope[position[2]].OrderTourists, {
+          index: item
+        });
+        $rootScope[position[2]].OrderTourists = _.without($rootScope[position[2]].OrderTourists, $rootScope[position[2]].OrderTourists[removeCustomerIndex]);
+      });
+      var customer = {
+        index: 0,
+        TouristType: {
+          id: 2,
+          value: '成人'
+        },
+        TouristName: '游客',
+        TouristMobile: '',
+        GenderTypeID: 1,
+        Certificate: {
+          id: 1,
+          value: '身份证'
+        },
+        TouristDocumentNumber: '',
+        TouristSingleRoomType: {
+          id: 1,
+          value: '无'
+        },
+        ProductPlanPriceID: selectedPrice._id,
+        TouristBirthday: '1949-10-01',
+        IsOccupying: true
+      };
+      //添加不够的客户
+      for (var i = 0; i < value.AdultCount - adultCount; i++) {
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var x = 0; x < value.ChildCount - childCount; x++) {
+        customer.TouristType = {
+          id: 3,
+          value: '小孩'
+        };
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var y = 0; y < value.BabyCount - babyCount; y++) {
+        customer.TouristType = {
+          id: 4,
+          value: '婴儿'
+        };
+        customer.IsOccupying = false;
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      //排序
+      var newIndex = 1;
+      $rootScope[position[2]].OrderTourists.forEach(function(item) {
+        item.index = newIndex;
+        newIndex++;
+      });
+
+      $rootScope[position[2]].totalCount = parseInt($rootScope[position[2]].peopleCount.AdultCount) + parseInt($rootScope[position[2]].peopleCount.BabyCount) + parseInt($rootScope[position[2]].peopleCount.ChildCount);
+      $scope.insuranceWatchFun();
+    }
+  }, true);
+
+  $scope.$watch('detailData.OrderTourists', function(value) {
+    if (value !== undefined) {
+      var price = 0;
+      var notes = {
+        child: 0,
+        baby: 0,
+        adult: 0
+      };
+      if($rootScope[position[2]].ProductPlanPrice === null || $rootScope[position[2]].ProductPlanPrice === undefined){
+          return;
+      }
+      var selectedPrice = {};
+        $rootScope[position[2]].OrderTourists.forEach(function(item) {
+
+          var priceIndex = _.findIndex($rootScope[position[2]].ProductPlanPrice.data, {
+            _id: item.ProductPlanPriceID
+          });
+          selectedPrice = $rootScope[position[2]].ProductPlanPrice.data[priceIndex];
+          item.lastPrice = 0;
+          item.planPrice = 0;
+
+          if (item.TouristType.id == 3) {
+            if ($rootScope[position[2]].orderType == 1 || $rootScope[position[2]].orderType == 2) { //直客价
+              notes.child += selectedPrice.ChildPrice;
+              price += selectedPrice.ChildPrice;
+              item.lastPrice += selectedPrice.ChildPrice;
+
+              item.planPrice += selectedPrice.ChildPrice;
+            } else {
+              price += selectedPrice.PeerChildPrice;
+              notes.child += selectedPrice.PeerChildPrice;
+              item.lastPrice += selectedPrice.PeerChildPrice;
+
+              item.planPirce += selectedPrice.PeerChildPrice;
+            }
+            if (item.TouristSingleRoomType.id == 3) {
+              price += selectedPrice.SingleRoomDiff;
+              notes.child += selectedPrice.SingleRoomDiff;
+              item.lastPrice += selectedPrice.SingleRoomDiff;
+            } else if (item.TouristSingleRoomType.id == 4) {
+              price -= selectedPrice.SingleRoomDiff;
+              notes.child -= selectedPrice.SingleRoomDiff;
+              item.lastPrice -= selectedPrice.SingleRoomDiff;
+            }
+          } else if (item.TouristType.id == 4) {
+            if ($rootScope[position[2]].orderType == 1 || $rootScope[position[2]].orderType == 2) { //直客价
+              notes.baby += selectedPrice.BabyPrice;
+              price += selectedPrice.BabyPrice;
+              item.lastPrice += selectedPrice.BabyPrice;
+
+              item.planPrice += selectedPrice.BabyPrice;
+            } else {
+              price += selectedPrice.PeerBabyPrice;
+              notes.baby += selectedPrice.PeerBabyPrice;
+              item.lastPrice += selectedPrice.PeerBabyPrice;
+
+              item.planPrice += selectedPrice.PeerBabyPrice;
+            }
+            if (item.TouristSingleRoomType.id == 3) {
+              price += selectedPrice.SingleRoomDiff;
+              notes.baby += selectedPrice.SingleRoomDiff;
+              item.lastPrice += selectedPrice.SingleRoomDiff;
+            } else if (item.TouristSingleRoomType.id == 4) {
+              price -= selectedPrice.SingleRoomDiff;
+              notes.baby -= selectedPrice.SingleRoomDiff;
+              item.lastPrice -= selectedPrice.SingleRoomDiff;
+            }
+          } else {
+            if ($rootScope[position[2]].orderType == 1 || $rootScope[position[2]].orderType == 2) { //直客价
+              notes.adult += selectedPrice.DefaultPrice;
+              price += selectedPrice.DefaultPrice;
+              item.lastPrice += selectedPrice.DefaultPrice;
+
+              item.planPrice += selectedPrice.DefaultPrice;
+            } else {
+              price += selectedPrice.PeerDefaultPrice;
+              notes.adult += selectedPrice.PeerDefaultPrice;
+              item.lastPrice += selectedPrice.PeerDefaultPrice;
+
+              item.planPrice += selectedPrice.PeerDefaultPrice;
+            }
+            if (item.TouristSingleRoomType.id == 3) {
+              price += selectedPrice.SingleRoomDiff;
+              notes.adult += selectedPrice.SingleRoomDiff;
+              item.lastPrice += selectedPrice.SingleRoomDiff;
+            } else if (item.TouristSingleRoomType.id == 4) {
+              price -= selectedPrice.SingleRoomDiff;
+              notes.adult -= selectedPrice.SingleRoomDiff;
+              item.lastPrice -= selectedPrice.SingleRoomDiff;
+            }
+          }
+        });
+
+      var note = '';
+      if (notes.adult) {
+        note += '  成人:' + notes.adult;
+      }
+      if (notes.child) {
+        note += '  小孩:' + notes.child;
+      }
+      if (notes.baby) {
+        note += '  婴儿:' + notes.baby;
+      }
+
+      var visaFee = $rootScope[position[2]].PlanInfo.data.ExitVisaFee * ($rootScope[position[2]].totalCount || 0);
+      note += '  签证:' + visaFee;
+      price += visaFee;
+
+      var airportFee = ($rootScope[position[2]].peopleCount.AdultCount || 0) * $rootScope[position[2]].PlanInfo.data.AdultMachineBuildingFee + ($rootScope[position[2]].peopleCount.ChildCount || 0) * $rootScope[position[2]].PlanInfo.data.ChildMachineBuildingFee;
+      note += '  机建费:' + airportFee;
+      price += airportFee;
+
+      var cost = {
+        BusinessTypeName: '名单费用',
+        type: 'Offered',
+        Price: price,
+        PriceNote: note,
+        BusinessMainTypeID: 1,
+        BusinessTypeID: 10000
+      };
+      $rootScope[position[2]].offeredPrice = price;
+      var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'Offered'
+      });
+      if (index > -1) {
+        $rootScope[position[2]].OrderPriceRecord[index] = cost;
+      } else {
+        $rootScope[position[2]].OrderPriceRecord.push(cost);
+      }
+    }
+  }, true);
+
+  $scope.insuranceWatchFun = function() {
+    if ($rootScope[position[2]].InsureInfo.data.length > 0 && $rootScope[position[2]].totalCount !== undefined) {
+      var price = 0;
+      var note = '';
+      var selected = 0;
+
+      $rootScope[position[2]].InsureInfo.data.forEach(function(item) {
+        if (item.isSelected) {
+          price += item.ProductInsurancePrice * $rootScope[position[2]].totalCount;
+          note += ' ' + item.ProductInsuranceName + " " + $rootScope[position[2]].totalCount + ' 份，';
+          selected++;
+        }
+      });
+      note = note.replace(/，$/, '');
+
+      if (selected > 0) $rootScope[position[2]].agreeInsurance = '1';
+      else $rootScope[position[2]].agreeInsurance = '0';
+
+      if (price === 0) {
+        var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+          type: 'insurance'
+        });
+        if (removeIndex > -1) {
+          $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+        }
+        return;
+      }
+
+      var cost = {
+        BusinessTypeName: '保险费用',
+        type: 'insurance',
+        Price: price,
+        PriceNote: note,
+        BusinessMainTypeID: 1,
+        BusinessTypeID: 10001
+      };
+      var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'insurance'
+      });
+      if (index > -1) {
+        $rootScope[position[2]].OrderPriceRecord[index] = cost;
+      } else {
+        $rootScope[position[2]].OrderPriceRecord.push(cost);
+      }
+    } else {
+      $rootScope[position[2]].agreeInsurance = '0';
+    }
+  };
+
+
+  $scope.showPrice = function() {
+    $rootScope[position[2]].isShowPrice = !$rootScope[position[2]].isShowPrice;
+  };
+
+  $scope.saveOrder = function() {
+    var param = {};
+    param.AdultCount = $rootScope[position[2]].peopleCount.AdultCount;
+    param.BabyCount = $rootScope[position[2]].peopleCount.BabyCount;
+    param.ChildCount = $rootScope[position[2]].peopleCount.ChildCount;
+
+    param.CustomerEnlarge = {
+      CertificatesTypeID: $rootScope[position[2]].ContactInfo.CertificatesType,
+      CustomerEMail: $rootScope[position[2]].ContactInfo.CustomerEMail,
+      CustomerID: $rootScope[position[2]].ContactInfo._id,
+      CustomerLocation: {
+        AreaID: $rootScope[position[2]].Location.AreaID,
+        CityID: $rootScope[position[2]].address.city,
+        CountryID: $rootScope[position[2]].address.country,
+        CustomerPositionDetail: $rootScope[position[2]].Location.CustomerPositionDetail,
+        ProvinceID: $rootScope[position[2]].address.region,
+        StreetID: $rootScope[position[2]].Location.StreetID
+      },
+      CustomerMobile: $rootScope[position[2]].ContactInfo.CustomerMobile,
+      CustomerName: $rootScope[position[2]].ContactInfo.CustomerName,
+      TouristDocumentNumber: $rootScope[position[2]].ContactInfo.CustomerDocumentNumber,
+      BodyStateNotes: $rootScope[position[2]].ContactInfo.BodyStateNotes
+    };
+    param.EmergencyContactNotes = $rootScope[position[2]].ContactInfo.EmergencyContactNotes;
+    param.CustomerId = $rootScope[position[2]].ContactInfo._id;
+
+    if (!$rootScope[position[2]].ContactInfo.CustomerName) {
+      $rootScope[position[2]].info = '请填写联系人';
+      return;
+    }
+    if (!$rootScope[position[2]].ContactInfo.CustomerMobile) {
+      $rootScope[position[2]].info = '请填写联系号码';
+      return;
+    }
+
+    param.Insures = [];
+    if (param.AdultCount === 0 && param.BabyCount === 0 && param.ChildCount === 0) {
+      $rootScope[position[2]].info = '请填添加游客人数';
+      return;
+    }
+    param.TotalNumber = param.AdultCount + param.BabyCount + param.ChildCount;
+    $rootScope[position[2]].InsureInfo.data.forEach(function(item) {
+      if (item.isSelected) {
+        item.InsurancePrice = item.ProductInsurancePrice;
+        item.TotalInsurancePrice = item.InsurancePrice * param.TotalNumber;
+        param.Insures.push(item);
+      }
+    });
+    param.IntentOrderId = $rootScope[position[2]].IntentOrderID || '';
+    param.OrderContract = $rootScope[position[2]].OrderContract;
+    param.OrderContract.OrderHolidayAppointment.forEach(function(item) {
+      item.EndDay = $filter('date')(item.EndDayDate, 'yyyy-MM-dd');
+      item.StartDay = $filter('date')(item.StartDayDate, 'yyyy-MM-dd');
+    });
+    param.OrderNotes = $rootScope[position[2]].OrderNotes;
+
+    param.OrderType = 1;
+
+    param.PlanId = $rootScope[position[2]].PlanInfo.data._id;
+    param.ProductId = $rootScope[position[2]].ProductInfo.data._id;
+    $rootScope[position[2]].TeamInfo.data.forEach(function(item) {
+      if (item.isSelected) {
+        param.TeamId = item._id;
+      }
+    });
+    param.TotalFinalPrice = $rootScope[position[2]].totalCost;
+    param.TotalSalesPrice = $rootScope[position[2]].offeredPrice;
+    param.PriceRecord = $rootScope[position[2]].OrderPriceRecord;
+    param.OrderTourists = $rootScope[position[2]].OrderTourists;
+    param.TotalSiteNumber = 0;
+    $rootScope[position[2]].OrderTourists.forEach(function(item) {
+      item.CertificatesTypeID = item.Certificate.id;
+      item.CertificatesTypeName = item.Certificate.value;
+      item.TouristPrice = item.planPrice || item.lastPrice;
+      item.TouristSingleRoomTypeID = item.TouristSingleRoomType.id;
+      item.TouristTypeID = item.TouristType.id;
+      item.ProductPlanPriceName = $scope.getPriceTitle(item.ProductPlanPriceID);
+      item.TouristSingleRoomPrice = item.roomPrice ? item.roomPrice : 0;
+      if (item.IsOccupying) {
+        param.TotalSiteNumber++;
+      }
+    });
+     param.TouristRelationTypes = [];
+    $rootScope[position[2]].TouristRelationTypesList.data.forEach(function(item) {
+      if (item.isSelected) {
+        var relation = {
+          TouristRelationTypeId: item._id,
+          TouristRelationTypeName: item.Name
+        };
+        param.TouristRelationTypes.push(relation);
+      }
+    });
+
+    if (param.TouristRelationTypes.length === 0) {
+      $rootScope[position[2]].info = '请选择游客关系';
+      return;
+    }
+    var TouristName = "";
+    var TouristMobile = "";
+    var TouristDocumentNumber = "";
+    if ($rootScope[position[2]].orderType === "2") {
+      param.OrderTourists.forEach(function(item) {
+        TouristName = item.TouristName;
+        TouristMobile = item.TouristMobile;
+        TouristDocumentNumber = item.TouristDocumentNumber;
+      });
+
+      if (TouristName === "游客") {
+        $rootScope[position[2]].info = '请填写游客姓名';
+        return;
+      }
+      if (TouristMobile === "") {
+        $rootScope[position[2]].info = '请填写游客联系号码';
+        return;
+      }
+      if (TouristDocumentNumber === "") {
+        $rootScope[position[2]].info = '请填写游客证件号码';
+        return;
+      }
+    }
+
+    param.OrderSource = 2;
+
+    if ($rootScope[position[2]].orderType == 1) {
+      param.OrderStartStatus = 2;
+      param.IsPeerOrder = false;
+    } else if ($rootScope[position[2]].orderType == 2) {
+      param.IsPeerOrder = false;
+      param.OrderStartStatus = 3;
+    } else {
+      param.IsPeerOrder = true;
+      param.OrderStartStatus = 3;
+      param.OrderSource = 4;
+    }
+
+    if ($rootScope.userinfo.Department.ID.$id == "000000000000000000000794")
+      param.OrderSource = 10;
+
+    var salesman = $rootScope[position[2]].Salesman;
+    param.SalesmanId = salesman._id ? salesman._id.$id : '';
+    param.SalesmanName = salesman._id ? salesman.FullName : '';
+    $scope.isSubmit = true;
+    bookingTeamOrder(param, function(response) {
+      $scope.isSubmit = false;
+      sendOrderInfo(response);
+    if(param.IntentOrderId) $rootScope.sendIntentionMessage(param.IntentOrderId);
+      //closeSubView();
+       //showErrorInfo('下单成功');
+    $rootScope.fetch('orderManagement/OMteamtour/detail?id='+response,'');
+    // $rootScope.fetch('productOrder/POteamtour/list');
+    addRefreshPageByID(($scope.subHead.url.id));
+    $scope.searchTeamtourPlan();
+    }, function() {
+      $scope.isSubmit = false;
+    });
+  };
+
+  $scope.getPriceTitle = function(id) {
+    var index = _.findIndex($rootScope[position[2]].ProductPlanPrice.data, {
+      _id: id
+    });
+    return $rootScope[position[2]].ProductPlanPrice.data[index].Pricetitle;
+  };
+
+  $scope.agreeContract = [{
+    id: true,
+    value: '同意'
+  }, {
+    id: false,
+    value: '不同意'
+  }];
+
+  $scope.printDetail = function() {
+    var data = document.getElementById('printDetail').innerHTML;
+    commitPrintData('POST', baseUrl + 'common/printing/convertToHtml', {
+      content: data
+    }, '_blank');
+  };
+
+  $scope.editFee = function(cost){
+    $rootScope[position[2]].feeTemp = angular.copy(cost);
+  };
+
+  $scope.deleteSubFee = function(cost){
+    showWarningBox("确定要删除该费用吗", function(){
+      $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, cost);
+    });
+  };
+
+  $scope.saveEditFeeInfo = function(cost){
+    cost.BusinessTypeName = $rootScope[position[2]].feeTemp.BusinessTypeName;
+    cost.Price = $rootScope[position[2]].feeTemp.Price;
+    cost.PriceNote = $rootScope[position[2]].feeTemp.PriceNote;
+    cost.isEdit = false;
+  };
+
+  $scope.cancelHandleFee = function(cost){
+    cost.isEdit = false;
+  };
+
+  $scope.showPlanSeatInfo = function(){
+    var param = {
+      planID: $rootScope[position[2]].planDetail._id.$id,
+      carID: $rootScope[position[2]].planDetail.Cars[0].ForeignKeyID.$id
+    };
+    getSeatInfoByPlanAndCar(param, function (response) {
+      $rootScope[position[2]].planDetail.arrangeCarInfo = response;
+    });
+  };
+
+});
+app.controller('productOrderVisaController', function($scope, $rootScope, POVisa, $filter,
+  findInnerObjIndex, HyDate, showSubHead, saveOrderVisa, closeSubView, showWarningBox,
+  showErrorInfo, getProductInsurancesByProductIDWithTime, getCustomerDetail, sendOrderInfo, getAllVisaTypes) {
+
+  $scope.arrowConf = {
+    left: 130,
+    useArrow: true
+  };
+
+  $scope.popConf = {
+    left: 10,
+    position: "bottom"
+  };
+
+  $scope.getVisaTypes = function() {
+    if (!$scope.visaTypes) {
+      getAllVisaTypes(function(response) {
+        $scope.visaTypes = response;
+      });
+    }
+  };
+
+
+  //列表页筛选搜索景点信息
+  $scope.searchPro = function() {
+    $rootScope[position[1]].search = {
+      page: 1,
+      Title: $rootScope[position[1]].Title,
+      VisaGADDRID: $rootScope[position[1]].VisaGADDRID ? $rootScope[position[1]].VisaGADDRID._id.$id : '',
+      VisaTypeID: $rootScope[position[1]].VisaTypeID ? $rootScope[position[1]].VisaTypeID._id.$id : '',
+    };
+    POVisa.list(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  //滚动到最后加载数据
+  $scope.loadListData = function(viewID) {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.page += 1;
+    POVisa.list(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.showPersonMaterial = function(material) {
+    $rootScope[position[2]].showMaterialId = material.Typeid.$id;
+  };
+
+  $scope.chooseOrderType = function(type, isShow) {
+    $rootScope[position[2]].orderType = type;
+    $rootScope[position[2]].isShowChooseCustomer = !$rootScope[position[2]].isShowChooseCustomer;
+  };
+
+  $scope.status = {
+    StartTime: false,
+    EndTime: false
+  };
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  $scope.getInsurancePrice = function() {
+    if ($rootScope[position[2]].StartTimeDate && $rootScope[position[2]].EndTimeDate) {
+      var timeDiff = Math.abs($rootScope[position[2]].EndTimeDate - $rootScope[position[2]].StartTimeDate);
+      $rootScope[position[2]].days = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+      if ($rootScope[position[2]].days < 1) {
+        $rootScope[position[2]].info = "请选择正确的出团时间";
+        return;
+      }
+      getProductInsurancesByProductIDWithTime({
+        ProductTypeID: "000000000000000000000002",
+        ProductID: $rootScope[position[2]].ProductId,
+        StartTime: $filter('date')($rootScope[position[2]].StartTimeDate, "yyyy-MM-dd"),
+        EndTime: $filter('date')($rootScope[position[2]].EndTimeDate, "yyyy-MM-dd")
+      }, function(response) {
+        var selectInsurance = {};
+        $rootScope[position[2]].insurance.forEach(function(item) {
+          if (item.isSelected) {
+            selectInsurance[item.ProductInsuranceNo] = true;
+          }
+        });
+        $rootScope[position[2]].insurance = response;
+        $rootScope[position[2]].insurance.forEach(function(item) {
+          if (selectInsurance[item.ProductInsuranceNo]) {
+            item.isSelected = true;
+          }
+        });
+      });
+      $scope.insuranceWatchFun();
+    }
+  };
+
+  $scope.$watch('detailData.orderCount', function(orderCount) {
+    if (orderCount !== undefined) {
+      $rootScope[position[2]].totalPeopleCount = $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].orderCount.childCount;
+    }
+  }, true);
+
+  $scope.findPlanNameById = function(id) {
+    var index = findInnerObjIndex($rootScope[position[2]].schedule, ['_id', '$id'], id);
+    if (index > -1) {
+      $rootScope[position[2]].TripName = $rootScope[position[2]].schedule[index].Title;
+    }
+  };
+
+  $scope.changePlan = function(id) {
+    getTeamtourPlanDetail(id, function(response) {
+      $rootScope[position[2]].planDetail = response;
+      $scope.findPlanNameById(response.TripID.$id);
+    });
+  };
+
+  $scope.chooseCustomer = function(customer) {
+    if ($rootScope[position[2]].mode == 'order') {
+      getCustomerDetail(customer._id.$id, function(detail) {
+        $rootScope[position[2]].MemberDetail = detail;
+
+        _.extend($rootScope[position[2]].customer, {
+          CustomerMobile: detail.CustomerMobile,
+          CustomerName: detail.CustomerName,
+          _id: detail._id
+        });
+
+        $rootScope[position[2]].showChangeCustomer = false;
+      });
+    } else {
+      showSubHead('下单详情', $rootScope.detailSwitchVal);
+      var url = 'productOrder/POVisa/visaOrder?mode=order&customerID=' + customer._id.$id;
+      url += '&ProductId=' + $rootScope[position[2]].ProductId;
+      url += '&orderType=' + $rootScope[position[2]].orderType;
+      $rootScope.fetch(url, '');
+    }
+  };
+
+  $scope.changeCustomer = function(isShow) {
+    $rootScope[position[2]].showChangeCustomer = isShow;
+  };
+
+  $scope.showAddCost = function(isShow, type) {
+    if (!$rootScope[position[2]].cost) $rootScope[position[2]].cost = {};
+
+    $rootScope[position[2]].cost.BusinessTypeName = '';
+    $rootScope[position[2]].cost.Price = '';
+    $rootScope[position[2]].cost.PriceNote = '';
+    if (type) {
+      $rootScope[position[2]].costType = type;
+      if (type == 2) {
+        $rootScope[position[2]].showAddCost = isShow;
+        $rootScope[position[2]].showReduceCost = !isShow;
+      } else {
+        $rootScope[position[2]].showReduceCost = isShow;
+        $rootScope[position[2]].showAddCost = !isShow;
+      }
+    } else {
+      $rootScope[position[2]].showReduceCost = false;
+      $rootScope[position[2]].showAddCost = false;
+    }
+  };
+
+  $scope.addCost = function(flag) {
+    if (flag) return;
+
+    var param = angular.copy($rootScope[position[2]].cost);
+    param.BusinessMainTypeID = $rootScope[position[2]].costType;
+    $rootScope[position[2]].cost = {};
+    $rootScope[position[2]].OrderPriceRecord.push(param);
+
+    $scope.showAddCost(false);
+  };
+
+  $scope.$watch('detailData.OrderPriceRecord', function() {
+    $rootScope[position[2]].totalCost = 0;
+    if ($rootScope[position[2]].OrderPriceRecord !== undefined) {
+      $rootScope[position[2]].OrderPriceRecord.forEach(function(item) {
+        if (item.BusinessMainTypeID != 3) {
+          $rootScope[position[2]].totalCost += parseInt(item.Price);
+        } else {
+          $rootScope[position[2]].totalCost -= parseInt(item.Price);
+        }
+      });
+    }
+  }, true);
+
+  $scope.addOrderHolidayAppointment = function() {
+    var item = {
+      CompanyBreachOfContractRatio: 0,
+      EndDay: 0,
+      StartDay: 0,
+      TouristBreachOfContractRatio: 0
+    };
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment.push(item);
+  };
+
+  $scope.delOrderHolidayAppointment = function(item) {
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment = _.without($rootScope[position[2]].OrderContract.OrderHolidayAppointment, item);
+  };
+
+  $scope.selectAllInsurance = function() {
+    $rootScope[position[2]].InsureInfo.data.forEach(function(item) {
+      item.isSelected = $rootScope[position[2]].isSelectAllInsurance;
+    });
+  };
+
+  $scope.$watch('detailData.peopleCount', function(value) {
+    if (value !== undefined) {
+      var removeIndexs = [];
+      var adultCount = 0;
+      var childCount = 0;
+      var babyCount = 0;
+      if ($rootScope[position[2]].OrderTourists) {
+        $rootScope[position[2]].OrderTourists.forEach(function(item) {
+          if (item.TouristType.id == 1 || item.TouristType.id == 2) {
+            if (adultCount >= value.AdultCount) {
+              removeIndexs.push(item.index);
+            }
+            adultCount++;
+          } else if (item.TouristType.id == 3) {
+            if (childCount >= value.ChildCount) {
+              removeIndexs.push(item.index);
+            }
+            childCount++;
+          } else if (item.TouristType.id == 4) {
+            if (babyCount >= value.BabyCount) {
+              removeIndexs.push(item.index);
+            }
+            babyCount++;
+          }
+
+        });
+      }
+      //删除多余的客户
+      removeIndexs.forEach(function(item) {
+        var removeCustomerIndex = _.findIndex($rootScope[position[2]].OrderTourists, {
+          index: item
+        });
+        $rootScope[position[2]].OrderTourists = _.without($rootScope[position[2]].OrderTourists, $rootScope[position[2]].OrderTourists[removeCustomerIndex]);
+      });
+      var customer = {
+        index: 0,
+        TouristType: {
+          id: 2,
+          value: '成人'
+        },
+        TouristName: '游客',
+        TouristMobile: '',
+        GenderTypeID: 1,
+        Certificate: {
+          id: 1,
+          value: '身份证'
+        },
+        TouristDocumentNumber: '',
+        TouristSingleRoomType: {
+          id: 1,
+          value: '无'
+        },
+        // ProductPlanPriceID: selectedPrice._id,
+        TouristBirthday: '1949-10-01',
+        IsOccupying: true
+      };
+      //添加不够的客户
+      for (var i = 0; i < value.AdultCount - adultCount; i++) {
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var x = 0; x < value.ChildCount - childCount; x++) {
+        customer.TouristType = {
+          id: 3,
+          value: '小孩'
+        };
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var y = 0; y < value.BabyCount - babyCount; y++) {
+        customer.TouristType = {
+          id: 4,
+          value: '婴儿'
+        };
+        customer.IsOccupying = false;
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      //排序
+      var newIndex = 1;
+      $rootScope[position[2]].OrderTourists.forEach(function(item) {
+        item.index = newIndex;
+        newIndex++;
+      });
+
+      $rootScope[position[2]].totalCount = parseInt($rootScope[position[2]].peopleCount.AdultCount) + parseInt($rootScope[position[2]].peopleCount.BabyCount) + parseInt($rootScope[position[2]].peopleCount.ChildCount);
+      $scope.insuranceWatchFun();
+      $scope.visaPrice();
+    }
+  }, true);
+
+  $scope.insuranceWatchFun = function() {
+    var price = 0;
+    var note = '';
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      if (item.isSelected) {
+        price += item.ProductInsurancePrice * $rootScope[position[2]].totalCount;
+        note += ' ' + item.ProductInsuranceName + " " + $rootScope[position[2]].totalCount + ' 份，';
+      }
+    });
+    note = note.replace(/，$/, '');
+
+    if (price === 0) {
+      var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'insurance'
+      });
+      if (removeIndex > -1) {
+        $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+      }
+      return;
+    }
+    var cost = {
+      BusinessTypeName: '保险费用',
+      type: 'insurance',
+      Price: price,
+      PriceNote: note,
+      BusinessMainTypeID: 1,
+      BusinessTypeID: 10001
+    };
+    var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+      type: 'insurance'
+    });
+    if (index > -1) {
+      $rootScope[position[2]].OrderPriceRecord[index] = cost;
+    } else {
+      $rootScope[position[2]].OrderPriceRecord.push(cost);
+    }
+  };
+
+  $scope.visaPrice = function() {
+    var price = $rootScope[position[2]].productDetail.DefaultPrice * $rootScope[position[2]].totalCount;
+    var cost = {
+      BusinessTypeName: '签证费用',
+      type: 'visa',
+      Price: price,
+      PriceNote: "签证费用：" + $rootScope[position[2]].totalCount + '*' + $rootScope[position[2]].productDetail.DefaultPrice,
+      BusinessMainTypeID: 1,
+      BusinessTypeID: 10004
+    };
+    var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+      type: 'visa'
+    });
+    if (index > -1) {
+      $rootScope[position[2]].OrderPriceRecord[index] = cost;
+    } else {
+      $rootScope[position[2]].OrderPriceRecord.push(cost);
+    }
+    $rootScope[position[2]].visaPrice = price;
+  };
+
+  $scope.showVisaDetail = function() {
+    $rootScope[position[2]].isShowPrice = !$rootScope[position[2]].isShowPrice;
+  };
+
+  $scope.saveOrder = function() {
+    var param = {};
+
+    param.AdultCount = $rootScope[position[2]].peopleCount.AdultCount;
+    param.BabyCount = $rootScope[position[2]].peopleCount.BabyCount;
+    param.ChildCount = $rootScope[position[2]].peopleCount.ChildCount;
+    if (param.AdultCount === 0 && param.BabyCount === 0 && param.ChildCount === 0) {
+      $rootScope[position[2]].info = '请填添加游客';
+      return;
+    }
+    param.CustomerEnlarge = {
+      CertificatesTypeID: $rootScope[position[2]].customer.Enlarge.CertificatesType.ForeignKeyID.$id,
+      CustomerEMail: $rootScope[position[2]].customer.CustomerEMail,
+      CustomerID: $rootScope[position[2]].customer._id.$id,
+      CustomerLocation: {
+        AreaID: $rootScope[position[2]].address.AreaID,
+        CityID: $rootScope[position[2]].address.city,
+        CountryID: $rootScope[position[2]].address.country,
+        CustomerPositionDetail: $rootScope[position[2]].address.CustomerPositionDetail,
+        ProvinceID: $rootScope[position[2]].address.region,
+        StreetID: $rootScope[position[2]].address.StreetID
+      },
+      CertificatesTypeName: $rootScope[position[2]].customer.Enlarge.CertificatesType.CertificatesTypeName,
+      CustomerMobile: $rootScope[position[2]].customer.CustomerMobile,
+      CustomerName: $rootScope[position[2]].customer.CustomerName,
+      TouristDocumentNumber: $rootScope[position[2]].customer.Enlarge.CustomerDocumentNumber,
+      BodyStateNotes: $rootScope[position[2]].BodyStateNotes
+    };
+    param.EmergencyContactNotes = $rootScope[position[2]].EmergencyContactNotes;
+    param.CustomerId = $rootScope[position[2]].customer._id.$id;
+    param.Insures = [];
+    param.TotalNumber = param.AdultCount + param.BabyCount + param.ChildCount;
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      if (item.isSelected) {
+        item.InsurancePrice = item.ProductInsurancePrice;
+        item.TotalInsurancePrice = item.InsurancePrice * param.TotalNumber;
+        param.Insures.push(item);
+      }
+    });
+    param.IntentOrderId = $rootScope[position[2]].IntentOrderID || '';
+    param.OrderNotes = $rootScope[position[2]].OrderNotes;
+    param.OrderType = 1;
+    param.PlanId = '';
+    param.ProductId = $rootScope[position[2]].ProductId;
+    param.TotalFinalPrice = $rootScope[position[2]].totalCost;
+    param.TotalSalesPrice = $rootScope[position[2]].visaPrice;
+    param.PriceRecord = $rootScope[position[2]].OrderPriceRecord;
+    param.OrderTourists = $rootScope[position[2]].OrderTourists;
+    param.TotalSiteNumber = 0;
+    param.TouristRelationTypes = [];
+    $rootScope[position[2]].OrderTourists.forEach(function(item) {
+      item.CertificatesTypeID = item.Certificate.id;
+      item.CertificatesTypeName = item.Certificate.value;
+      item.TouristTypeID = item.TouristType.id;
+      if (item.IsOccupying) {
+        param.TotalSiteNumber++;
+      }
+    });
+    param.OrderSource = 2;
+
+    if ($rootScope[position[2]].orderType == 1) {
+      param.OrderStartStatus = 2;
+      param.IsPeerOrder = false;
+    } else if ($rootScope[position[2]].orderType == 2) {
+      param.IsPeerOrder = false;
+      param.OrderStartStatus = 3;
+    } else {
+      param.IsPeerOrder = true;
+      param.OrderStartStatus = 3;
+      param.OrderSource = 4;
+    }
+
+    if ($rootScope.userinfo.Department.ID.$id == "000000000000000000000794")
+      param.OrderSource = 10;
+
+    var salesman = $rootScope[position[2]].Salesman;
+    param.SalesmanId = salesman._id ? salesman._id.$id : '';
+    param.SalesmanName = salesman._id ? salesman.FullName : '';
+    param.TeamStartTime = $filter('date')($rootScope[position[2]].StartTimeDate, "yyyy-MM-dd");
+    param.TeamEndTime = $filter('date')($rootScope[position[2]].EndTimeDate, "yyyy-MM-dd");
+    $scope.isSubmit = true;
+    saveOrderVisa(param, function(response) {
+      $scope.isSubmit = false;
+      if (param.IntentOrderId) $rootScope.sendIntentionMessage(param.IntentOrderId);
+      sendOrderInfo(response);
+      $rootScope.fetch('orderManagement/OMVisa/detail?id='+response,'');
+      // $rootScope.fetch('productOrder/POVisa/list');
+      $scope.searchPro();
+      // closeSubView();
+      // showErrorInfo('下单成功');
+    }, function() {
+      $scope.isSubmit = false;
+    });
+  };
+
+  $scope.getPriceTitle = function(id) {
+    var index = _.findIndex($rootScope[position[2]].ProductPlanPrice.data, {
+      _id: id
+    });
+    return $rootScope[position[2]].ProductPlanPrice.data[index].Pricetitle;
+  };
+
+  $scope.toggleProject = function(item) {
+    if (item.isShow) {
+      item.isShow = false;
+    } else {
+      item.isShow = true;
+    }
+  };
+
+  $scope.editFee = function(cost) {
+    $rootScope[position[2]].feeTemp = angular.copy(cost);
+  };
+
+  $scope.deleteSubFee = function(cost) {
+    showWarningBox("确定要删除该费用吗", function() {
+      $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, cost);
+    });
+  };
+
+  $scope.saveEditFeeInfo = function(cost) {
+    cost.BusinessTypeName = $rootScope[position[2]].feeTemp.BusinessTypeName;
+    cost.Price = $rootScope[position[2]].feeTemp.Price;
+    cost.PriceNote = $rootScope[position[2]].feeTemp.PriceNote;
+    cost.isEdit = false;
+  };
+
+  $scope.cancelHandleFee = function(cost) {
+    cost.isEdit = false;
+  };
+
+});
+app.controller('productOrderDiscussionController', function($scope, $rootScope, PODiscussion, $filter,
+  findInnerObjIndex, addOneTeamOrder, showSubHead, bookingTeamOrder, closeSubView, showErrorInfo,
+  getAddrData, getTrafficMethods, getHotelStarType, getBasicData, Pagination, getTrafficListDatas,
+  saveOrderCustomTour,getCustomerDetail,sendOrderInfo) {
+
+  $scope.arrowConf = {
+    left: 140,
+    useArrow: true
+  };
+
+  $scope.popConf = {
+    left: 20,
+    position: "bottom"
+  };
+
+  $scope.searchDiscussionList = function(type) {
+    $rootScope[position[1]].search.PageIndex = 1;
+    $rootScope[position[1]].search.PageSize = $rootScope.pageLimit;
+    $rootScope[position[1]].search.SearchInfo = $rootScope[position[1]].search.SearchInfo;
+    $rootScope[position[1]].search.StationId = $rootScope[position[1]].search.station ? $rootScope[position[1]].search.station._id.$id : '';
+    $rootScope[position[1]].search.TravelDays = $rootScope[position[1]].search.TravelDays;
+    $rootScope[position[1]].search.TravelType = $rootScope[position[1]].search.TravelType;
+    $rootScope[position[1]].search.AbroadAddressID = $rootScope[position[1]].search.abroad ? $rootScope[position[1]].search.abroad._id.$id : '';
+    $rootScope[position[1]].search.DomesticAddressID = $rootScope[position[1]].search.domestic ? $rootScope[position[1]].search.domestic._id.$id : '';
+
+    PODiscussion.list(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.openDatePickerContract = function($even, type, item) {
+    item[type] = true;
+  };
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  $scope.loadDiscussionListData = function() {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.PageIndex += 1;
+    PODiscussion.list(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.changeProductType = function(type) {
+    $rootScope[position[2]].productType = type;
+  };
+
+  $scope.chooseCustomer = function(customer) {
+    if ($rootScope[position[2]].mode == 'order') {
+      getCustomerDetail(customer._id.$id,function(detail){
+        $rootScope[position[2]].MemberDetail = detail;
+
+        _.extend($rootScope[position[2]].customer, {
+          CustomerMobile: detail.CustomerMobile,
+          CustomerName: detail.CustomerName,
+          _id: detail._id
+        });
+
+        $rootScope[position[2]].showChangeCustomer = false;
+      });
+    } else {
+      showSubHead('下单详情', $rootScope.detailSwitchVal);
+      var url = '';
+      if ($rootScope[position[2]].productType == 1) {
+        url += 'productOrder/PODiscussion/discussionOrder?mode=order&customerID=' + customer._id.$id;
+        url += '&ProductId=' + $rootScope[position[2]]._id.$id;
+        url += '&ProductType=' + $rootScope[position[2]].productType;
+      } else {
+        url += 'productOrder/PODiscussion/discussionOrderFreetour?mode=order&customerID=' + customer._id.$id;
+        url += '&ProductId=' + $rootScope[position[2]]._id.$id;
+        url += '&ProductType=' + $rootScope[position[2]].productType;
+      }
+
+      $rootScope.fetch(url, '');
+    }
+  };
+
+  $scope.$watch('detailData.orderCount', function(orderCount) {
+    if (orderCount !== undefined) {
+      var persostence = $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].DefaultPrice * $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].ChildPrice * $rootScope[position[2]].orderCount.childCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].BabyPrice * $rootScope[position[2]].orderCount.babyCount;
+      $rootScope[position[2]].orderPrice = {
+        persistence: persostence,
+        direct: persostence,
+        peer: $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerDefaultPrice * $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerChildPrice * $rootScope[position[2]].orderCount.childCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerBabyPrice * $rootScope[position[2]].orderCount.babyCount,
+      };
+    }
+  }, true);
+
+  $scope.findPlanNameById = function(id) {
+    var index = findInnerObjIndex($rootScope[position[2]].schedule, ['_id', '$id'], id);
+    if (index > -1) {
+      $rootScope[position[2]].TripName = $rootScope[position[2]].schedule[index].Title;
+    }
+  };
+
+  $scope.chooseOrderType = function(type) {
+    $rootScope[position[2]].orderType = type;
+  };
+
+  $scope.changeCustomer = function(isShow) {
+    $rootScope[position[2]].showChangeCustomer = isShow;
+  };
+
+  $scope.showAddCost = function(isShow, type) {
+    if(!$rootScope[position[2]].cost) $rootScope[position[2]].cose = {};
+
+    $rootScope[position[2]].cost.BusinessTypeName='';
+    $rootScope[position[2]].cost.Price='';
+    $rootScope[position[2]].cost.PriceNote='';
+    if (type) {
+      $rootScope[position[2]].costType = type;
+      if (type == 2) {
+        $rootScope[position[2]].showAddCost = isShow;
+        $rootScope[position[2]].showReduceCost = !isShow;
+      } else {
+        $rootScope[position[2]].showReduceCost = isShow;
+        $rootScope[position[2]].showAddCost = !isShow;
+      }
+    } else {
+      $rootScope[position[2]].showReduceCost = false;
+      $rootScope[position[2]].showAddCost = false;
+    }
+  };
+
+  $scope.addCost = function(flag) {
+    if(flag) return;
+
+    var param = angular.copy($rootScope[position[2]].cost);
+    param.BusinessMainTypeID = $rootScope[position[2]].costType;
+    $rootScope[position[2]].cost = {};
+    $rootScope[position[2]].OrderPriceRecord.push(param);
+
+    $scope.showAddCost(false);
+  };
+
+  $scope.$watch('detailData.OrderPriceRecord', function() {
+    $rootScope[position[2]].totalCost = 0;
+    if ($rootScope[position[2]].OrderPriceRecord !== undefined) {
+      $rootScope[position[2]].OrderPriceRecord.forEach(function(item) {
+        if (item.BusinessMainTypeID != 3) {
+          $rootScope[position[2]].totalCost += parseInt(item.Price);
+        } else {
+          $rootScope[position[2]].totalCost -= parseInt(item.Price);
+        }
+      });
+    }
+  }, true);
+
+  $scope.addOrderHolidayAppointment = function() {
+    var item = {
+      CompanyBreachOfContractRatio: 0,
+      EndDay: 0,
+      StartDay: 0,
+      TouristBreachOfContractRatio: 0
+    };
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment.push(item);
+  };
+
+  $scope.delOrderHolidayAppointment = function(item) {
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment = _.without($rootScope[position[2]].OrderContract.OrderHolidayAppointment, item);
+  };
+
+  $scope.selectAllInsurance = function() {
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      item.isSelected = $rootScope[position[2]].isSelectAllInsurance;
+    });
+  };
+
+  $scope.$watch('detailData.insurance', function(value) {
+    if (value !== undefined) {
+      $scope.insuranceWatchFun();
+    }
+  }, true);
+
+  $scope.insuranceWatchFun = function() {
+    var price = 0;
+    var note = '';
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      if (item.isSelected) {
+        price += item.ProductInsurancePrice * $rootScope[position[2]].totalPeopleCount;
+        note += ' ' + item.ProductInsuranceName + " " + $rootScope[position[2]].totalPeopleCount + ' 份，';
+      }
+    });
+    if (price === 0) {
+      var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'insurance'
+      });
+      if (removeIndex > -1) {
+        $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+      }
+      return;
+    }
+    var cost = {
+      BusinessTypeName: '保险费用',
+      type: 'insurance',
+      Price: price,
+      PriceNote: note,
+      BusinessMainTypeID: 1,
+      BusinessTypeID: 10001
+    };
+    var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+      type: 'insurance'
+    });
+    if (index > -1) {
+      $rootScope[position[2]].OrderPriceRecord[index] = cost;
+    } else {
+      $rootScope[position[2]].OrderPriceRecord.push(cost);
+    }
+  };
+
+  $scope.$watch('detailData.peopleCount', function(value) {
+    if (value !== undefined) {
+      $rootScope[position[2]].totalPeopleCount = $rootScope[position[2]].peopleCount.AdultCount + $rootScope[position[2]].peopleCount.ChildCount + $rootScope[position[2]].peopleCount.BabyCount;
+      var removeIndexs = [];
+      var adultCount = 0;
+      var childCount = 0;
+      var babyCount = 0;
+      if ($rootScope[position[2]].OrderTourists) {
+        $rootScope[position[2]].OrderTourists.forEach(function(item) {
+          if (item.TouristType.id == 1 || item.TouristType.id == 2) {
+            if (adultCount >= value.AdultCount) {
+              removeIndexs.push(item.index);
+            }
+            adultCount++;
+          } else if (item.TouristType.id == 3) {
+            if (childCount >= value.ChildCount) {
+              removeIndexs.push(item.index);
+            }
+            childCount++;
+          } else if (item.TouristType.id == 4) {
+            if (babyCount >= value.BabyCount) {
+              removeIndexs.push(item.index);
+            }
+            babyCount++;
+          }
+        });
+      }
+      //删除多余的客户
+      removeIndexs.forEach(function(item) {
+        var removeCustomerIndex = _.findIndex($rootScope[position[2]].OrderTourists, {
+          index: item
+        });
+        $rootScope[position[2]].OrderTourists = _.without($rootScope[position[2]].OrderTourists, $rootScope[position[2]].OrderTourists[removeCustomerIndex]);
+      });
+      var customer = {
+        index: 0,
+        TouristType: {
+          id: 1,
+          value: '老人'
+        },
+        TouristName: '',
+        TouristMobile: '',
+        GenderTypeID: 1,
+        Certificate: {
+          id: 1,
+          value: '身份证'
+        },
+        TouristDocumentNumber: '',
+        TouristBirthday: '1949-10-01',
+        IsOccupying: true
+      };
+      //添加不够的客户
+      for (var i = 0; i < value.AdultCount - adultCount; i++) {
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var x = 0; x < value.ChildCount - childCount; x++) {
+        customer.TouristType = {
+          id: 3,
+          value: '小孩'
+        };
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var y = 0; y < value.BabyCount - babyCount; y++) {
+        customer.TouristType = {
+          id: 4,
+          value: '婴儿'
+        };
+        customer.IsOccupying = false;
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      //排序
+      var newIndex = 1;
+      $rootScope[position[2]].OrderTourists.forEach(function(item) {
+        item.index = newIndex;
+        newIndex++;
+      });
+
+      $rootScope[position[2]].totalCount = parseInt($rootScope[position[2]].peopleCount.AdultCount) + parseInt($rootScope[position[2]].peopleCount.BabyCount) + parseInt($rootScope[position[2]].peopleCount.ChildCount);
+      $scope.insuranceWatchFun();
+    }
+  }, true);
+
+  $scope.$watch('detailData.TotalEntrustPrice', function(value) {
+    if (value !== undefined) {
+      var price = $rootScope[position[2]].TotalEntrustPrice;
+      var note = '其他委托事项费用：' + price + '元';
+      if (price === 0) {
+        var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+          type: 'entrust'
+        });
+        if (removeIndex > -1) {
+          $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+        }
+        return;
+      }
+      var cost = {
+        BusinessTypeName: '其他委托事项',
+        type: 'entrust',
+        Price: price,
+        PriceNote: note,
+        BusinessMainTypeID: 1,
+        BusinessTypeID: 10007
+      };
+      var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'entrust'
+      });
+      if (index > -1) {
+        $rootScope[position[2]].OrderPriceRecord[index] = cost;
+      } else {
+        $rootScope[position[2]].OrderPriceRecord.push(cost);
+      }
+    }
+  });
+
+  $scope.$watch('detailData.TotalHotelRoomPrice', function(value) {
+    if (value !== undefined) {
+      $scope.calcOfferedPrice();
+    }
+  });
+
+  $scope.$watch('detailData.TotalPrice', function(value) {
+    if (value !== undefined) {
+      $scope.calcOfferedPrice();
+    }
+  });
+
+  $scope.$watch('detailData.VisaTotalprice', function(value) {
+    if (value !== undefined) {
+      $scope.calcOfferedPrice();
+    }
+  });
+
+  $scope.calcOfferedPrice = function() {
+    $rootScope[position[2]].packagePrice = $rootScope[position[2]].TotalHotelRoomPrice + $rootScope[position[2]].TotalPrice + $rootScope[position[2]].VisaTotalprice;
+    var note = '酒店总价：' + $rootScope[position[2]].TotalHotelRoomPrice + '元；交通总价：' + $rootScope[position[2]].TotalPrice + "元；签证总价：" + $rootScope[position[2]].VisaTotalprice + '元；';
+    if ($rootScope[position[2]].packagePrice === 0) {
+      var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'package'
+      });
+      if (removeIndex > -1) {
+        $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+      }
+      return;
+    }
+    var cost = {
+      BusinessTypeName: '套餐费用',
+      type: 'package',
+      Price: $rootScope[position[2]].packagePrice,
+      PriceNote: note,
+      BusinessMainTypeID: 1,
+      BusinessTypeID: 10002
+    };
+    var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+      type: 'package'
+    });
+    if (index > -1) {
+      $rootScope[position[2]].OrderPriceRecord[index] = cost;
+    } else {
+      $rootScope[position[2]].OrderPriceRecord.push(cost);
+    }
+  };
+
+  $scope.showPrice = function() {
+    $rootScope[position[2]].isShowPrice = !$rootScope[position[2]].isShowPrice;
+  };
+
+  $scope.saveOrder = function() {
+    var param = {};
+    param.IntentOrderId = $rootScope[position[2]].IntentOrderID || '';
+
+    param.OrderSourceTypeID = 2;
+
+    if($rootScope.userinfo.Department.ID.$id == "000000000000000000000794")
+      param.OrderSourceTypeID = 10;
+
+    param.OrderStatus = 2;
+    param.ProductId = $rootScope[position[2]].ProductId;
+    param.TeamStartTime = $filter('date')($rootScope[position[2]].StartTeamTime, 'yyyy-MM-dd');
+    param.CustomerEnlarge = {
+      CertificatesTypeID: $rootScope[position[2]].customer.Enlarge.CertificatesType?$rootScope[position[2]].customer.Enlarge.CertificatesType.ForeignKeyID.$id:'',
+      CustomerEMail: $rootScope[position[2]].customer.CustomerEMail,
+      CustomerID: $rootScope[position[2]].customer._id.$id,
+      CustomerLocation: {
+        AreaID: $rootScope[position[2]].address.AreaID,
+        CityID: $rootScope[position[2]].address.city,
+        CountryID: $rootScope[position[2]].address.country,
+        CustomerPositionDetail: $rootScope[position[2]].address.CustomerPositionDetail,
+        ProvinceID: $rootScope[position[2]].address.region,
+        StreetID: $rootScope[position[2]].address.StreetID
+      },
+      CertificatesTypeName: $rootScope[position[2]].customer.Enlarge.CertificatesType?$rootScope[position[2]].customer.Enlarge.CertificatesType.CertificatesTypeName:'',
+      CustomerMobile: $rootScope[position[2]].customer.CustomerMobile,
+      CustomerName: $rootScope[position[2]].customer.CustomerName,
+      TouristDocumentNumber: $rootScope[position[2]].customer.Enlarge.CustomerDocumentNumber,
+      EmergencyContactNotes: $rootScope[position[2]].EmergencyContactNotes,
+      BodyStateNotes:$rootScope[position[2]].BodyStateNotes
+    };
+    var salesman = $rootScope[position[2]].Salesman;
+    param.SalesmanId = salesman._id ? salesman._id.$id : '';
+    param.SalesmanName = salesman._id ? salesman.FullName : '';
+    param.OrderNotes = $rootScope[position[2]].OrderNotes;
+    param.TotalFinalPrice = $rootScope[position[2]].totalCost;
+    param.OrderTourists = $rootScope[position[2]].OrderTourists;
+    param.TotalSiteNumber = 0;
+    $rootScope[position[2]].OrderTourists.forEach(function(item) {
+      item.CertificatesTypeID = item.Certificate.id;
+      item.CertificatesTypeName = item.Certificate.value;
+      item.TouristTypeID = item.TouristType.id;
+      if (item.IsOccupying) {
+        param.TotalSiteNumber++;
+      }
+    });
+    if ($rootScope[position[2]].ProductType == 1) { //一团一议（组团游）
+      param.StartAddress = {
+        AddressName: $rootScope[position[2]].StartAddress
+      };
+      param.EndAddress = {
+        AddressName: $rootScope[position[2]].EndAddress
+      };
+      param.AdultNumber = $rootScope[position[2]].peopleCount.AdultCount;
+      param.ChildNumber = $rootScope[position[2]].peopleCount.BabyCount;
+      param.BabyNumber = $rootScope[position[2]].peopleCount.ChildCount;
+      param.OrderContract = $rootScope[position[2]].OrderContract;
+      param.OrderContract.OrderHolidayAppointment.forEach(function(item) {
+        item.EndDay = $filter('date')(item.EndDayDate, 'yyyy-MM-dd');
+        item.StartDay = $filter('date')(item.StartDayDate, 'yyyy-MM-dd');
+      });
+      var ReceptionCompany = $rootScope[position[2]].ReceptionCompany;
+      param.ReceptionCompanyID = ReceptionCompany ? ReceptionCompany.ID : '';
+      param.ReceptionCompanyName = ReceptionCompany ? ReceptionCompany.Name : '';
+      param.IsNeedGuide = $rootScope[position[2]].IsNeedGuide;
+      param.ProductInsurances = [];
+      $rootScope[position[2]].insurance.forEach(function(item) {
+        if (item.isSelected) {
+          param.ProductInsurances.push(item.ProductInsuranceID);
+        }
+      });
+      addOneTeamOrder(param, function(resonse) {
+        $scope.isSubmit = false;
+        if(param.IntentOrderId) $rootScope.sendIntentionMessage(param.IntentOrderId);
+        sendOrderInfo(resonse._id);
+        $rootScope.fetch('orderManagement/OMOneTeam/detail?id='+resonse._id,'');
+        // $rootScope.fetch('productOrder/PODiscussion/list');
+        $scope.searchDiscussionList();
+        // closeSubView();
+        // showErrorInfo('下单成功');
+      });
+    } else { //一团一议（自由行）
+      param.OrderType = 1;
+      param.OrderSource = 2;
+      param.OrderStartStatus = 2;
+
+      if($rootScope.userinfo.Department.ID.$id == "000000000000000000000794")
+        param.OrderSource = 10;
+
+      param.AdultCount = $rootScope[position[2]].peopleCount.AdultCount;
+      param.ChildCount = $rootScope[position[2]].peopleCount.BabyCount;
+      param.BabyCount = $rootScope[position[2]].peopleCount.ChildCount;
+      if(param.AdultCount === 0&&param.BabyCount === 0&&param.ChildCount === 0){
+      $rootScope[position[2]].info = '请填添加游客';
+      return;
+      }
+      param.CustomerID = $rootScope[position[2]].customer._id.$id;
+      param.TouristRelationTypes = [];
+      param.Insures = [];
+      param.TotalNumber = param.AdultCount + param.ChildCount + param.BabyCount;
+      $rootScope[position[2]].insurance.forEach(function(item) {
+        if (item.isSelected) {
+          item.InsurancePrice = item.ProductInsurancePrice;
+          item.TotalInsurancePrice = item.InsurancePrice * param.TotalNumber;
+          param.Insures.push(item);
+        }
+      });
+      param.SendTime = $filter('date')($rootScope[position[2]].StartTeamTime, 'yyyy-MM-dd');
+      param.PriceRecord = $rootScope[position[2]].OrderPriceRecord;
+      param.TotalFinalPrice = $rootScope[position[2]].totalCost;
+      param.TotalSalesPrice = $rootScope[position[2]].packagePrice;
+      param.HotelRoomPrice = $rootScope[position[2]].HotelRoomPrice;
+      param.TotalHotelRoomPrice = $rootScope[position[2]].TotalHotelRoomPrice;
+      param.AdultSellingPriceT = $rootScope[position[2]].AdultSellingPriceT;
+      param.ChildSellingPriceT = $rootScope[position[2]].ChildSellingPriceT;
+      param.BabySellingPricT = $rootScope[position[2]].BabySellingPricT;
+      param.TotalPrice = $rootScope[position[2]].TotalPrice;
+      param.VisaName = $rootScope[position[2]].VisaName;
+      param.VisaMoney = $rootScope[position[2]].VisaMoney;
+      param.VisaTotalprice = $rootScope[position[2]].VisaTotalprice;
+      param.VisaServiceMoney = $rootScope[position[2]].VisaServiceMoney;
+      param.EntrustPrice = $rootScope[position[2]].EntrustPrice;
+      param.TotalEntrustPrice = $rootScope[position[2]].TotalEntrustPrice;
+      param.EntrustDescription = $rootScope[position[2]].EntrustDescription;
+      param.plandays = $rootScope[position[2]].prodcutDetail.TravelDays;
+      param.Additionals = [];
+      param.ContractPayTypeAndTime = $rootScope[position[2]].ContractPayTypeAndTime;
+      param.OtherAppointment = $rootScope[position[2]].OtherAppointment;
+      $rootScope[position[2]].Additionals.forEach(function(item) {
+        if (item.isSelected) param.Additionals.push(item);
+      });
+
+      // param.HotelSchemes = $rootScope[position[2]].HotelSchemes;
+      // param.TrafficSchemes = $rootScope[position[2]].TrafficSchemes;
+
+      param.HotelSchemes = [];
+      $rootScope[position[2]].HotelSchemes.forEach(function(item){
+        param.HotelSchemes.push({
+          BookingNumber: item.BookingNumber,
+          HotelGuid: item.HotelGuid,
+          StartTime: item.StartTime,
+          EndTime: item.EndTime
+        });
+      });
+
+      param.TrafficSchemes = [];
+      $rootScope[position[2]].TrafficSchemes.forEach(function(item){
+        param.TrafficSchemes.push({
+          RideCount: item.RideCount,
+          TrafficGuid: item.TrafficGuid,
+          StartTime: item.StartTime
+        });
+      });
+
+      $scope.isSubmit = true;
+      saveOrderCustomTour(param, function(response) {
+        $scope.isSubmit = false;
+        if(param.IntentOrderId) $rootScope.sendIntentionMessage(param.IntentOrderId);
+        sendOrderInfo(response);
+        $rootScope.fetch('orderManagement/OMCustomTour/detail?ID='+response,'');
+        // $rootScope.fetch('productOrder/PODiscussion/list');
+        $scope.searchDiscussionList();
+        // closeSubView();
+        // showErrorInfo('下单成功');
+      },function(){
+      $scope.isSubmit = false;
+    });
+    }
+  };
+
+  $scope.getPriceTitle = function(id) {
+    var index = _.findIndex($rootScope[position[2]].ProductPlanPrice.data, {
+      _id: id
+    });
+    return $rootScope[position[2]].ProductPlanPrice.data[index].Pricetitle;
+  };
+
+  $scope.agreeContract = [{
+    id: true,
+    value: '同意'
+  }, {
+    id: false,
+    value: '不同意'
+  }];
+
+
+  //定制游套餐
+  $scope.status = {
+    addHotel: true,
+    selectHotel: false,
+    addTraffic: true,
+    selectTraffic: false,
+    addVisa: true,
+    selectVisa: false,
+    currentView: ''
+  };
+
+  $scope.basicData = {
+    search: {
+      iPageSize: $rootScope.embeddedPageLimt,
+      iPageIndex: 1
+    }
+  };
+
+  $scope.popoverStatusChange = function(type, status) {
+    switch (type) {
+      case 'hotel':
+        {
+          if (status == 'add') {
+            $scope.status.addHotel = true;
+            $scope.status.selectHotel = false;
+          } else {
+            $scope.status.addHotel = false;
+            $scope.status.selectHotel = true;
+            $scope.searchList(1);
+          }
+        }
+        break;
+      case 'traffic':
+        {
+          if (status == 'add') {
+            $scope.status.addTraffic = true;
+            $scope.status.selectTraffic = false;
+          } else {
+            $scope.status.addTraffic = false;
+            $scope.status.selectTraffic = true;
+            $scope.searchList(1);
+          }
+        }
+        break;
+      case 'visa':
+        {
+          if (status == 'add') {
+            $scope.status.addVisa = true;
+            $scope.status.selectVisa = false;
+          } else {
+            $scope.status.addVisa = false;
+            $scope.status.selectVisa = true;
+            $scope.searchList(1);
+          }
+        }
+        break;
+    }
+  };
+
+  $scope.getCountries = function() {
+    if ($scope.basicData.countries) return;
+    getAddrData(function(response) {
+      $scope.basicData.countries = response;
+    });
+  };
+
+  $scope.getRegions = function(country) {
+    $scope.basicData.regions = [];
+    $scope.basicData.cities = [];
+    $scope.basicData.search.Provinceid = "";
+    $scope.basicData.search.Cityid = "";
+
+    if (!country) return;
+    getAddrData(function(response) {
+      $scope.basicData.regions = response;
+    }, country);
+  };
+
+  $scope.getCities = function(region) {
+    $scope.basicData.cities = [];
+    $scope.basicData.search.Cityid = "";
+
+    if (!region) return;
+    getAddrData(function(response) {
+      $scope.basicData.cities = response;
+    }, region);
+  };
+
+  $scope.getTraffics = function() {
+    if ($scope.basicData.traffics) return;
+    getTrafficMethods(function(response) {
+      $scope.basicData.traffics = response.data.list;
+    });
+  };
+
+  $scope.getHotelStars = function() {
+    if ($scope.basicData.hotelStars) return;
+    getHotelStarType(function(response) {
+      $scope.basicData.hotelStars = response.list;
+    });
+  };
+
+  $scope.searchList = function(iPageIndex) {
+
+    $scope.basicData.search.iPageIndex = iPageIndex;
+
+    if ($scope.status.currentView == 'trafficList') {
+      getTrafficListDatas($scope.basicData.search, function(data) {
+        console.log(data);
+        $scope.basicData.list = data.list;
+        var page = new Pagination(data.count, iPageIndex);
+        if (!$scope.Pagination) {
+          $scope.Pagination = {};
+        }
+        $scope.Pagination.basicData = page;
+      });
+    } else if ($scope.status.currentView == 'hotelList') {
+      getBasicData[$scope.status.currentView](function(data) {
+        $scope.basicData.list = data.data.list;
+        var page = new Pagination(data.data.count, iPageIndex);
+        if (!$scope.Pagination) {
+          $scope.Pagination = {};
+        }
+        $scope.Pagination.basicData = page;
+      }, $scope.basicData.search);
+    } else {
+
+    }
+
+  };
+
+  $scope.addHotel = function() {
+    if (!$rootScope[position[2]].hotelDetail.hotelStartTime) {
+      $rootScope[position[2]].info = '请填写入住时间';
+      return;
+    }
+    if (!$rootScope[position[2]].hotelDetail.hotelEndTime) {
+      $rootScope[position[2]].info = '请填写退房时间';
+      return;
+    }
+    if (!$rootScope[position[2]].hotelDetail.BookingNumber) {
+      $rootScope[position[2]].info = '请填写房间数量';
+      return;
+    }
+    if (!$rootScope[position[2]].choosedHotel) {
+      $rootScope[position[2]].info = '请选择酒店';
+      return;
+    }
+    $rootScope[position[2]].hotelDetail.HotelGuid = $rootScope[position[2]].choosedHotel.ID;
+    $rootScope[position[2]].hotelDetail.HotelName = $rootScope[position[2]].choosedHotel.Name;
+    $rootScope[position[2]].hotelDetail.StartTime = $filter('date')($rootScope[position[2]].hotelDetail.hotelStartTime, 'yyyy-MM-dd');
+    $rootScope[position[2]].hotelDetail.EndTime = $filter('date')($rootScope[position[2]].hotelDetail.hotelEndTime, 'yyyy-MM-dd');
+    $rootScope[position[2]].hotelDetail.hotel = angular.copy($rootScope[position[2]].choosedHotel);
+    $rootScope[position[2]].hotelDetail.currentView = '';
+
+    if ($scope.status.operationMode == 'edit') {
+      if ($rootScope[position[2]].editIndex > -1) {
+        $rootScope[position[2]].HotelSchemes[$rootScope[position[2]].editIndex] = angular.copy($rootScope[position[2]].hotelDetail);
+      }
+    } else {
+      $rootScope[position[2]].HotelSchemes.push(angular.copy($rootScope[position[2]].hotelDetail));
+    }
+    $rootScope[position[2]].choosedHotel = '';
+    $rootScope[position[2]].hotelDetail = {};
+    $scope.status.currentView = "";
+    $rootScope[position[2]].editIndex = -1;
+  };
+
+  $scope.addTraffic = function() {
+    if (!$rootScope[position[2]].trafficDetail.trafficStartTime) {
+      $rootScope[position[2]].info = '请填写出发时间';
+      return;
+    }
+    if (!$rootScope[position[2]].trafficDetail.RideCount) {
+      $rootScope[position[2]].info = '请填写人数';
+      return;
+    }
+    if (!$rootScope[position[2]].choosedTraffic) {
+      $rootScope[position[2]].info = '请填写人数';
+      return;
+    }
+    $rootScope[position[2]].trafficDetail.TrafficGuid = $rootScope[position[2]].choosedTraffic.ID;
+    $rootScope[position[2]].trafficDetail.StartTime = $filter('date')($rootScope[position[2]].trafficDetail.trafficStartTime, 'yyyy-MM-dd');
+    $rootScope[position[2]].trafficDetail.traffic = angular.copy($rootScope[position[2]].choosedTraffic);
+    $rootScope[position[2]].hotelDetail.currentView = '';
+
+    if ($scope.status.operationMode == 'edit') {
+      if ($rootScope[position[2]].editIndex > -1) {
+        $rootScope[position[2]].TrafficSchemes[$rootScope[position[2]].editIndex] = angular.copy($rootScope[position[2]].trafficDetail);
+      }
+    } else {
+      $rootScope[position[2]].TrafficSchemes.push(angular.copy($rootScope[position[2]].trafficDetail));
+    }
+    $rootScope[position[2]].choosedTraffic = '';
+    $rootScope[position[2]].trafficDetail = {};
+    $scope.status.currentView = "";
+    $rootScope[position[2]].editIndex = -1;
+  };
+
+  $scope.delHotel = function(item) {
+    $rootScope[position[2]].HotelSchemes = _.without($rootScope[position[2]].HotelSchemes, item);
+  };
+
+  $scope.chooseHotel = function(item) {
+    $rootScope[position[2]].choosedHotel = angular.copy(item);
+    $scope.selected.hotel = {};
+    $scope.selected.hotel[item.ID] = true;
+  };
+
+  $scope.selected = {
+    hotel: {},
+    traffic: {},
+    visa: {}
+  };
+
+  $scope.unchooseHotel = function() {
+    $rootScope[position[2]].choosedHotel = '';
+    $scope.selected.hotel = {};
+  };
+
+  $scope.openPopover = function(currentView, operationMode) {
+    if(currentView == 'hotelList'){
+      $scope.popoverStatusChange('hotel', 'add');
+    }else if(currentView == 'trafficList'){
+      $scope.popoverStatusChange('traffic','add');
+    }
+
+    $scope.status.currentView = currentView;
+    $scope.status.operationMode = operationMode;
+    $rootScope[position[2]].editIndex = -1;
+  };
+
+  $scope.toEditHotel = function(item, index) {
+    item.currentView = "hotelList";
+    $rootScope[position[2]].hotelDetail = angular.copy(item);
+    $rootScope[position[2]].editIndex = index;
+  };
+
+  $scope.chooseTraffic = function(item) {
+    $rootScope[position[2]].choosedTraffic = angular.copy(item);
+    $scope.selected.traffic = {};
+    $scope.selected.traffic[item.ID] = true;
+  };
+
+  $scope.unchooseTraffic = function() {
+    $rootScope[position[2]].choosedTraffic = '';
+    $scope.selected.traffic = {};
+  };
+
+  $scope.toEditTraffic = function(item, index) {
+    item.currentView = "trafficList";
+    $rootScope[position[2]].trafficDetail = angular.copy(item);
+    $rootScope[position[2]].editIndex = index;
+  };
+
+  $scope.delTraffic = function(item) {
+    $rootScope[position[2]].TrafficSchemes = _.without($rootScope[position[2]].TrafficSchemes, item);
+  };
+
+  $scope.printDetail = function() {
+    var data = document.getElementById('printDetail').innerHTML;
+    commitPrintData('POST', baseUrl + 'common/printing/convertToHtml', {
+      content: data
+    }, '_blank');
+  };
+
+});
+app.controller('productOrderDrivetourController', function($scope, $rootScope, PODrivetour, $filter, showWarningBox,
+  getAddrList, findInnerObjIndex, getAllScenicTypes, showSubHead, getProductInsurancesByProductIDWithTime,
+  closeSubView, showErrorInfo, bookingSelfdrivingtourOrder,getCustomerDetail,sendOrderInfo) {
+
+  $scope.arrowConf = {
+    left: 130,
+    useArrow: true
+  };
+
+  $scope.popConf = {
+    left: 10,
+    position: "bottom"
+  };
+
+  $scope.nowTime = new Date().getTime();
+
+  $scope.searchDrivetour = function() {
+
+    $rootScope[position[1]].search.iPageIndex = 1;
+    $rootScope[position[1]].search.iPageSize = $rootScope.pageLimit;
+    $rootScope[position[1]].search.SearchInfo = $rootScope[position[1]].search.SearchInfo;
+    $rootScope[position[1]].search.StationID = $rootScope[position[1]].search.station ? $rootScope[position[1]].search.station.GADDRID.$id : '';
+    $rootScope[position[1]].search.TravelDays = $rootScope[position[1]].search.TravelDays;
+    $rootScope[position[1]].search.LineTypeID = $rootScope[position[1]].search.LineTypeID;
+    $rootScope[position[1]].search.GaddrID = $rootScope[position[1]].search.domestic ? $rootScope[position[1]].search.domestic.GADDRID.$id : '';
+
+    PODrivetour.list(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.toggleShowTictetDetail = function(item) {
+    if (item.showDetail) {
+      item.showDetail = false;
+    } else {
+      item.showDetail = true;
+    }
+  };
+
+  $scope.$watch('detailData.packages', function(value) {
+    if (value !== undefined) {
+      $scope.selectedPackageChange();
+    }
+  }, true);
+
+  $scope.$watch('detailData.selectedPackage', function(value) {
+    if (value !== undefined) {
+      $scope.selectedPackageChange();
+    }
+  }, true);
+
+  $scope.selectedPackageChange = function() {
+    $rootScope[position[2]].packagesPrice = 0;
+    var note = '';
+
+    if(!$rootScope[position[2]].selectedPackage){
+      return ;
+    }
+
+    $rootScope[position[2]].packagesPrice += $rootScope[position[2]].selectedPackage.DefaultPrice * $rootScope[position[2]].selectedPackage.count;
+    note += $rootScope[position[2]].selectedPackage.Title + '*' + $rootScope[position[2]].selectedPackage.count + ';';
+
+    if ($rootScope[position[2]].OrderPriceRecord) {
+      if ($rootScope[position[2]].totalPrice === 0) {
+        var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+          type: 'packages'
+        });
+        if (removeIndex > -1) {
+          $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+        }
+        return;
+      }
+      var cost = {
+        BusinessTypeName: '套餐费用',
+        type: 'packages',
+        Price: $rootScope[position[2]].packagesPrice,
+        PriceNote: note,
+        BusinessMainTypeID: 1,
+        BusinessTypeID: 10002
+      };
+      var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'packages'
+      });
+      if (index > -1) {
+        $rootScope[position[2]].OrderPriceRecord[index] = cost;
+      } else {
+        $rootScope[position[2]].OrderPriceRecord.push(cost);
+      }
+    }
+  };
+
+  $scope.status = {
+    StartTime: false,
+    EndTime: false
+  };
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  $scope.openDatePickerContract = function($even, type, item) {
+    item[type] = true;
+  };
+
+  //滚动到最后加载数据
+  $scope.loadListData = function(viewID) {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.iPageIndex += 1;
+    PODrivetour.list(function(data) {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.$watch('detailData.orderCount', function(orderCount) {
+    if (orderCount !== undefined) {
+      var persostence = $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].DefaultPrice * $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].ChildPrice * $rootScope[position[2]].orderCount.childCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].BabyPrice * $rootScope[position[2]].orderCount.babyCount;
+      $rootScope[position[2]].orderPrice = {
+        persistence: persostence,
+        direct: persostence,
+        peer: $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerDefaultPrice * $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerChildPrice * $rootScope[position[2]].orderCount.childCount + $rootScope[position[2]].planDetail.ProductPlanPrice_isDefault1[0].PeerBabyPrice * $rootScope[position[2]].orderCount.babyCount,
+      };
+    }
+  }, true);
+
+    $scope.chooseCustomer = function(customer) {
+    if ($rootScope[position[2]].mode == 'order') {
+      getCustomerDetail(customer._id.$id,function(detail){
+        $rootScope[position[2]].MemberDetail = detail;
+
+        _.extend($rootScope[position[2]].customer, {
+          CustomerMobile: detail.CustomerMobile,
+          CustomerName: detail.CustomerName,
+          _id: detail._id
+        });
+
+        $rootScope[position[2]].showChangeCustomer = false;
+      });
+    } else {
+      showSubHead('下单详情', $rootScope.detailSwitchVal);
+      var url = 'productOrder/PODrivetour/drivetourOrder?mode=order&customerID=' + customer._id.$id;
+      url += '&ProductId=' + $rootScope[position[2]]._id.$id;
+      $rootScope.fetch(url, '');
+    }
+  };
+
+  $scope.getInsurancePrice = function() {
+    if ($rootScope[position[2]].StartTimeDate && $rootScope[position[2]].EndTimeDate) {
+      var timeDiff = Math.abs($rootScope[position[2]].EndTimeDate - $rootScope[position[2]].StartTimeDate);
+      $rootScope[position[2]].days = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+      if ($rootScope[position[2]].days < 1) {
+        $rootScope[position[2]].info = "请选择正确的出团时间";
+        return;
+      }
+      getProductInsurancesByProductIDWithTime({
+        ProductTypeID: "000000000000000000000013",
+        ProductID: $rootScope[position[2]].productDetail._id.$id,
+        StartTime: $filter('date')($rootScope[position[2]].StartTimeDate, "yyyy-MM-dd"),
+        EndTime: $filter('date')($rootScope[position[2]].EndTimeDate, "yyyy-MM-dd")
+      }, function(response) {
+        var selectInsurance = {};
+        $rootScope[position[2]].insurance.forEach(function(item) {
+          if (item.isSelected) {
+            selectInsurance[item.ProductInsuranceNo] = true;
+          }
+        });
+        $rootScope[position[2]].insurance = response;
+        $rootScope[position[2]].insurance.forEach(function(item) {
+          if (selectInsurance[item.ProductInsuranceNo]) {
+            item.isSelected = true;
+          }
+        });
+      });
+      $scope.insuranceWatchFun();
+    }
+  };
+
+  $scope.insuranceWatchFun = function() {
+    var price = 0;
+    var note = '';
+
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      if (item.isSelected) {
+        price += item.ProductInsurancePrice * $rootScope[position[2]].totalCount;
+        note += ' ' + item.ProductInsuranceName + " " + $rootScope[position[2]].totalCount + ' 份，';
+      }
+    });
+    note = note.replace(/，$/, '');
+
+    if (price === 0) {
+      var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'insurance'
+      });
+      if (removeIndex > -1) {
+        $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+      }
+      return;
+    }
+    var cost = {
+      BusinessTypeName: '保险费用',
+      type: 'insurance',
+      Price: price,
+      PriceNote: note,
+      BusinessMainTypeID: 1,
+      BusinessTypeID: 10001
+    };
+    var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+      type: 'insurance'
+    });
+    if (index > -1) {
+      $rootScope[position[2]].OrderPriceRecord[index] = cost;
+    } else {
+      $rootScope[position[2]].OrderPriceRecord.push(cost);
+    }
+  };
+
+  $scope.changeCustomer = function(isShow) {
+    $rootScope[position[2]].showChangeCustomer = isShow;
+  };
+
+  $scope.showAddCost = function(isShow, type) {
+    if(!$rootScope[position[2]].cose) $rootScope[position[2]].cose = {};
+
+    $rootScope[position[2]].cost.BusinessTypeName='';
+    $rootScope[position[2]].cost.Price='';
+    $rootScope[position[2]].cost.PriceNote='';
+    if (type) {
+      $rootScope[position[2]].costType = type;
+      if (type == 2) {
+        $rootScope[position[2]].showAddCost = isShow;
+        $rootScope[position[2]].showReduceCost = !isShow;
+      } else {
+        $rootScope[position[2]].showReduceCost = isShow;
+        $rootScope[position[2]].showAddCost = !isShow;
+      }
+    } else {
+      $rootScope[position[2]].showReduceCost = false;
+      $rootScope[position[2]].showAddCost = false;
+    }
+  };
+
+  $scope.addCost = function(flag) {
+    if(flag) return;
+
+    var param = angular.copy($rootScope[position[2]].cost);
+    param.BusinessMainTypeID = $rootScope[position[2]].costType;
+    $rootScope[position[2]].cost = {};
+    $rootScope[position[2]].OrderPriceRecord.push(param);
+
+    $scope.showAddCost(false);
+  };
+
+  $scope.$watch('detailData.OrderPriceRecord', function() {
+    $rootScope[position[2]].totalCost = 0;
+    if ($rootScope[position[2]].OrderPriceRecord !== undefined) {
+      $rootScope[position[2]].OrderPriceRecord.forEach(function(item) {
+        if (item.BusinessMainTypeID != 3) {
+          $rootScope[position[2]].totalCost += parseInt(item.Price);
+        } else {
+          $rootScope[position[2]].totalCost -= parseInt(item.Price);
+        }
+      });
+    }
+  }, true);
+
+  $scope.selectAllInsurance = function() {
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      item.isSelected = $rootScope[position[2]].isSelectAllInsurance;
+    });
+  };
+
+  $scope.$watch('detailData.peopleCount', function(value) {
+    if (value !== undefined) {
+      var removeIndexs = [];
+      var adultCount = 0;
+      var childCount = 0;
+      var babyCount = 0;
+      if ($rootScope[position[2]].OrderTourists) {
+        $rootScope[position[2]].OrderTourists.forEach(function(item) {
+          if (item.TouristType.id == 1 || item.TouristType.id == 2) {
+            if (adultCount >= value.AdultCount) {
+              removeIndexs.push(item.index);
+            }
+            adultCount++;
+          } else if (item.TouristType.id == 3) {
+            if (childCount >= value.ChildCount) {
+              removeIndexs.push(item.index);
+            }
+            childCount++;
+          } else if (item.TouristType.id == 4) {
+            if (babyCount >= value.BabyCount) {
+              removeIndexs.push(item.index);
+            }
+            babyCount++;
+          }
+        });
+      }
+      //删除多余的客户
+      removeIndexs.forEach(function(item) {
+        var removeCustomerIndex = _.findIndex($rootScope[position[2]].OrderTourists, {
+          index: item
+        });
+        $rootScope[position[2]].OrderTourists = _.without($rootScope[position[2]].OrderTourists, $rootScope[position[2]].OrderTourists[removeCustomerIndex]);
+      });
+      var customer = {
+        index: 0,
+        TouristType: {
+          id: 2,
+          value: '成人'
+        },
+        TouristName: '游客',
+        TouristMobile: '',
+        GenderTypeID: 1,
+        Certificate: {
+          id: 1,
+          value: '身份证'
+        },
+        TouristBirthday: '1949-10-01',
+        IsOccupying: true
+      };
+      //添加不够的客户
+      for (var i = 0; i < value.AdultCount - adultCount; i++) {
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var x = 0; x < value.ChildCount - childCount; x++) {
+        customer.TouristType = {
+          id: 3,
+          value: '小孩'
+        };
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var y = 0; y < value.BabyCount - babyCount; y++) {
+        customer.TouristType = {
+          id: 4,
+          value: '婴儿'
+        };
+        customer.IsOccupying = false;
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      //排序
+      var newIndex = 1;
+      $rootScope[position[2]].OrderTourists.forEach(function(item) {
+        item.index = newIndex;
+        newIndex++;
+      });
+
+      $rootScope[position[2]].totalCount = parseInt($rootScope[position[2]].peopleCount.AdultCount) + parseInt($rootScope[position[2]].peopleCount.BabyCount) + parseInt($rootScope[position[2]].peopleCount.ChildCount);
+      $scope.insuranceWatchFun();
+    }
+  }, true);
+
+  $scope.$watch('detailData.OrderTourists', function(value) {
+    if (value !== undefined) {
+
+    }
+  }, true);
+
+  $scope.showPrice = function() {
+    $rootScope[position[2]].isShowPrice = !$rootScope[position[2]].isShowPrice;
+  };
+
+  $scope.saveOrder = function() {
+    var param = {};
+
+    param.ProductId = $rootScope[position[2]].productDetail._id.$id;
+    param.CustomerId = $rootScope[position[2]].customer._id.$id;
+    param.IntentOrderId = $rootScope[position[2]].IntentOrderID || '';
+    param.OrderStartStatus = 3;
+    param.OrderSource = 2;
+
+    if($rootScope.userinfo.Department.ID.$id == "000000000000000000000794")
+      param.OrderSource = 10;
+
+    var salesman = $rootScope[position[2]].Salesman;
+    param.SalesmanId = salesman._id ? salesman._id.$id : '';
+    param.SalesmanName = salesman._id ? salesman.FullName : '';
+    param.AdultCount = $rootScope[position[2]].peopleCount.AdultCount;
+    param.BabyCount = $rootScope[position[2]].peopleCount.BabyCount;
+    param.ChildCount = $rootScope[position[2]].peopleCount.ChildCount;
+    if(param.AdultCount === 0&&param.BabyCount === 0&&param.ChildCount === 0){
+    $rootScope[position[2]].info = '请填添加游客';
+    return;
+    }
+
+    param.TotalNumber = param.AdultCount + param.BabyCount + param.ChildCount;
+    param.TotalSiteNumber = 0;
+    $rootScope[position[2]].OrderTourists.forEach(function(item) {
+      item.CertificatesTypeID = item.Certificate.id;
+      item.CertificatesTypeName = item.Certificate.value;
+      item.TouristTypeID = item.TouristType.id;
+      if (item.IsOccupying) {
+        param.TotalSiteNumber++;
+      }
+    });
+    param.OrderTourists = $rootScope[position[2]].OrderTourists;
+    param.TeamStartTime = $filter('date')($rootScope[position[2]].StartTimeDate, "yyyy-MM-dd");
+    param.TeamEndTime = $filter('date')($rootScope[position[2]].EndTimeDate, "yyyy-MM-dd");
+    param.TotalFinalPrice = $rootScope[position[2]].totalCost;
+    param.TotalSalesPrice = $rootScope[position[2]].packagesPrice;
+    param.CustomerEnlarge = {
+      CertificatesTypeID: $rootScope[position[2]].customer.Enlarge.CertificatesType.ForeignKeyID.$id,
+      CustomerEMail: $rootScope[position[2]].customer.CustomerEMail,
+      CustomerID: $rootScope[position[2]].customer._id.$id,
+      CustomerLocation: {
+        AreaID: $rootScope[position[2]].address.AreaID,
+        CityID: $rootScope[position[2]].address.city,
+        CountryID: $rootScope[position[2]].address.country,
+        CustomerPositionDetail: $rootScope[position[2]].address.CustomerPositionDetail,
+        ProvinceID: $rootScope[position[2]].address.region,
+        StreetID: $rootScope[position[2]].address.StreetID
+      },
+      CertificatesTypeName: $rootScope[position[2]].customer.Enlarge.CertificatesType.CertificatesTypeName,
+      CustomerMobile: $rootScope[position[2]].customer.CustomerMobile,
+      CustomerName: $rootScope[position[2]].customer.CustomerName,
+      TouristDocumentNumber: $rootScope[position[2]].customer.Enlarge.CustomerDocumentNumber,
+      EmergencyContactNotes: $rootScope[position[2]].EmergencyContactNotes,
+      BodyStateNotes:$rootScope[position[2]].BodyStateNotes
+    };
+    param.EmergencyContactNotes = $rootScope[position[2]].EmergencyContactNotes;
+    param.Insures = [];
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      if (item.isSelected) {
+        item.InsurancePrice = item.ProductInsurancePrice;
+        item.TotalInsurancePrice = item.InsurancePrice * param.TotalNumber;
+        param.Insures.push(item);
+      }
+    });
+    param.OrderNotes = $rootScope[position[2]].OrderNotes;
+    param.PriceRecord = $rootScope[position[2]].OrderPriceRecord;
+    param.ContractPayTypeAndTime = $rootScope[position[2]].ContractPayTypeAndTime;
+    param.OtherAppointment = $rootScope[position[2]].OtherAppointment;
+    param.OrderSelfDrivingPackage = [];
+
+    param.OrderSelfDrivingPackage.push({
+      SelfDrivingPackageID: $rootScope[position[2]].selectedPackage._id.$id,
+      BookingCount: $rootScope[position[2]].selectedPackage.count,
+      PackageTotalPrice: $rootScope[position[2]].selectedPackage.DefaultPrice * $rootScope[position[2]].selectedPackage.count
+    });
+    $scope.isSubmit = true;
+    bookingSelfdrivingtourOrder(param, function(response) {
+      $scope.isSubmit = false;
+      if(param.IntentOrderId) $rootScope.sendIntentionMessage(param.IntentOrderId);
+      sendOrderInfo(response);
+      // closeSubView();
+      // showErrorInfo('下单成功');
+      $rootScope.fetch('orderManagement/OMDriveTour/detail?id='+response,'');
+      // $rootScope.fetch('productOrder/PODrivetour/list');
+      $scope.searchDrivetour();
+    },function(){
+      $scope.isSubmit = false;
+    });
+  };
+
+  $scope.getPriceTitle = function(id) {
+    var index = _.findIndex($rootScope[position[2]].ProductPlanPrice.data, {
+      _id: id
+    });
+    return $rootScope[position[2]].ProductPlanPrice.data[index].Pricetitle;
+  };
+
+  $scope.agreeContract = [{
+    id: true,
+    value: '同意'
+  }, {
+    id: false,
+    value: '不同意'
+  }];
+
+  $scope.editFee = function(cost){
+    $rootScope[position[2]].feeTemp = angular.copy(cost);
+  };
+
+  $scope.deleteSubFee = function(cost){
+    showWarningBox("确定要删除该费用吗", function(){
+      $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, cost);
+    });
+  };
+
+  $scope.saveEditFeeInfo = function(cost){
+    cost.BusinessTypeName = $rootScope[position[2]].feeTemp.BusinessTypeName;
+    cost.Price = $rootScope[position[2]].feeTemp.Price;
+    cost.PriceNote = $rootScope[position[2]].feeTemp.PriceNote;
+    cost.isEdit = false;
+  };
+
+  $scope.cancelHandleFee = function(cost){
+    cost.isEdit = false;
+  };
+
+});
+app.controller('productOrderFreetourController', function($scope, $rootScope, POFreetour, $filter, getTeamtourPlanList,
+  findInnerObjIndex, HyDate, getTeamtourPlanDetail, showSubHead, saveOrderIndependenttravel, closeSubView, showErrorInfo,
+  getCustomerDetail,sendOrderInfo, showWarningBox, getFreeTourPlanPrice) {
+
+  $scope.arrowConf = {
+    left: 10,
+    useArrow: true
+  };
+
+  $scope.popConf = {
+    left: 10,
+    position: "bottom"
+  };
+
+  $scope.searchFreetour = function(type) {
+    $rootScope[position[1]].search.iPageIndex = 1;
+    $rootScope[position[1]].search.iPageSize = $rootScope.pageLimit;
+    $rootScope[position[1]].search.SearchInfo = $rootScope[position[1]].search.SearchInfo;
+    $rootScope[position[1]].search.StartTime = $filter('date')($rootScope[position[1]].search.StartTimeDate, 'yyyy-MM-dd');
+    $rootScope[position[1]].search.EndTime = $filter('date')($rootScope[position[1]].search.EndTimeDate, 'yyyy-MM-dd');
+    $rootScope[position[1]].search.StationId = $rootScope[position[1]].search.station ? $rootScope[position[1]].search.station._id.$id : '';
+    $rootScope[position[1]].search.TravelDays = $rootScope[position[1]].search.TravelDays;
+    $rootScope[position[1]].search.TravelType = $rootScope[position[1]].search.TravelType;
+    POFreetour.list(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.status = {
+    StartTime: false,
+    EndTime: false
+  };
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  $scope.openDatePickerContract = function($even, type, item) {
+    item[type] = true;
+  };
+
+  $scope.loadFreetourListData = function() {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.iPageIndex += 1;
+    POFreetour.list(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $rootScope[position[2]].operate = {
+    showPlanDetail: function(planDetailId, minPrice) {
+      // if (this.showPlanDetailId == planDetailId) {
+      //   this.showPlanDetailId = "";
+      // } else {
+        this.showPlanDetailId = planDetailId;
+        $rootScope[position[2]].minimumPrice = minPrice;
+        $scope.changePlan(planDetailId);
+      // }
+    },
+    showPlanDetailId: $rootScope[position[2]].PlanId
+  };
+
+  //日历的配置
+  $rootScope[position[2]].calendarOptions = {
+    calendarClass: "datetimePicker",
+    headClass: "calHead",
+    bodyClass: "calBody",
+    footClass: "calFoot",
+    headDateClass: "calHeadDate",
+    useShort: true,
+    viewDate: $rootScope[position[2]].PlanStartTime ? $rootScope[position[2]].PlanStartTime.substr(0, 10) : new Date(),
+
+    fillDay: function(day, date) {
+      if (!$rootScope[position[2]].prductPlanList) {
+        $rootScope[position[2]].prductPlanList = [];
+      }
+      var planDetail = _.find($rootScope[position[2]].prductPlanList, function(item) {
+        return item.StartTime.sec === date.getTime() / 1000;
+      });
+      var html = '<div class="cell_date">' + $filter('date')(date, 'dd') + '</div>';
+      if (undefined !== planDetail) {
+        var MorethanNumber = '<span class="gT">库存充足</span>';
+
+        var price = '价格无';
+        if (planDetail.PlanProject) {
+          planDetail.minimumPrice = getFreeTourPlanPrice(planDetail.PlanProject);
+          price = '￥' + planDetail.minimumPrice;
+        }          
+
+        html = '<div ng-click="operate.showPlanDetail(\'' + 　planDetail._id.$id + '\','+ planDetail.minimumPrice +');" ng-class="{\'day-active\':operate.showPlanDetailId==\'' + planDetail._id.$id + '\'}">'+
+        '<div class="cell_date yw">' + $filter('date')(date, 'dd') + '</div>'+
+        '<div class="priceRow">' + price + '</div>'+
+        '<div class="seatRow">' + MorethanNumber + '</div>'+
+        '</div>';
+      }
+      return html;
+    },
+
+    monthChange: function(datetime) {
+      getTeamtourPlanList({
+        ProductID: $rootScope[position[2]]._id.$id,
+        StartTime: $filter('date')(datetime, 'yyyy-MM')
+      }, function(response) {
+        $rootScope[position[2]].prductPlanList = response.list;
+        $rootScope[position[2]].reFill = true;
+      });
+    }
+  };
+
+  $scope.$watch('detailData.orderCount', function(orderCount) {
+    if (orderCount !== undefined) {
+      $rootScope[position[2]].totalPeopleCount = $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].orderCount.childCount;
+    }
+  }, true);
+
+  $scope.findPlanNameById = function(id) {
+    var index = findInnerObjIndex($rootScope[position[2]].schedule, ['_id', '$id'], id);
+    if (index > -1) {
+      $rootScope[position[2]].TripName = $rootScope[position[2]].schedule[index].Title;
+    }
+  };
+
+  $scope.changePlan = function(id) {
+    getTeamtourPlanDetail(id, function(response) {
+      $rootScope[position[2]].planDetail = response;
+      $scope.findPlanNameById(response.TripID.$id);
+    });
+  };
+
+  $scope.chooseOrderType = function(type, isShow) {
+    if (new Date().getTime() / 1000 > $rootScope[position[2]].planDetail.Finalorder.sec) {
+      $rootScope[position[2]].info = '已过下单截止时间';
+      return;
+    }
+    var count = $rootScope[position[2]].orderCount.adultCount + $rootScope[position[2]].orderCount.childCount;
+    if (count <= 0) {
+      $rootScope[position[2]].info = '请选择出游人数';
+      $rootScope[position[2]].orderType = 0;
+      return;
+    }
+    if ($rootScope[position[2]].orderType == type) {
+      $rootScope[position[2]].orderType = 0;
+    } else {
+      $rootScope[position[2]].orderType = type;
+    }
+    // $rootScope[position[2]].isShowChooseCustomer = !$rootScope[position[2]].isShowChooseCustomer;
+  };
+ 
+
+  $scope.chooseCustomer = function(customer) {
+    if ($rootScope[position[2]].mode == 'order') {
+      getCustomerDetail(customer._id.$id,function(detail){
+        $rootScope[position[2]].MemberDetail = detail;
+
+        _.extend($rootScope[position[2]].customer, {
+          CustomerMobile: detail.CustomerMobile,
+          CustomerName: detail.CustomerName,
+          _id: detail._id
+        });
+
+        $rootScope[position[2]].showChangeCustomer = false;
+      });
+
+    } else {
+      showSubHead('下单详情', $rootScope.detailSwitchVal);
+      var url = 'productOrder/POFreetour/freetourOrder?mode=order&customerID=' + customer._id.$id;
+      url += '&ProductId=' + $rootScope[position[2]].ProductId + '&PlanId=' + $rootScope[position[2]].operate.showPlanDetailId || $rootScope[position[2]].PlanId;
+      url += '&adultCount=' + $rootScope[position[2]].orderCount.adultCount;
+      url += '&childCount=' + $rootScope[position[2]].orderCount.childCount;
+      url += '&orderType=' + $rootScope[position[2]].orderType;
+      url += '&StartTime=' + $filter('date')($rootScope[position[2]].planDetail.StartTime.sec * 1000, 'yyyy-MM-dd');
+      url += '&EndTime=' + $filter('date')($rootScope[position[2]].planDetail.EndTime.sec * 1000, 'yyyy-MM-dd');
+      $rootScope.fetch(url, '');
+    }
+  };
+
+  $scope.changeCustomer = function(isShow) {
+    $rootScope[position[2]].showChangeCustomer = isShow;
+  };
+
+  $scope.showAddCost = function(isShow, type) {
+    if (!$rootScope[position[2]].cost) $rootScope[position[2]].cost = {};
+
+    $rootScope[position[2]].cost.BusinessTypeName = '';
+    $rootScope[position[2]].cost.Price = '';
+    $rootScope[position[2]].cost.PriceNote = '';
+    if (type) {
+      $rootScope[position[2]].costType = type;
+      if (type == 2) {
+        $rootScope[position[2]].showAddCost = isShow;
+        $rootScope[position[2]].showReduceCost = !isShow;
+      } else {
+        $rootScope[position[2]].showReduceCost = isShow;
+        $rootScope[position[2]].showAddCost = !isShow;
+      }
+    } else {
+      $rootScope[position[2]].showReduceCost = false;
+      $rootScope[position[2]].showAddCost = false;
+    }
+  };
+
+  $scope.addCost = function(flag) {
+    if (flag) return;
+    var param = angular.copy($rootScope[position[2]].cost);
+    param.BusinessMainTypeID = $rootScope[position[2]].costType;
+    $rootScope[position[2]].cost = {};
+    $rootScope[position[2]].OrderPriceRecord.push(param);
+
+    $scope.showAddCost(false);
+  };
+
+  $scope.$watch('detailData.OrderPriceRecord', function() {
+    $rootScope[position[2]].totalCost = 0;
+    if ($rootScope[position[2]].OrderPriceRecord !== undefined) {
+      $rootScope[position[2]].OrderPriceRecord.forEach(function(item) {
+        if (item.BusinessMainTypeID != 3) {
+          $rootScope[position[2]].totalCost += parseInt(item.Price);
+        } else {
+          $rootScope[position[2]].totalCost -= parseInt(item.Price);
+        }
+      });
+    }
+  }, true);
+
+  $scope.addOrderHolidayAppointment = function() {
+    var item = {
+      CompanyBreachOfContractRatio: 0,
+      EndDay: 0,
+      StartDay: 0,
+      TouristBreachOfContractRatio: 0
+    };
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment.push(item);
+  };
+
+  $scope.delOrderHolidayAppointment = function(item) {
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment = _.without($rootScope[position[2]].OrderContract.OrderHolidayAppointment, item);
+  };
+
+  $scope.selectAllInsurance = function() {
+    $rootScope[position[2]].InsureInfo.data.forEach(function(item) {
+      item.isSelected = $rootScope[position[2]].isSelectAllInsurance;
+    });
+  };
+
+  $scope.$watch('detailData.peopleCount', function(value) {
+    if (value !== undefined) {
+      var removeIndexs = [];
+      var adultCount = 0;
+      var childCount = 0;
+      var babyCount = 0;
+      if ($rootScope[position[2]].OrderTourists) {
+        $rootScope[position[2]].OrderTourists.forEach(function(item) {
+          if (item.TouristType.id == 1 || item.TouristType.id == 2) {
+            if (adultCount >= value.AdultCount) {
+              removeIndexs.push(item.index);
+            }
+            adultCount++;
+          } else if (item.TouristType.id == 3) {
+            if (childCount >= value.ChildCount) {
+              removeIndexs.push(item.index);
+            }
+            childCount++;
+          } else if (item.TouristType.id == 4) {
+            if (babyCount >= value.BabyCount) {
+              removeIndexs.push(item.index);
+            }
+            babyCount++;
+          }
+        });
+      }
+      //删除多余的客户
+      removeIndexs.forEach(function(item) {
+        var removeCustomerIndex = _.findIndex($rootScope[position[2]].OrderTourists, {
+          index: item
+        });
+        $rootScope[position[2]].OrderTourists = _.without($rootScope[position[2]].OrderTourists, $rootScope[position[2]].OrderTourists[removeCustomerIndex]);
+      });
+      var customer = {
+        index: 0,
+        TouristType: {
+          id: 2,
+          value: '成人'
+        },
+        TouristName: '游客',
+        TouristMobile: '',
+        GenderTypeID: 1,
+        Certificate: {
+          id: 1,
+          value: '身份证'
+        },
+        TouristDocumentNumber: '',
+        TouristSingleRoomType: {
+          id: 1,
+          value: '无'
+        },
+        // ProductPlanPriceID: selectedPrice._id,
+        TouristBirthday: '1949-10-01',
+        IsOccupying: true
+      };
+      //添加不够的客户
+      for (var i = 0; i < value.AdultCount - adultCount; i++) {
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var x = 0; x < value.ChildCount - childCount; x++) {
+        customer.TouristType = {
+          id: 3,
+          value: '小孩'
+        };
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      for (var y = 0; y < value.BabyCount - babyCount; y++) {
+        customer.TouristType = {
+          id: 4,
+          value: '婴儿'
+        };
+        customer.IsOccupying = false;
+        $rootScope[position[2]].OrderTourists.push(angular.copy(customer));
+      }
+      //排序
+      var newIndex = 1;
+      $rootScope[position[2]].OrderTourists.forEach(function(item) {
+        item.index = newIndex;
+        newIndex++;
+      });
+
+      $rootScope[position[2]].totalCount = parseInt($rootScope[position[2]].peopleCount.AdultCount) + parseInt($rootScope[position[2]].peopleCount.BabyCount) + parseInt($rootScope[position[2]].peopleCount.ChildCount);
+
+      $scope.insuranceWatchFun();
+      $scope.packagePriceFun();
+      $rootScope[position[2]].trafficProject.forEach(function(obj) {
+        obj.totalAdultPrice = -1;
+      });
+    }
+  }, true);
+
+  $scope.insuranceWatchFun = function() {
+    var price = 0;
+    var note = '';
+
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      if (item.isSelected) {
+        price += item.ProductInsurancePrice * $rootScope[position[2]].totalCount;
+        note += ' ' + item.ProductInsuranceName + " " + $rootScope[position[2]].totalCount + ' 份，';
+      }
+    });
+    note = note.replace(/，$/, '');
+
+    if (price === 0) {
+      var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'insurance'
+      });
+      if (removeIndex > -1) {
+        $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+      }
+      return;
+    }
+    var cost = {
+      BusinessTypeName: '保险费用',
+      // type: 'insurance',
+      BusinessTypeID: '10001',
+      Price: price,
+      PriceNote: note,
+      BusinessMainTypeID: 1
+    };
+    var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+      // type: 'insurance'
+      BusinessTypeID: '10001',
+    });
+    if (index > -1) {
+      $rootScope[position[2]].OrderPriceRecord[index] = cost;
+    } else {
+      $rootScope[position[2]].OrderPriceRecord.push(cost);
+    }
+  };
+
+  $scope.$watch('detailData.selectedTrafficProject', function(value) {
+    if (value === undefined) return;
+    $rootScope[position[2]].trafficProject.forEach(function(project, index) {
+      if (index == value)
+        project.isSelected = true;
+      else
+        project.isSelected = false;
+    });
+  });
+
+  $scope.$watch('detailData.trafficProject', function(projects) {
+    if (projects !== undefined) {
+      projects.forEach(function(project) {
+        project.totalAdultPrice = 0;
+        project.totalChildPrice = 0;
+
+        project.Traffics.forEach(function(traffic) {
+          if (traffic.isSelected) {
+            project.totalAdultPrice += $rootScope[position[2]].peopleCount.AdultCount * (traffic.AdultSellingPrice + traffic.AdultMachineBuildingFee);
+            project.totalChildPrice += $rootScope[position[2]].peopleCount.ChildCount * (traffic.ChildSellingPrice + traffic.ChildMachineBuildingFee);
+          }
+        });
+      });
+
+      $scope.packagePriceFun();
+    }
+  }, true);
+
+  $scope.$watch('detailData.selectedHotelProject', function(value) {
+    if (value === undefined) return;
+    $rootScope[position[2]].hotelProject.forEach(function(project, index) {
+      if (index == value)
+        project.isSelected = true;
+      else
+        project.isSelected = false;
+    });
+  });
+
+  $scope.$watch('detailData.hotelProject', function(projectSet) {
+    if (projectSet !== undefined) {
+      $scope.packagePriceFun();
+      projectSet.forEach(function(project) {
+        project.totalPrice = 0;
+        project.Hotels.forEach(function(hotel) {
+          hotel.HotelRooms.forEach(function(room) {
+            if (room.isSelected)
+              project.totalPrice += (room.number || 0) * room.SellingPrice;
+          });
+        });
+      });
+    }
+  }, true);
+
+  $scope.$watch('detailData.productDetail.Additionals', function(value) {
+    if (value !== undefined) {
+      var price = 0;
+      var note = '';
+      var totalNumber = 0;
+      $rootScope[position[2]].productDetail.Additionals.forEach(function(item) {
+        if (item.number) {
+          totalNumber += item.number;
+          price += item.AdultSellingPrice * item.number;
+          note += item.Title + ":" + (item.AdultSellingPrice * item.number) + "元；";
+        }
+      });
+      var cost = {
+        BusinessTypeName: '附加产品费用',
+        BusinessTypeID: '10003',
+        Price: price,
+        PriceNote: note,
+        BusinessMainTypeID: 1
+      };
+      var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        BusinessTypeID: '10003'
+      });
+      if (index > -1) {
+        if (totalNumber > 0)
+          $rootScope[position[2]].OrderPriceRecord[index] = cost;
+        else
+          $rootScope[position[2]].OrderPriceRecord.splice(index, 1);
+      } else {
+        if (totalNumber > 0)
+          $rootScope[position[2]].OrderPriceRecord.push(cost);
+      }
+    }
+  }, true);
+
+  $scope.packagePriceFun = function() {
+    var hotelPrice = 0;
+    var trafficPrice = 0;
+    var note = '';
+    $rootScope[position[2]].hotelProject.forEach(function(hotels) {
+      if (hotels.isSelected) {
+        hotels.Hotels.forEach(function(hotel) {
+          hotel.HotelRooms.forEach(function(room) {
+            if (room.isSelected) {
+              hotelPrice += room.SellingPrice * (room.number || 0);
+            }
+          });
+        });
+      }
+    });
+    $rootScope[position[2]].trafficProject.forEach(function(traffics) {
+      if (traffics.isSelected) {
+        trafficPrice += traffics.totalAdultPrice + traffics.totalChildPrice;
+      }
+    });
+    var cost = {
+      BusinessTypeName: '套餐费用',
+      BusinessTypeID: '10002',
+      Price: hotelPrice + trafficPrice,
+      PriceNote: "交通费用:" + trafficPrice + "元；酒店费用：" + hotelPrice + "元；",
+      BusinessMainTypeID: 1
+    };
+    var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+      BusinessTypeID: '10002'
+    });
+    if (index > -1) {
+      $rootScope[position[2]].OrderPriceRecord[index] = cost;
+    } else {
+      $rootScope[position[2]].OrderPriceRecord.push(cost);
+    }
+    $rootScope[position[2]].packagePrice = hotelPrice + trafficPrice;
+  };
+
+  $scope.showPrice = function() {
+    $rootScope[position[2]].isShowPrice = !$rootScope[position[2]].isShowPrice;
+  };
+
+  $scope.saveOrder = function() {
+    var param = {};
+
+    param.AdultCount = $rootScope[position[2]].peopleCount.AdultCount;
+    param.BabyCount = $rootScope[position[2]].peopleCount.BabyCount;
+    param.ChildCount = $rootScope[position[2]].peopleCount.ChildCount;
+
+    if ($rootScope[position[2]].customer.Enlarge.CertificatesType.length === 0) {
+      param.CustomerEnlarge = {
+        CertificatesTypeID: '',
+        CustomerEMail: $rootScope[position[2]].customer.CustomerEMail,
+        CustomerID: $rootScope[position[2]].customer._id.$id,
+        CustomerLocation: {
+          AreaID: $rootScope[position[2]].address.AreaID,
+          CityID: $rootScope[position[2]].address.city,
+          CountryID: $rootScope[position[2]].address.country,
+          CustomerPositionDetail: $rootScope[position[2]].address.CustomerPositionDetail,
+          ProvinceID: $rootScope[position[2]].address.region,
+          StreetID: $rootScope[position[2]].address.StreetID
+        },
+        CertificatesTypeName: '',
+        CustomerMobile: $rootScope[position[2]].customer.CustomerMobile,
+        CustomerName: $rootScope[position[2]].customer.CustomerName,
+        TouristDocumentNumber: $rootScope[position[2]].customer.Enlarge.CustomerDocumentNumber,
+        // EmergencyContactNotes: $rootScope[position[2]].EmergencyContactNotes,
+        BodyStateNotes: $rootScope[position[2]].BodyStateNotes
+      };
+    } else {
+      param.CustomerEnlarge = {
+        CertificatesTypeID: $rootScope[position[2]].customer.Enlarge.CertificatesType.ForeignKeyID.$id,
+        CustomerEMail: $rootScope[position[2]].customer.CustomerEMail,
+        CustomerID: $rootScope[position[2]].customer._id.$id,
+        CustomerLocation: {
+          AreaID: $rootScope[position[2]].address.AreaID,
+          CityID: $rootScope[position[2]].address.city,
+          CountryID: $rootScope[position[2]].address.country,
+          CustomerPositionDetail: $rootScope[position[2]].address.CustomerPositionDetail,
+          ProvinceID: $rootScope[position[2]].address.region,
+          StreetID: $rootScope[position[2]].address.StreetID
+        },
+        CertificatesTypeName: $rootScope[position[2]].customer.Enlarge.CertificatesType.CertificatesTypeName,
+        CustomerMobile: $rootScope[position[2]].customer.CustomerMobile,
+        CustomerName: $rootScope[position[2]].customer.CustomerName,
+        TouristDocumentNumber: $rootScope[position[2]].customer.Enlarge.CustomerDocumentNumber,
+        BodyStateNotes: $rootScope[position[2]].BodyStateNotes
+      };
+    }
+
+    param.EmergencyContactNotes = $rootScope[position[2]].EmergencyContactNotes;
+    param.CustomerId = $rootScope[position[2]].customer._id.$id;
+    param.Insures = [];
+
+    if (param.AdultCount === 0 && param.BabyCount === 0 && param.ChildCount === 0) {
+      $rootScope[position[2]].info = '请填添加游客';
+      return;
+    }
+    param.TotalNumber = param.AdultCount + param.BabyCount + param.ChildCount;
+    $rootScope[position[2]].insurance.forEach(function(item) {
+      if (item.isSelected) {
+        item.InsurancePrice = item.ProductInsurancePrice;
+        item.TotalInsurancePrice = item.InsurancePrice * param.TotalNumber;
+        param.Insures.push(item);
+      }
+    });
+    param.IntentOrderId = $rootScope[position[2]].IntentOrderID || '';
+    param.OrderNotes = $rootScope[position[2]].OrderNotes;
+
+    param.OrderType = 1;
+
+    param.PlanId = $rootScope[position[2]].PlanId;
+    param.ProductId = $rootScope[position[2]].ProductId;
+    param.TotalFinalPrice = $rootScope[position[2]].totalCost;
+    param.TotalSalesPrice = $rootScope[position[2]].packagePrice;
+    param.PriceRecord = $rootScope[position[2]].OrderPriceRecord;
+    param.OrderTourists = $rootScope[position[2]].OrderTourists;
+    param.TotalSiteNumber = 0;
+    $rootScope[position[2]].OrderTourists.forEach(function(item) {
+      item.CertificatesTypeID = item.Certificate.id;
+      item.CertificatesTypeName = item.Certificate.value;
+      item.TouristTypeID = item.TouristType.id;
+      if (item.IsOccupying) {
+        param.TotalSiteNumber++;
+      }
+    });
+    param.OrderSource = 2;
+
+    if ($rootScope[position[2]].orderType == 1) {
+      param.OrderStartStatus = 2;
+      param.IsPeerOrder = false;
+    } else if ($rootScope[position[2]].orderType == 2) {
+      param.IsPeerOrder = false;
+      param.OrderStartStatus = 3;
+    } else {
+      param.IsPeerOrder = true;
+      param.OrderStartStatus = 3;
+      param.OrderSource = 4;
+    }
+
+    if ($rootScope.userinfo.Department.ID.$id == "000000000000000000000794")
+      param.OrderSource = 10;
+
+    var salesman = $rootScope[position[2]].Salesman;
+    param.SalesmanId = salesman._id ? salesman._id.$id : '';
+    param.SalesmanName = salesman._id ? salesman.FullName : '';
+    param.HotelSchemes = [];
+    param.TrafficSchemes = [];
+    param.Additionals = [];
+    $rootScope[position[2]].hotelProject.forEach(function(hotels) {
+      if (hotels.isSelected) {
+        hotels.Hotels.forEach(function(hotel) {
+          hotel.HotelRooms.forEach(function(room) {
+            if (room.isSelected) {
+              var roomParam = {
+                FAGuid: hotels.baseid.$id,
+                HotelGuid: hotel.ForeignKeyID.$id,
+                RoomGuid: room.ForeignKeyID.$id,
+                StartTime: $filter('date')(hotel.DepartureTime.sec * 1000, 'yyyy-MM-dd'),
+                EndTime: $filter('date')(hotel.DepartureTime.sec * 1000 + 24 * 3600 * 1000 * hotel.Days, 'yyyy-MM-dd'),
+                BookingNumber: room.number,
+                RoomPersonNumber: room.LiveNumber,
+                RoomPrice: room.SellingPrice
+              };
+              param.HotelSchemes.push(roomParam);
+            }
+          });
+        });
+      }
+    });
+    $rootScope[position[2]].trafficProject.forEach(function(traffics) {
+      if (traffics.isSelected) {
+        traffics.Traffics.forEach(function(traffic) {
+          if (traffic.isSelected) {
+            var trafficParam = {
+              FAGuid: traffics.baseid.$id,
+              TrafficGuid: traffic.ForeignKeyID.$id,
+              AdultNumber: param.AdultCount,
+              ChildNumber: param.ChildCount,
+              BabyNumber: param.BabyCount
+            };
+            param.TrafficSchemes.push(trafficParam);
+          }
+        });
+      }
+    });
+    $rootScope[position[2]].productDetail.Additionals.forEach(function(item) {
+      var additional = {
+        ProductGuid: item.ForeignKeyID.$id,
+        FAGuid: 1,
+        AdultNumber: item.number,
+        ChildNumber: 0,
+        ProductType: item.ProductType.ForeignKeyID.$id
+      };
+      param.Additionals.push(additional);
+    });
+
+    if ($rootScope[position[2]].OrderContract) {
+      param.ContractPayTypeAndTime = $rootScope[position[2]].OrderContract.ContractPayTypeAndTime;
+      param.OtherAppointment = $rootScope[position[2]].OrderContract.OtherAppointment;
+    } else {
+      param.ContractPayTypeAndTime = "";
+      param.OtherAppointment = "";
+    }
+
+    $scope.isSubmit = true;
+    saveOrderIndependenttravel(param, function(response) {
+      $scope.isSubmit = false;
+      if(param.IntentOrderId) $rootScope.sendIntentionMessage(param.IntentOrderId);
+      // closeSubView();
+      // showErrorInfo('下单成功');
+      sendOrderInfo(response);
+      $rootScope.fetch('orderManagement/OMFreeTour/detail?id='+response,'');
+      // $rootScope.fetch('productOrder/POFreetour/list');
+      $scope.searchFreetour();
+    }, function() {
+      $scope.isSubmit = false;
+    });
+  };
+
+  $scope.getPriceTitle = function(id) {
+    var index = _.findIndex($rootScope[position[2]].ProductPlanPrice.data, {
+      _id: id
+    });
+    return $rootScope[position[2]].ProductPlanPrice.data[index].Pricetitle;
+  };
+
+  $scope.toggleProject = function(item) {
+    if (item.isShow) {
+      item.isShow = false;
+    } else {
+      item.isShow = true;
+    }
+  };
+
+  $scope.printDetail = function() {
+    var data = document.getElementById('printDetail').innerHTML;
+    commitPrintData('POST', baseUrl + 'common/printing/convertToHtml', {
+      content: data
+    }, '_blank');
+  };
+
+  $scope.editFee = function(cost){
+    $rootScope[position[2]].feeTemp = angular.copy(cost);
+  };
+
+  $scope.deleteSubFee = function(cost){
+    showWarningBox("确定要删除该费用吗", function(){
+      $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, cost);
+    });
+  };
+
+  $scope.saveEditFeeInfo = function(cost){
+    cost.BusinessTypeName = $rootScope[position[2]].feeTemp.BusinessTypeName;
+    cost.Price = $rootScope[position[2]].feeTemp.Price;
+    cost.PriceNote = $rootScope[position[2]].feeTemp.PriceNote;
+    cost.isEdit = false;
+  };
+
+  $scope.cancelHandleFee = function(cost){
+    cost.isEdit = false;
+  };
+
+});
+app.controller('productOrderCruiseController', function($scope, $rootScope, POcruise, $filter, findInnerObjIndex,
+  getTeamtourPlanList, showSubHead, bookingTeamOrder, closeSubView, getTeamtourPlanDetail, showErrorInfo, showWarningBox,
+  getCustomerDetail,sendOrderInfo) {
+  $scope.arrowConf = {
+    left: 130,
+    useArrow: true
+  };
+
+  $scope.popConf = {
+    left: 10,
+    position: "bottom"
+  };
+
+  $scope.agreeContract = [{
+    id: true,
+    value: '同意'
+  }, {
+    id: false,
+    value: '不同意'
+  }];
+
+  $scope.status = {};
+
+  $rootScope[position[2]].operate = {
+    showPlanDetail: function(planDetailId) {
+      // if (this.showPlanDetailId == planDetailId) {
+      //   this.showPlanDetailId = "";
+      // } else {
+        this.showPlanDetailId = planDetailId;
+        $scope.changePlan(planDetailId);
+      // }
+    },
+    showPlanDetailId: $rootScope[position[2]].PlanId
+  };
+
+  //日历的配置
+  $rootScope[position[2]].calendarOptions = {
+    calendarClass: "datetimePicker",
+    headClass: "calHead",
+    bodyClass: "calBody",
+    footClass: "calFoot",
+    headDateClass: "calHeadDate",
+    useShort: true,
+    viewDate: $rootScope[position[2]].PlanStartTime ? $rootScope[position[2]].PlanStartTime.substr(0, 10) : new Date(),
+
+    fillDay: function(day, date) {
+      if (!$rootScope[position[2]].prductPlanList) {
+        $rootScope[position[2]].prductPlanList = [];
+      }
+      var planDetail = _.find($rootScope[position[2]].prductPlanList, function(item) {
+        return item.StartTime.sec === date.getTime() / 1000;
+      });
+      var html = '<div class="cell_date">' + $filter('date')(date, 'dd') + '</div>';
+
+      if (undefined !== planDetail) {
+        html = '<div ng-click="operate.showPlanDetail(\'' + 　planDetail._id.$id + '\');" ng-class="{\'day-active\':operate.showPlanDetailId==\''+ planDetail._id.$id +'\'}"><div class="cell_date yw">' + $filter('date')(date, 'dd') + '</div>';
+        var MorethanNumber = planDetail.MorethanNumber && planDetail.MorethanNumber !== '' ? planDetail.MorethanNumber : 0;
+        MorethanNumber = parseInt(MorethanNumber);
+        // MorethanNumber = MorethanNumber > 9 ? '<span class="gT">库存充足</span>' : '库存：<font>' + MorethanNumber + '</font>';
+        MorethanNumber = '库存:<font>' + MorethanNumber + '</font>';
+        var price = '价格无';
+        if (undefined !== planDetail.ProductPlanPrice && null !== planDetail.ProductPlanPrice && planDetail.ProductPlanPrice.length > 0) {
+          var tempPrice = 0;
+          var hasDeduct = false;
+          planDetail.ProductPlanPrice.forEach(function(thePrice, theIndex){
+            if (null !== thePrice.Deductiblevoucher && "" !== thePrice.Deductiblevoucher && thePrice.Deductiblevoucher > 0) {
+              if(!hasDeduct){
+                html = '<span class="offset">抵</span>' + html;
+                hasDeduct = true;
+              }
+            }
+            if(0 === theIndex){
+              tempPrice = thePrice.DefaultPrice;
+            }else{
+              if(thePrice.DefaultPrice < tempPrice){
+                tempPrice = thePrice.DefaultPrice;
+              }
+            }
+          });
+          price = '￥' + tempPrice;
+        }
+        html += '<div class="priceRow">' + price + '</div><div class="seatRow">' + MorethanNumber + '</div></div>';
+      }
+      return html;
+    },
+
+    monthChange: function(datetime) {
+      getTeamtourPlanList({
+        ProductID: $rootScope[position[2]]._id.$id,
+        StartTime: $filter('date')(datetime, 'yyyy-MM')
+      }, function(response) {
+        $rootScope[position[2]].prductPlanList = response.list;
+        $rootScope[position[2]].reFill = true;
+      });
+    }
+  };
+
+
+  $scope.findPlanNameById = function(id) {
+    var index = findInnerObjIndex($rootScope[position[2]].schedule, ['_id', '$id'], id);
+    if (index > -1) {
+      $rootScope[position[2]].TripName = $rootScope[position[2]].schedule[index].Title;
+    }
+  };
+
+  $scope.changePlan = function(id) {
+    getTeamtourPlanDetail(id, function(response) {
+      $rootScope[position[2]].planDetail = response;
+      $scope.findPlanNameById(response.TripID.$id);
+    });
+  };
+
+  $scope.searchCruisePlan = function() {
+    $rootScope[position[1]].search.iPageIndex = 1;
+    $rootScope[position[1]].search.StartTime = $filter('date')($rootScope[position[1]].search.StartTimeDate, 'yyyy-MM-dd');
+    $rootScope[position[1]].search.EndTime = $filter('date')($rootScope[position[1]].search.EndTimeDate, 'yyyy-MM-dd');
+    $rootScope[position[1]].search.SearchInfo = $rootScope[position[1]].search.SearchInfo;
+    POcruise.list(function(data) {
+      $rootScope[position[1]].list = data.list;
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  $scope.loadCruiseListData = function() {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.iPageIndex += 1;
+    POcruise.list(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.chooseOrderType = function(type, isShow) {
+    if(new Date().getTime()/1000 > $rootScope[position[2]].planDetail.Finalorder.sec){
+      $rootScope[position[2]].info = '已过下单截止时间';
+      return;
+    }
+    if($rootScope[position[2]].orderType == type){
+      $rootScope[position[2]].orderType = 0;
+    }else {
+      $rootScope[position[2]].orderType = type;
+    }
+    $rootScope[position[2]].isShowChooseCustomer = !$rootScope[position[2]].isShowChooseCustomer;
+  };
+
+  $scope.chooseCustomer = function(customer) {
+    if ($rootScope[position[2]].mode == 'order') {
+      getCustomerDetail(customer._id.$id,function(detail){
+        $rootScope[position[2]].MemberDetail = detail;
+
+        _.extend($rootScope[position[2]].ContactInfo, {
+          CustomerMobile: detail.CustomerMobile,
+          CustomerName: detail.CustomerName,
+          _id: detail._id.$id
+        });
+
+        $rootScope[position[2]].showChangeCustomer = false;
+      });
+    } else {
+      showSubHead('下单详情', $rootScope.detailSwitchVal);
+      var url = 'productOrder/POcruise/cruiseOrder?mode=order&customerID=' + customer._id.$id;
+      url += '&ProductId=' + $rootScope[position[2]].ProductId + '&PlanId=' + $rootScope[position[2]].operate.showPlanDetailId || $rootScope[position[2]].PlanId;
+      url += '&orderType=' + $rootScope[position[2]].orderType;
+      url += '&peerCompanyName=' + $rootScope[position[2]].planDetail.PeerCompanyName;
+      $rootScope.fetch(url, '');
+    }
+  };
+
+  $scope.selectPrice = function(item) {
+    if ($rootScope[position[2]].selectedPrice[item.planFinance._id]) {
+      var priceDetail = {
+        detail: item,
+        adultCount: 0,
+        childCount: 0,
+        id: item.planFinance._id,
+        roomCount: 0,
+        subCost: 0,
+        roomPrice: 0
+      };
+      $rootScope[position[2]].selectedPriceDetail.push(priceDetail);
+    } else {
+      var index = _.findIndex($rootScope[position[2]].selectedPriceDetail, {
+        id: item.planFinance._id
+      });
+      $rootScope[position[2]].selectedPriceDetail = _.without($rootScope[position[2]].selectedPriceDetail, $rootScope[position[2]].selectedPriceDetail[index]);
+    }
+  };
+
+
+   $scope.showAddCost = function(isShow, type) {
+    if(!$rootScope[position[2]].cost) $rootScope[position[2]].cose = {};
+
+    $rootScope[position[2]].cost.BusinessTypeName='';
+    $rootScope[position[2]].cost.Price='';
+    $rootScope[position[2]].cost.PriceNote='';
+    if (type) {
+      $rootScope[position[2]].costType = type;
+      if (type == 2) {
+
+        $rootScope[position[2]].showAddCost = isShow;
+        $rootScope[position[2]].showReduceCost = !isShow;
+      } else {
+        $rootScope[position[2]].showReduceCost = isShow;
+        $rootScope[position[2]].showAddCost = !isShow;
+      }
+    } else {
+      $rootScope[position[2]].showReduceCost = false;
+      $rootScope[position[2]].showAddCost = false;
+    }
+  };
+
+ $scope.addCost = function(flag) {
+    if(flag) return;
+
+    var param = angular.copy($rootScope[position[2]].cost);
+    param.BusinessMainTypeID = $rootScope[position[2]].costType;
+    $rootScope[position[2]].cost = {};
+    $rootScope[position[2]].OrderPriceRecord.push(param);
+
+    $scope.showAddCost(false);
+  };
+
+
+  $scope.$watch('detailData.selectedPriceDetail', function(value) {
+    if (value !== undefined) {
+      $rootScope[position[2]].totalPeopleCount = 0;
+      $rootScope[position[2]].totalRoomCount = 0;
+      $rootScope[position[2]].totalOfferedCost = 0;
+      $rootScope[position[2]].totalHarbourCost = 0;
+      $rootScope[position[2]].peopleCount = {
+        AdultCount: 0,
+        BabyCount: 0,
+        ChildCount: 0,
+      };
+      var note = '';
+      var harbourNote = '';
+      $rootScope[position[2]].selectedPriceDetail.forEach(function(item) {
+        item.adultCount = parseInt(item.adultCount);
+        item.childCount = parseInt(item.childCount);
+        item.roomCount = parseInt(item.roomCount);
+        $rootScope[position[2]].totalPeopleCount += item.adultCount;
+        $rootScope[position[2]].totalPeopleCount += item.childCount;
+        $rootScope[position[2]].peopleCount.AdultCount += item.adultCount;
+        $rootScope[position[2]].peopleCount.ChildCount += item.childCount;
+        $rootScope[position[2]].totalRoomCount += item.roomCount;
+
+        if ($rootScope[position[2]].orderType == 1 || $rootScope[position[2]].orderType == 2) {
+          if (item.detail.planFinanceCruise.ShippingSpace.MaxNumber > 2) {
+            item.roomPrice = item.detail.planFinance.DefaultPrice * 2 + item.detail.planFinanceCruise.DefaultPrice34 * (item.detail.planFinanceCruise.ShippingSpace.MaxNumber - 2);
+          } else {
+            item.roomPrice = item.detail.planFinance.DefaultPrice * item.detail.planFinanceCruise.ShippingSpace.MaxNumber;
+          }
+        } else {
+          if (item.detail.planFinanceCruise.ShippingSpace.MaxNumber > 2) {
+            item.roomPrice = item.detail.planFinance.PeerDefaultPrice * 2 + item.detail.planFinanceCruise.PeerDefaultPrice34 * (item.detail.planFinanceCruise.ShippingSpace.MaxNumber - 2);
+          } else {
+            item.roomPrice = item.detail.planFinance.PeerDefaultPrice * item.detail.planFinanceCruise.ShippingSpace.MaxNumber;
+          }
+        }
+        note += item.detail.planFinance.Pricetitle + ' * ' + item.roomCount + ' ' + item.roomPrice + '，';
+
+        item.subCost = item.roomPrice * item.roomCount;
+
+        $rootScope[position[2]].totalOfferedCost += item.subCost;
+        $rootScope[position[2]].totalHarbourCost += item.detail.planFinanceCruise.HarbourTaxes;
+        harbourNote += item.detail.planFinance.Pricetitle + ':' + item.detail.planFinanceCruise.HarbourTaxes + '*' + (item.adultCount + item.childCount) + ';';
+      });
+
+      note = note.replace(/，$/, '');
+
+      var cost = {
+        BusinessTypeName: '房间费用',
+        type: 'Offered',
+        Price: $rootScope[position[2]].totalOfferedCost,
+        PriceNote: note,
+        BusinessMainTypeID: 1,
+        BusinessTypeID: 10008
+      };
+      var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'Offered'
+      });
+      if (index > -1) {
+        $rootScope[position[2]].OrderPriceRecord[index] = cost;
+      } else {
+        $rootScope[position[2]].OrderPriceRecord.push(cost);
+      }
+
+      /*暂时不需要港务费
+      var harbourCost = {
+        BusinessTypeName: '港务费',
+        type: 'Harbour',
+        Price: $rootScope[position[2]].totalHarbourCost,
+        PriceNote: note,
+        BusinessMainTypeID: 1
+      };
+      var harbourIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'Harbour'
+      });
+      if (harbourIndex > -1) {
+        $rootScope[position[2]].OrderPriceRecord[harbourIndex] = harbourCost;
+      } else {
+        $rootScope[position[2]].OrderPriceRecord.push(harbourCost);
+      }
+      */
+
+      $scope.changePackageCost();
+      $scope.insuranceWatchFun();
+    }
+  }, true);
+
+  $scope.$watch('detailData.ProductInfo.data.CruisePackages', function(value) {
+    if (value !== undefined) {
+      $scope.changePackageCost();
+    }
+  }, true);
+
+
+  $scope.$watch('detailData.InsureInfo.data', function(value) {
+    if (value !== undefined) {
+      $scope.insuranceWatchFun();
+    }
+  }, true);
+
+  $scope.selectAllInsurance = function() {
+    $rootScope[position[2]].InsureInfo.data.forEach(function(item) {
+      item.isSelected = $rootScope[position[2]].isSelectAllInsurance;
+    });
+  };
+
+  $scope.selectAllPackage = function() {
+    $rootScope[position[2]].ProductInfo.data.CruisePackages.forEach(function(item) {
+      item.isSelected = $rootScope[position[2]].isSelectAllPackage;
+    });
+  };
+
+  $scope.insuranceWatchFun = function() {
+    if ($rootScope[position[2]].InsureInfo.data.length > 0 && $rootScope[position[2]].totalPeopleCount !== undefined) {
+      var price = 0;
+      var note = '';
+      var selected = 0;
+      $rootScope[position[2]].InsureInfo.data.forEach(function(item) {
+        if (item.isSelected) {
+          price += item.ProductInsurancePrice * $rootScope[position[2]].totalPeopleCount;
+          note += ' ' + item.ProductInsuranceName + " " + $rootScope[position[2]].totalPeopleCount + ' 份，';
+          selected++;
+        }
+      });
+      note = note.replace(/，$/, '');
+
+      if (selected > 0) $rootScope[position[2]].agreeInsurance = '1';
+      else $rootScope[position[2]].agreeInsurance = '0';
+
+      if (price === 0) {
+        var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+          type: 'insurance'
+        });
+        if (removeIndex > -1) {
+          $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+        }
+        return;
+      }
+      var cost = {
+        BusinessTypeName: '保险费用',
+        type: 'insurance',
+        Price: price,
+        PriceNote: note,
+        BusinessMainTypeID: 1,
+        BusinessTypeID:10001
+      };
+      var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'insurance'
+      });
+      if (index > -1) {
+        $rootScope[position[2]].OrderPriceRecord[index] = cost;
+      } else {
+        $rootScope[position[2]].OrderPriceRecord.push(cost);
+      }
+    } else {
+      $rootScope[position[2]].agreeInsurance = '0';
+    }
+  };
+
+  $scope.changePackageCost = function() {
+    var note = '';
+    var price = 0;
+    /*$rootScope[position[2]].ProductInfo.data.CruisePackages.forEach(function(item) {
+      if (item.isSelected) {
+        price += $rootScope[position[2]].totalPeopleCount * item.PackagesPrice;
+        note += item.PackagesType + ':' + $rootScope[position[2]].totalPeopleCount + '*' + item.PackagesPrice + ';';
+      }
+    });*/
+    //Update by LZW
+    if ($rootScope[position[2]].selectedPackage) {
+      price += $rootScope[position[2]].totalPeopleCount * $rootScope[position[2]].selectedPackage.PackagesPrice;
+      note += $rootScope[position[2]].selectedPackage.PackagesType + ':' + $rootScope[position[2]].totalPeopleCount + '*' + $rootScope[position[2]].selectedPackage.PackagesPrice + ';';
+    }
+
+    if (price === 0) {
+      var removeIndex = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+        type: 'Package'
+      });
+      if (removeIndex > -1) {
+        $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, $rootScope[position[2]].OrderPriceRecord[removeIndex]);
+      }
+      return;
+    }
+    var cost = {
+      BusinessTypeName: '套餐费用',
+      type: 'Package',
+      Price: price,
+      PriceNote: note,
+      BusinessMainTypeID: 1,
+      BusinessTypeID:10002
+    };
+    var index = _.findIndex($rootScope[position[2]].OrderPriceRecord, {
+      type: 'Package'
+    });
+    if (index > -1) {
+      $rootScope[position[2]].OrderPriceRecord[index] = cost;
+    } else {
+      $rootScope[position[2]].OrderPriceRecord.push(cost);
+    }
+  };
+
+  $scope.$watch('detailData.OrderPriceRecord', function() {
+    $rootScope[position[2]].totalCost = 0;
+    if ($rootScope[position[2]].OrderPriceRecord !== undefined) {
+      $rootScope[position[2]].OrderPriceRecord.forEach(function(item) {
+        if (item.BusinessMainTypeID != 3) {
+          $rootScope[position[2]].totalCost += parseInt(item.Price);
+        } else {
+          $rootScope[position[2]].totalCost -= parseInt(item.Price);
+        }
+      });
+    }
+  }, true);
+
+  $scope.addOrderHolidayAppointment = function() {
+    var item = {
+      CompanyBreachOfContractRatio: 0,
+      EndDay: 0,
+      StartDay: 0,
+      EndDayDate: new Date(),
+      StartDayDate: new Date(),
+      TouristBreachOfContractRatio: 0
+    };
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment.push(item);
+  };
+
+  $scope.delOrderHolidayAppointment = function(item) {
+    $rootScope[position[2]].OrderContract.OrderHolidayAppointment = _.without($rootScope[position[2]].OrderContract.OrderHolidayAppointment, item);
+  };
+
+  $scope.openDatePickerContract = function($even, type, item) {
+    item[type] = true;
+  };
+
+  $scope.saveOrder = function() {
+    var param = {};
+
+    param.AdultCount = $rootScope[position[2]].peopleCount.AdultCount;
+    param.BabyCount = $rootScope[position[2]].peopleCount.BabyCount;
+    param.ChildCount = $rootScope[position[2]].peopleCount.ChildCount;
+
+    if (param.AdultCount === 0 && param.BabyCount === 0 && param.ChildCount === 0) {
+      $rootScope[position[2]].info = '请填添加游客';
+      return;
+    }
+    param.IntentOrderId = $rootScope[position[2]].IntentOrderID || '';
+
+    param.CustomerEnlarge = {
+      CertificatesTypeID: $rootScope[position[2]].ContactInfo.CertificatesType,
+      CustomerEMail: $rootScope[position[2]].ContactInfo.CustomerEMail,
+      CustomerID: $rootScope[position[2]].ContactInfo._id,
+      CustomerLocation: {
+        AreaID: $rootScope[position[2]].Location.AreaID,
+        CityID: $rootScope[position[2]].address.city,
+        CountryID: $rootScope[position[2]].address.country,
+        CustomerPositionDetail: $rootScope[position[2]].Location.CustomerPositionDetail,
+        ProvinceID: $rootScope[position[2]].address.region,
+        StreetID: $rootScope[position[2]].Location.StreetID
+      },
+      CustomerMobile: $rootScope[position[2]].ContactInfo.CustomerMobile,
+      CustomerName: $rootScope[position[2]].ContactInfo.CustomerName,
+      TouristDocumentNumber: $rootScope[position[2]].ContactInfo.CustomerDocumentNumber,
+      BodyStateNotes: $rootScope[position[2]].ContactInfo.BodyStateNotes
+    };
+    param.EmergencyContactNotes = $rootScope[position[2]].ContactInfo.EmergencyContactNotes;
+    param.CustomerId = $rootScope[position[2]].ContactInfo._id;
+
+    if (!$rootScope[position[2]].ContactInfo.CustomerName) {
+      $rootScope[position[2]].info = '请填写联系人';
+      return;
+    }
+    if (!$rootScope[position[2]].ContactInfo.CustomerMobile) {
+      $rootScope[position[2]].info = '请填写联系号码';
+      return;
+    }
+    param.Insures = [];
+    param.TotalNumber = param.AdultCount + param.BabyCount + param.ChildCount;
+    $rootScope[position[2]].InsureInfo.data.forEach(function(item) {
+      if (item.isSelected) {
+        item.InsurancePrice = item.ProductInsurancePrice;
+        item.TotalInsurancePrice = item.InsurancePrice * param.TotalNumber;
+        param.Insures.push(item);
+      }
+    });
+    param.OrderContract = $rootScope[position[2]].OrderContract;
+    param.OrderContract.OrderHolidayAppointment.forEach(function(item) {
+      item.EndDay = $filter('date')(item.EndDayDate, 'yyyy-MM-dd');
+      item.StartDay = $filter('date')(item.StartDayDate, 'yyyy-MM-dd');
+    });
+    param.OrderNotes = $rootScope[position[2]].OrderNotes;
+    param.PlanId = $rootScope[position[2]].PlanInfo.data._id;
+    param.ProductId = $rootScope[position[2]].ProductInfo.data.ProductCruise._id;
+    $rootScope[position[2]].TeamInfo.data.forEach(function(item) {
+      if (item.isSelected) {
+        param.TeamId = item._id;
+      }
+    });
+    param.TotalFinalPrice = $rootScope[position[2]].totalCost;
+    param.TotalSalesPrice = $rootScope[position[2]].totalOfferedCost;
+    param.PriceRecord = $rootScope[position[2]].OrderPriceRecord;
+    // param.OrderTourists = $rootScope[position[2]].OrderTourists;
+    param.TotalSiteNumber = param.AdultCount + param.ChildCount;
+    param.Cruise = {
+      CruiseRooms: [],
+      Packages: [],
+      StationId: $rootScope[position[2]].ProductInfo.data.ProductCruise.StationID,
+    };
+
+    /*   $rootScope[position[2]].ProductInfo.data.CruisePackages.forEach(function(item) {
+         if (item.isSelected) {
+           var package = {
+             CruisePackage:{
+
+               PackagesContent:item.PackagesContent,
+               PackagesTitle:item.PackagesType
+             },
+             ForeignKeyID:item.ForeignKeyID,
+             OrderCruisePackageAdultTotalNumber: $rootScope[position[2]].peopleCount.AdultCount,
+             OrderCruisePackageChildTotalNumber: $rootScope[position[2]].peopleCount.ChildCount,
+             PackagesPrice: item.PackagesPrice
+           };
+           param.Cruise.Packages.push(package);
+         }
+       });*/
+    //Update by LZW
+    if ($rootScope[position[2]].selectedPackage) {
+      var package = {
+        CruisePackage: {
+
+          PackagesContent: $rootScope[position[2]].selectedPackage.PackagesContent,
+          PackagesTitle: $rootScope[position[2]].selectedPackage.PackagesType
+        },
+        ForeignKeyID: $rootScope[position[2]].selectedPackage.ForeignKeyID,
+        OrderCruisePackageAdultTotalNumber: $rootScope[position[2]].peopleCount.AdultCount,
+        OrderCruisePackageChildTotalNumber: $rootScope[position[2]].peopleCount.ChildCount,
+        PackagesPrice: $rootScope[position[2]].selectedPackage.PackagesPrice
+      };
+      param.Cruise.Packages.push(package);
+    }
+
+    param.OrderTourists = [];
+
+    $rootScope[position[2]].selectedPriceDetail.forEach(function(item) {
+      var touristCount = item.adultCount + item.childCount;
+      var cruiseRoom = {
+        ForeignKeyID: item.detail.planFinanceCruise.ShippingSpace.ForeignKeyID,
+        OrderRoomAdultTotalNumber: item.adultCount,
+        OrderRoomChildTotalNumber: item.childCount,
+        OrderRoomTotalNumber: item.roomCount,
+        ProductPlanPriceID: item.detail.planFinance._id,
+        ProductPlanPriceName: item.detail.planFinance.Pricetitle,
+        RoomsPrice: item.roomPrice,
+        CruiseCabin: {
+          CruiseCabinName: item.detail.planFinanceCruise.ShippingSpace.Title,
+          ForeignKeyID: item.detail.planFinanceCruise.ShippingSpace.ForeignKeyID,
+          MaxNumber: item.detail.planFinanceCruise.ShippingSpace.MaxNumber,
+          MinNumber: item.detail.planFinanceCruise.ShippingSpace.MinNumber,
+          ShippingSpaceType: item.detail.planFinanceCruise.ShippingSpace.ShippingSpaceType
+        }
+      };
+      param.Cruise.CruiseRooms.push(cruiseRoom);
+      for(var i = 0; i < touristCount; i++){
+        var customer = {
+          index: 0,
+          TouristTypeID: 2,
+          TouristName: '游客',
+          TouristMobile: '',
+          GenderTypeID: 1,
+          CertificatesTypeID: 1,
+          CertificatesTypeName: '身份证',
+          TouristDocumentNumber: '',
+          TouristSingleRoomTypeID: 1,
+          ProductPlanPriceID: item.detail.planFinance._id,
+          ProductPlanPriceName: item.detail.planFinance.Pricetitle,
+          TouristBirthday: '1949-10-01',
+          IsOccupying: true,
+          TouristPrice: 0
+        };
+        param.OrderTourists.push(customer);
+      }
+    });
+
+    // $rootScope[position[2]].OrderTourists.forEach(function(item) {
+    //   item.CertificatesTypeID = item.Certificate.id;
+    //   item.CertificatesTypeName = item.Certificate.value;
+    //   item.TouristPrice = item.lastPrice;
+    //   item.TouristSingleRoomTypeID = item.TouristSingleRoomType.id;
+    //   item.TouristTypeID = item.TouristType.id;
+    //   item.ProductPlanPriceName = $scope.getPriceTitle(item.ProductPlanPriceID);
+    //   item.TouristSingleRoomPrice = item.roomPrice ? item.roomPrice : 0;
+    //   if (item.IsOccupying) {
+    //     param.TotalSiteNumber++;
+    //   }
+    // });
+    // param.TouristRelationTypes = [];
+    // $rootScope[position[2]].TouristRelationTypesList.data.forEach(function(item) {
+    //   if (item.isSelected) {
+    //     var relation = {
+    //       TouristRelationTypeId: item._id,
+    //       TouristRelationTypeName: item.Name
+    //     };
+    //     param.TouristRelationTypes.push(relation);
+    //   }
+    // });
+    param.OrderType = 18;
+    param.OrderSource = 2;
+
+    if ($rootScope[position[2]].orderType == 1) {
+      param.OrderStartStatus = 2;
+      param.IsPeerOrder = false;
+    } else if ($rootScope[position[2]].orderType == 2) {
+      param.IsPeerOrder = false;
+      param.OrderStartStatus = 3;
+    } else {
+      param.IsPeerOrder = true;
+      param.OrderStartStatus = 3;
+      param.OrderSource = 4;
+    }
+
+    if ($rootScope.userinfo.Department.ID.$id == "000000000000000000000794")
+      param.OrderSource = 10;
+
+    var salesman = $rootScope[position[2]].Salesman;
+    param.SalesmanId = salesman._id ? salesman._id.$id : '';
+    param.SalesmanName = salesman._id ? salesman.FullName : '';
+    $scope.isSubmit = true;
+    bookingTeamOrder(param, function(response) {
+      $scope.isSubmit = false;
+      if(param.IntentOrderId) $rootScope.sendIntentionMessage(param.IntentOrderId);
+      sendOrderInfo(response);
+      // closeSubView();
+      // showErrorInfo('下单成功');
+      $rootScope.fetch('orderManagement/OMCruise/detail?id='+response,'');
+      $scope.searchCruisePlan();
+    },function(){
+      $scope.isSubmit = false;
+    });
+  };
+
+  $scope.printDetail = function() {
+    var data = document.getElementById('printDetail').innerHTML;
+    commitPrintData('POST', baseUrl + 'common/printing/convertToHtml', {
+      content: data
+    }, '_blank');
+  };
+
+  $scope.editFee = function(cost){
+    $rootScope[position[2]].feeTemp = angular.copy(cost);
+  };
+
+  $scope.deleteSubFee = function(cost){
+    showWarningBox("确定要删除该费用吗", function(){
+      $rootScope[position[2]].OrderPriceRecord = _.without($rootScope[position[2]].OrderPriceRecord, cost);
+    });
+  };
+
+  $scope.saveEditFeeInfo = function(cost){
+    cost.BusinessTypeName = $rootScope[position[2]].feeTemp.BusinessTypeName;
+    cost.Price = $rootScope[position[2]].feeTemp.Price;
+    cost.PriceNote = $rootScope[position[2]].feeTemp.PriceNote;
+    cost.isEdit = false;
+  };
+
+  $scope.cancelHandleFee = function(cost){
+    cost.isEdit = false;
+  };
+
+  $scope.changePersonNumber = function(item){
+    var count  = item.adultCount + item.childCount;
+    var minRoomCount = Math.floor(count/item.detail.planFinanceCruise.ShippingSpace.MaxNumber);
+    if(count%item.detail.planFinanceCruise.ShippingSpace.MaxNumber !== 0){
+      minRoomCount++;
+    }
+    if(item.roomCount < minRoomCount){
+      item.roomCount = minRoomCount;
+    }
+    if(item.roomCount === 0){
+      item.adultCount = 0;
+      item.childCount = 0;
+    }
+  };
+
+});

@@ -1,0 +1,210 @@
+/**
+ * 迪士尼门票库存管理Route
+ */
+angular.module("purchaseCenterRoute").service("PCDisneyTicketReservation",
+		PCDisneyTicketReservation);
+
+PCDisneyTicketReservation.$inject = ["DTRGetList" ,"DTRGetDetail"];
+
+function PCDisneyTicketReservation(DTRGetList,DTRGetDetail) {
+	var PCDisneyTicketReservation = {};
+	PCDisneyTicketReservation.list = list;// 显示列表
+	PCDisneyTicketReservation.detail = detail;// 显示组的详细信息
+	PCDisneyTicketReservation.add=add;//显示添加页面
+	return PCDisneyTicketReservation;
+
+	// //////////////
+
+	function list(callback, param) {
+		DTRGetList(param, constructResponse);
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+
+	function detail(callback, param) {
+		DTRGetDetail(param,constructResponse);
+		function constructResponse(response){
+			callback(response);
+		}
+	}
+	
+	function add(callback, param) {
+			callback({});
+	}
+}/**
+ * 迪士尼门票库存管理Route
+ */
+angular.module("purchaseCenterRoute").service("PCDisneyTicketWarehouse",
+		PCDisneyTicketWarehouse);
+
+PCDisneyTicketWarehouse.$inject = ["DTWGetList" ,"DTWGetDetail"];
+
+function PCDisneyTicketWarehouse(DTWGetList,DTWGetDetail) {
+	var PCDisneyTicketWarehouse = {};
+	PCDisneyTicketWarehouse.list = list;// 显示列表
+	PCDisneyTicketWarehouse.detail = detail;// 显示组的详细信息
+	PCDisneyTicketWarehouse.add=add;//显示添加页面
+	return PCDisneyTicketWarehouse;
+
+	// //////////////
+
+	function list(callback, param) {
+		DTWGetList(param, constructResponse);
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+
+	function detail(callback, param) {
+		DTWGetDetail(param,constructResponse);
+		function constructResponse(response){
+			callback(response);
+		}
+	}
+	
+	function add(callback, param) {
+			callback({});
+	}
+}angular.module("purchaseCenterRoute").service("PCDisneyHotel", function(getDisneyHotelList, getDisneyHotelDetail) {
+	var disneyHotel = {};
+
+	disneyHotel.list = function(callback, param){
+		var data = {};
+		getDisneyHotelList(param, function(hotels){
+			data.hotels = hotels;
+			callback(data);
+		});
+	};
+
+	disneyHotel.detail = function(callback, param){
+		getDisneyHotelDetail(param, function(hotelDetail){
+			hotelDetail.scopeInfo = {
+				allNum: 0,
+				roomAvail: true,
+				roomAvailCode: true,
+				submitLoading: false,
+				dayPriceAll: 0,
+				canBook: true,
+				subContentID: 1
+			};
+			hotelDetail.scopeInfo.userInfo = {
+				guestGender: "MALE"
+			};
+			hotelDetail.scopeInfo.datePicker={
+				isOpened: false,
+				endDate: null
+			};
+			var date = new Date(hotelDetail.VisitDate.replace(/-/g, "/"));
+			date.setDate(date.getDate() + 1);
+			hotelDetail.scopeInfo.datePicker.endDate = date;
+			hotelDetail.scopeInfo.dayPrice = [];
+			hotelDetail.scopeInfo.orderInfo = {};
+			callback(hotelDetail);
+		});
+	};
+
+	return disneyHotel;
+});
+/**
+ * 迪士尼门票统计管理Route
+ */
+angular.module("purchaseCenterRoute").service("PCDisneyTicketStatistics",
+		PCDisneyTicketStatistics);
+
+// PCDisneyTicketStatistics.$inject = ["DTSGetList" ,"DTSGetDetail"];
+
+function PCDisneyTicketStatistics(DTSGetList,DTSGetDetail) {
+	var PCDisneyTicketReservation = {};
+	PCDisneyTicketStatistics.list = list;// 显示列表
+	PCDisneyTicketStatistics.detail = detail;// 显示组的详细信息
+
+	return PCDisneyTicketStatistics;
+
+
+
+	function list(callback, param) {
+		// DTSGetList(param, constructResponse);
+		// function constructResponse(response) {
+			callback();
+		// }
+	}
+
+	function detail(callback, param) {
+		DTSGetDetail(param,constructResponse);
+		function constructResponse(response){
+			callback(response);
+		}
+	}
+
+
+}
+/**
+ * 成本管理列表route
+ */
+purchaseCenterRoute.service("Cost", function ($rootScope, _, getCostList,getCostDetail,getCostBasicInfo,getAllDestination) {
+    var CostRoute = {};
+    CostRoute.list = function (callback, param) {
+        var data = {};
+        data.search = {
+            limit: pageLimit,
+            page: 1
+        };
+        if (param) {
+            data.search = _.extend(data.search, param);
+            console.log(param);
+        }
+        getCostList(data.search, function (response) {
+            response.list.forEach(function (item) {
+                item.showUrl = 'purchaseCenter/Cost/detail?id=' + item._id.$id;
+            });
+            data.list = response.list;
+            /*getCostBasicInfo(function(response1){
+                data.allDestinations = response1.allDestinations;
+                //console.log(response1);
+                callback(data);
+            });*/
+            //console.log(response);
+            callback(data);
+        });
+    };
+
+    CostRoute.edit = function(callBack, param) {
+        var data = {};
+        getCostDetail(param.id, function(response) {
+            data = response;
+            getCostBasicInfo(function(response1){
+                data.allDestinations = response1.allDestinations;
+                //console.log(response1);
+                callBack(data);
+            });
+            //console.log(response);
+            //callBack(data);
+        });
+    };
+
+    CostRoute.detail = function(callback, param) {
+        var data = {};
+        getCostDetail(param.id, function(response) {
+            data = response;
+            data.editUrl = 'purchaseCenter/Cost/edit?id=' + data._id.$id;
+            console.log(response);
+            callback(data);
+        });
+    };
+
+
+    CostRoute.add = function(callback, param) {
+        var data = {};
+
+        getCostBasicInfo(function(response){
+            data.allDestinations = response.allDestinations;
+            console.log(response);
+            callback(data);
+        });
+
+    };
+
+    return CostRoute;
+});
+

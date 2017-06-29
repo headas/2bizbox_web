@@ -1,0 +1,953 @@
+/**
+ * 迪士尼门票库存管理获取列表
+ */
+angular.module("purchaseCenterService").factory("DTRGetList",DTRGetList);
+function DTRGetList($http){
+	return func;
+	function func(params,callback){
+		callback({});
+	}
+}
+
+/**
+ * 迪士尼门票库存管理获取详细信息
+ */
+angular.module("purchaseCenterService").factory("DTRGetDetail",DTRGetDetail);
+function DTRGetDetail($http){
+	return func;
+	function func(params,callback){
+		callback({});
+	}
+}
+/**
+ * 迪士尼门票库存管理Factory
+ */
+angular.module("HY").filter("ticketNameFilter", ticketNameFilter);
+function ticketNameFilter() {
+	return func;
+	function func(item) {
+		var str = item;
+		return str.replace("成人", "").split("（")[0]
+	}
+}
+angular.module("HY").filter("noTheatre", noTheatre);
+function noTheatre() {
+	return func;
+	function func(items) {
+		var results = [];
+		for (item in items) {
+			if (items[item].tag != "theatre") {
+				results.push(items[item]);
+			}
+		}
+		return results;
+	}
+}
+/**
+ * filter 过滤出产品类型
+ */
+angular.module("HY").filter("disneyProductName", disneyProductName);
+function disneyProductName() {
+	return func;
+	function func(item) {
+		switch (item) {
+		case "adult":
+			return "成人票";
+		case "elder":
+			return "老年票";
+		case "child":
+			return "儿童票";
+		case "one_day":
+			return "单日票";
+		case "one_day_through":
+			return "单日通票";
+		case "two_day":
+			return "两日票";
+		case "two_day_through":
+			return "两日通票";
+		case "count":
+			return "总量";
+		default:
+			return "";
+		}
+	}
+}
+/**
+ * filter 只显示值为true的item
+ */
+angular.module("HY").filter("onlyTrue", onlyTrue);
+function onlyTrue() {
+	return func;
+	function func(items) {
+		var list = [];
+		angular.forEach(items, function(value, key) {
+			if (value) {
+				list.push(key)
+			}
+		});
+		return list;
+	}
+}
+
+/**
+ * filter 过滤配额的显示
+ */
+angular.module("HY").filter("unusedFilter", unusedFilter);
+function unusedFilter() {
+	return func;
+	function func(item) {
+		var newItem = item;
+		if (newItem <= 0) {
+			newItem = '无配额';
+		}
+		return newItem;
+	}
+}
+/**
+ * 迪士尼门票库存管理获取列表
+ */
+angular.module("purchaseCenterService").factory("DTWGetList", DTWGetList);
+function DTWGetList($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketAPI + "getStocksForAMonth";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : params
+		}).then(success, fail);
+		function success(response) {
+			callback({
+				list : response.data
+			});
+		}
+		function fail(response) {
+			callback(response);
+		}
+	}
+}
+/**
+ * 迪士尼门票库存管理，获取
+ */
+/**
+ * 迪士尼门票库存管理，获取产品基本信息
+ */
+angular.module("purchaseCenterService").factory("DTWGetProducts", DTWGetProducts);
+function DTWGetProducts($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyProductAPI + "getProducts";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : params
+		}).then(success, fail);
+		function success(response) {
+			global.disney.products = response.data;
+			for ( var ageProducts in global.disney.products) {
+				for ( var typeProduct in ageProducts.Products) {
+					global.disney.products[ageProducts].Products[typeProduct].orderNum = 0;
+				}
+			}
+			callback(global.disney.products);
+		}
+		function fail(response) {
+			callback(response);
+		}
+	}
+}
+/**
+ * 预定列表
+ */
+angular.module("purchaseCenterService").factory("DTWGetReservation", DTWGetReservation);
+function DTWGetReservation($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketAPI + "getReservationForADay";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : params
+		}).then(success, fail);
+		function success(response) {
+			callback(response);
+		}
+		function fail(response) {
+			callback(response);
+		}
+	}
+}
+/**
+ * 获取订单历史，即获取采购成功的票
+ */
+angular.module("purchaseCenterService").factory("DTWGetOrderHistory", DTWGetOrderHistory);
+function DTWGetOrderHistory($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketAPI + "getTicketsForADay";
+		HYhttp($http, {
+			url : api,
+			data : params,
+			method : "POST"
+		}).then(success, fail);
+		function success(response) {
+			var d1 = response.data[0].orderHistory;
+			d1.forEach(function(d, i, a) {
+				d.OrderTickets.forEach(function(value, index, array) {
+					array[index].Description = _.find(d.OrderLines, function(item) {
+						return item.PLU == value.PLU
+					}).Name.split("（")[0];
+					array[index].Price = _.find(d.OrderLines, function(item) {
+						return item.PLU == value.PLU
+					}).Price;
+				});
+			});
+			callback(response);
+		}
+		function fail(response) {
+			return [];
+		}
+	}
+}
+/**
+ * 迪士尼门票库存管理获取详细信息
+ */
+angular.module("purchaseCenterService").factory("DTWGetDetail", DTWGetDetail);
+function DTWGetDetail($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketAPI + "getStockForADay";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : params
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data[0]);
+		}
+		function fail(response) {
+			callback(response);
+		}
+	}
+}
+/**
+ * 向迪士尼提交预定订单，以占用位置
+ */
+angular.module("purchaseCenterService").factory("DTWsubmitReservationToDisney", DTWsubmitReservationToDisney);
+function DTWsubmitReservationToDisney($http) {
+	return func;
+	function func(input, callback) {
+		var api = disneyTicketOfficialAPI + "OccupyOrder";
+		var params = {};
+		angular.copy(input, params);
+		delete params["age"];
+		delete params["type"];
+		delete params["name"];
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : {
+				Parameter : JSON.stringify(params)
+			}
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+			return;
+			var status = response.data.Status;
+			var result = {};
+			switch (status) {
+			case 1:
+				result.error = 1;
+				result.Tip = response.StatusText;
+				result.response = response.data;
+				result.order = params;
+				break;
+			case 501:
+				result.error = 501;
+				result.Tip = "此票不可售";
+				result.response = response.data;
+				result.order = params;
+				break;
+			case 226:
+				result.error = 226;
+				result.Tip = "接口加密不正确，请联系信息中心";
+				result.response = response.data;
+				result.order = params;
+				break;
+			case 404:
+				result.error = 404;
+				result.Tip = "无票";
+				result.reponse = response.data;
+				result.order = params;
+				break;
+			case 0:
+				result.response = response.data;
+				result.order = params;
+				break;
+			default:
+				result.Tip = response.data.StatusText;
+				result.response = response.data;
+				break;
+			}
+			callback(result);
+		}
+		function fail(response) {
+			callback({
+				error : 1,
+				tip : "Disney官方接口错误",
+				response : response
+			});
+		}
+	}
+}
+/**
+ * 提交预定订单，以占用位置
+ */
+angular.module("purchaseCenterService").factory("DTWsubmitReservationToAPI", DTWsubmitReservationToAPI);
+function DTWsubmitReservationToAPI($http) {
+	return func;
+	function func(params, callback) {
+		console.log("In DTWsubmitReservationToAPI");
+		var api = disneyTicketAPI + "saveAReservation";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : {
+				data : JSON.stringify(params)
+			}
+		}).then(success, fail);
+		function success(response) {
+			callback(response);
+		}
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/**
+ * 提交订单到Disney，以成单
+ */
+angular.module("purchaseCenterService").factory("DTWsubmitReservationForFinalOrderToDisney", DTWsubmitReservationForFinalOrderToDisney);
+function DTWsubmitReservationForFinalOrderToDisney($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketOfficialAPI + "ConfirmOrder";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : {
+				Parameter : JSON.stringify(params)
+			}
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+
+}
+
+/**
+ * 提交订单到API，以成单
+ */
+angular.module("purchaseCenterService").factory("DTWsubmitReservationForFinalOrderToAPI", DTWsubmitReservationForFinalOrderToAPI);
+function DTWsubmitReservationForFinalOrderToAPI($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketAPI + "confirmOrder";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : params
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+
+}
+
+/**
+ * 取消预定订单到disney
+ */
+angular.module("purchaseCenterService").factory("DTWCancelReservationToDisney", DTWCancelReservationToDisney);
+function DTWCancelReservationToDisney($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketOfficialAPI + "CancelOrder";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : {
+				Parameter : JSON.stringify(params)
+			}
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+
+}
+
+/**
+ * 取消预定订单到api
+ */
+angular.module("purchaseCenterService").factory("DTWCancelReservationToAPI", DTWCancelReservationToAPI);
+function DTWCancelReservationToAPI($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketAPI + "cancelOrder";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : params
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+}
+/**
+ * 更新一天的配额
+ */
+angular.module("purchaseCenterService").factory("DTWupdateAllotmentForADay", DTWupdateAllotmentForADay);
+function DTWupdateAllotmentForADay($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyProductAPI + "getAllotmentForADay";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : params
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+}
+/**
+ * 更改票的日期到DisneyAPI
+ */
+angular.module("purchaseCenterService").factory("DTWchangeTicketDateToDisney", DTWchangeTicketDateToDisney);
+function DTWchangeTicketDateToDisney($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketOfficialAPI + "TicketExchange";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : {
+				Parameter : JSON.stringify(params)
+			}
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+}
+/**
+ * 更改票的日期到API
+ */
+angular.module("purchaseCenterService").factory("DTWchangeTicketDateToAPI", DTWchangeTicketDateToAPI);
+function DTWchangeTicketDateToAPI($http) {
+	return func;
+	function func(params, callback) {
+		var api = disneyTicketAPI + "changeTicketDate";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : params
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+}
+
+angular.module("purchaseCenterService").factory("updateAllotmentForAMonthFromAPI", updateAllotmentForAMonthFromAPI);
+function updateAllotmentForAMonthFromAPI($http) {
+	return func;
+	function func(month, callback) {
+		var api = disneyProductAPI + "getAllotmentForAMonth" + "/" + month;
+		HYhttp($http, {
+			url : api,
+			method : "GET"
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+}
+
+/**
+ * 发送迪士尼信息
+ * OperationMobile，OperationNotes，OperationTypeID【2】，OrderID【订单ID】，SMSOrderStatus【2暂留或预定，3提交或成交，4取消】
+ */
+angular.module("purchaseCenterService").factory("sendDisneyMessage", sendDisneyMessage);
+function sendDisneyMessage($http) {
+	return func;
+	function func(param, callback) {
+		var api = dreamFlyUrl + "BasicData/SystemOperation/AddSMSRequest";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : {
+				SMSRecord : JSON.stringify(param)
+			}
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+}
+angular.module("purchaseCenterService").factory("updateProductPriceForADayFromAPI", updateProductPriceForADayFromAPI);
+function updateProductPriceForADayFromAPI($http) {
+	return func;
+	function func(date, callback) {
+		var api = disneyProductAPI + "getProductForADayFromAPI" + "/" + date;
+		HYhttp($http, {
+			url : api,
+			method : "GET"
+		}).then(success, fail);
+		function success(response) {
+			callback(response.data);
+		}
+		function fail(response) {
+
+		}
+	}
+}angular.module("purchaseCenterService").factory("getDisneyHotelList", function($http, $rootScope) {
+  return function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "purchaseCenter/Disney/DisneyHotel/getHotelList",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+					var nowDate = Date();
+          result.list.forEach(function(hotel) {
+						// if(null === hotel.CutOff || "" === hotel.CutOff){
+						// 	hotel.canBook = true;
+						// 	return true;
+						// }
+						// var date = new Date(hotel.CutOff.replace(/-/g,"/"));
+						// if(date > nowDate){
+							// hotel.canBook = true;
+							hotel.detailUrl = "purchaseCenter/PCDisneyHotel/detail?time=" + hotel.VisitDate;
+						// }
+          });
+          callBack(result);
+        } else {
+          // showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+angular.module("purchaseCenterService").factory("getDisneyHotelDetail", function($http) {
+  return function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "purchaseCenter/Disney/DisneyHotel/getHotelDetail",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var hotelDetail = response.data.data;
+          for (var hotelCode in hotelDetail.Hotels) {
+            var rooms = hotelDetail.Hotels[hotelCode];
+            for (var roomCode in rooms) {
+              var room = rooms[roomCode];
+              room.orderNum = {};
+              if ('block' in room && room[room.block].Stock.bookingStatus == 'OPEN' && room[room.block].Stock.NumberOfUnits > 0) {
+                room.Price = room[room.block].Price;
+                if (undefined == room.Price) {
+                  room.Price = {};
+                  room.Stock = {
+                    bookType: 3,
+                    number: 0
+                  };
+                } else {
+                  room.Price.PriceTypeCode = room.block;
+                  room.Stock = {
+                    bookType: 1,
+                    number: room[room.block].Stock.NumberOfUnits
+                  };
+                }
+              } else if ('avail' in room) {
+                room.Price = room[room.avail].Price;
+                if (undefined == room.Price) {
+                  room.Price = {};
+                  room.Stock = {
+                    bookType: 3,
+                    number: 0
+                  };
+                } else {
+                  room.Price.PriceTypeCode = room.avail;
+                  if (room[room.avail].Stock.actionCode == 'Open') {
+                    room.Stock = {
+                      bookType: 2,
+                      number: 0
+                    };
+                  } else {
+                    room.Stock = {
+                      bookType: 3,
+                      number: 0
+                    };
+                  }
+                }
+              }
+            }
+          }
+          callBack(hotelDetail);
+        } else {
+          // showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+angular.module("purchaseCenterService").factory("getDisneyHotelContent", function($http) {
+  return function(callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "purchaseCenter/Disney/DisneyHotel/getAllHotel",
+        method: "GET"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          // showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+angular.module("purchaseCenterService").factory("getDisneyRoomContent", function($http) {
+  return function(callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "purchaseCenter/Disney/DisneyHotel/getAllRoom",
+        method: "GET"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          // showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+angular.module("purchaseCenterService").factory("getDisneyHotelOrderLog", function($http) {
+  return function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "purchaseCenter/Disney/DisneyHotel/getHotelOrderLog",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          // showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+angular.module("purchaseCenterService").factory("getDisneyHotelOrderCancel", function($http) {
+  return function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "purchaseCenter/Disney/DisneyHotel/cancelOrder",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          // showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+angular.module("purchaseCenterService").factory("disneyHotelOrderSubmit", function($http) {
+  return function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "purchaseCenter/Disney/DisneyHotel/submit",
+        data: {
+          orderInfo: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          // showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+angular.module("purchaseCenterService").factory("disneyHotelBookAvailable", function($http) {
+  return function(param, callBack) {
+    HYhttp(
+      $http, {
+        url: baseUrl + "purchaseCenter/Disney/DisneyHotel/isBookAvailable",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          // showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+//module
+
+//获取成本列表
+purchaseCenterService.factory("getCostList", function ($http,$rootScope) {
+    return function (param, callBack) {
+        console.log(JSON.stringify(withoutFlaseKey(param)));
+        HYhttp(
+            $http, {
+                url: productUrl + "cost/costs/findList",
+                data: {
+                    json: JSON.stringify(withoutFlaseKey(param))
+                },
+                method: "POST"
+            }).then(
+            function (response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    console.log(response.data.data);
+                    callBack(response.data.data);
+                } else {
+                    //showErrorInfo(response.data);
+                }
+            },
+            function () {
+            });
+    };
+});
+
+purchaseCenterService.factory("getCostDetail", function($http,$rootScope) {
+    return function(id, callBack) {
+        var param = {
+            id: id
+        };
+        HYhttp(
+            $http, {
+                url: productUrl + "cost/costs/findOneById",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    console.log(response.data.data)
+                    callBack(response.data.data);
+                } else {
+                    //showErrorInfo(response.data);
+                }
+            },
+            function() {});
+    };
+});
+
+
+purchaseCenterService.factory("deleteCostById", function($http,$rootScope) {
+    return function(id, callBack) {
+        var param = {
+            id: id
+        };
+        HYhttp(
+            $http, {
+                url: productUrl + "cost/costs/deleteById",
+                data: param,
+                method: "POST"
+            }).then(
+            function(response) {
+                callBack(response.data);
+            },
+            function() {});
+    };
+});
+
+/*
+ * 获取所有目的地
+ */
+purchaseCenterService.factory("getAllDestination", function($http,$rootScope) {
+    var getAllDestinationFactory = function(callBack) {
+        HYhttp( $http, {
+            url: baseUrl + "common/Address/getAllDestination",
+            method: "POST"
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callBack(response.data.data);
+            } else {
+                //showErrorInfo(response.data);
+            }
+        }, function() {});
+    };
+    return getAllDestinationFactory;
+});
+
+
+/*
+ * 获取所有目的地
+ */
+purchaseCenterService.factory("getBasicsViewspotTypeAll", function($http,$rootScope) {
+    var getBasicsViewspotTypeAll = function(callBack) {
+        HYhttp( $http, {
+            url: productUrl + "general/general_scenics/getBasicsViewspotTypeAll",
+            method: "POST"
+        }).then(function(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callBack(response.data.data.list);
+            } else {
+                //showErrorInfo(response.data);
+            }
+        }, function() {});
+    };
+    return getBasicsViewspotTypeAll;
+});
+
+purchaseCenterService.factory("getCostBasicInfo",function(getAllDestination){
+    var getCostBasicInfo = function(callBack) {
+        var data = {};
+        getAllDestination(function(response){
+            data.allDestinations = response;
+            callBack(data);
+            //console.log(response);
+        });
+    };
+    return getCostBasicInfo;
+});
+
+purchaseCenterService.factory("addCostBaseInfo",function($http,$rootScope,showErrorInfo){
+    return function (param, callBack) {
+        console.log(JSON.stringify(withoutFlaseKey(param)));
+        HYhttp(
+            $http, {
+                url: productUrl + "cost/costs/addBaseInfo",
+                data: {
+                    json: JSON.stringify(withoutFlaseKey(param))
+                },
+                method: "POST"
+            }).then(
+            function (response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    console.log(response.data);
+                    callBack(response.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function () {
+            });
+    };
+});
+
+
+purchaseCenterService.factory("saveCostBaseInfo",function($http,$rootScope,showErrorInfo){
+    return function (param, callBack) {
+        console.log(JSON.stringify(withoutFlaseKey(param)));
+        HYhttp(
+            $http, {
+                url: productUrl + "cost/costs/saveBaseInfo",
+                data: {
+                    json: JSON.stringify(withoutFlaseKey(param))
+                },
+                method: "POST"
+            }).then(
+            function (response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    console.log(response.data);
+                    callBack(response.data);
+                } else {
+                    showErrorInfo(response.data);
+                }
+            },
+            function () {
+            });
+    };
+});
+/**
+ * 迪斯尼门票订单列表查询 Models
+ */
+ //获取对应日期订单
+angular.module("purchaseCenterService").factory("DTSGetList", DTSGetList);
+function DTSGetList($http) {
+  return func;
+  function func(params, callback) {
+		var api = onlinePurchaseAPI + "getDisneyOrderStatistics";
+		HYhttp($http, {
+			url : api,
+			method : "POST",
+			data : {
+				OrderDate : params
+			}
+		}).then(success, fail);
+		function success(response) {
+			callback(response);
+		}
+		function fail(response) {
+
+		}
+	}
+}
+//获取订单详细
+angular.module("purchaseCenterService").factory("DTSGetDetail", DTSGetDetail);
+function DTSGetDetail($http) {
+	var TestStr = "ceshi";
+  return TestStr;
+}

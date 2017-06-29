@@ -1,0 +1,3164 @@
+angular.module("intentionCustomerService").factory("getPerformanceGroupList", getPerformanceGroupList);// 获取考核分组的列表
+angular.module("intentionCustomerService").factory("getPerformanceGroupDetail", getPerformanceGroupDetail);// 获取考核分组的详细信息
+angular.module("intentionCustomerService").factory("submitPerformanceDetail", submitPerformanceDetail);// 提交考核明细信息
+angular.module("intentionCustomerService").factory("deleteMember", deleteMember);
+angular.module("intentionCustomerService").factory("deleteAGroup", deleteAGroup);
+angular.module("intentionCustomerService").factory("addPerformanceGroupMember", addPerformanceGroupMember);
+angular.module("intentionCustomerService").factory("addPerformanceGroup", addPerformanceGroup);
+/**
+ * 添加一个分组
+ */
+function addPerformanceGroup($http) {
+	return addFunction;
+	function addFunction(editorData, callback) {
+		var API = intentionCustomerUrl + "/assessment/addAGroup";
+		var data = {
+			title : editorData.performanceDetail.Title,
+			departmentID : editorData.performanceDetail.departmentID,
+			minClaimNumber : editorData.performanceDetail.minusOrderConfirmation,
+			minAssessNumber : editorData.performanceDetail.minusOrderCountRate,
+			minAverageNumber : editorData.performanceDetail.minusOrderAverage,
+			minBackUpNumber : editorData.performanceDetail.minusRecallRate,
+			minGrossProfitNumber : editorData.performanceDetail.minusSubProfitRate
+		};
+		var httpResponse = {};
+		HYhttp($http, {
+			url : API,
+			data : data,
+			method : "POST"
+		}).then(callback, fail);
+
+		function fail() {
+			console.log("Fail adding a new group.")
+		}
+
+	}
+}
+/**
+ * 添加一个成员
+ */
+function addPerformanceGroupMember($http) {
+	return callbackWithData;
+	function callbackWithData(groupID, member) {
+		var API = intentionCustomerUrl + "/assessment/addAssessPer";
+		var data = {
+			personnelIDs : member["_id"]["$id"],
+			BAGID : groupID
+		}
+		HYhttp($http, {
+			url : API,
+			data : data,
+			method : "POST"
+		}).then(success, fail);
+		function success() {
+			console.log("Added a member!")
+		}
+		function fail() {
+			console.log("Failed adding member");
+		}
+	}
+}
+/**
+ * delete a member from the detail panel.
+ */
+function deleteMember($http) {
+	return callbackWithData;
+	function callbackWithData(groupID, memberID, memberName) {
+		var API = intentionCustomerUrl + "/assessment/deleteAssessPer";
+		var data = {
+			personnelID : memberID,
+			BAGID : groupID
+		};
+		HYhttp($http, {
+			url : API,
+			data : data,
+			method : "POST"
+		}).then(success, fail);
+		function success() {
+			console.log("A member deleted! groupID " + groupID + ", memberID " + memberID);
+		}
+		function fail() {
+			console.log("Delete member Error!");
+		}
+	}
+}
+/**
+ * delete a group
+ */
+function deleteAGroup($http) {
+	return callbackWithData;
+	function callbackWithData(groupID) {
+		var API = intentionCustomerUrl + "/assessment/deleteAGroup";
+		var data = {
+			BAGID : groupID
+		};
+		HYhttp($http, {
+			url : API,
+			data : data,
+			method : "POST"
+		}).then(success, fail);
+		function success() {
+			console.log("Delete group " + groupID);
+		}
+		function fail() {
+			console.log("Delete error");
+		}
+
+	}
+}
+/**
+ * 获取考核分组的列表
+ */
+// getPerformanceGroupList.$inject = [ "$http" ];
+function getPerformanceGroupList($http) {
+	return callbackWithData;
+	function callbackWithData(params, callback) {
+		var API = intentionCustomerUrl + "/assessment" + "?" + Math.random();
+		var data = {
+			list : []
+		};
+		activate();
+
+		function activate() {
+			getData();
+
+		}
+		/**
+		 * 获取数据
+		 */
+		function getData() {
+			HYhttp($http, {
+				url : API,
+			}).then(constructData, showError);
+			/**
+			 * 重新构建数据
+			 */
+			function constructData(response) {
+				var rdata = response.data.data;
+				rdata.forEach(insertData);// insert data to data.list object
+				data.list.reverse();
+
+				/**
+				 * insert data to the data.list object.
+				 */
+				function insertData(value, key) {
+					var rebuildValue = rebuildObject(value);
+					data.list.push(rebuildValue);
+					/**
+					 * rebuild an data object.
+					 */
+					function rebuildObject(value) {
+						var rebuildValue = {};
+						rebuildValue.groupID = value._id;
+						rebuildValue.groupName = value.Title;
+						rebuildValue.memberCount = 0;
+						var url = 'intentionCustomer/ICPerformanceManagement/detail' + "?BAGID=" + value._id;
+						rebuildValue.url = url;
+						if (value.PersonnelList != undefined) {
+							function rebuildMember(ovalue, index) {
+								var nvalue = {};
+								nvalue.memberID = ovalue.PersonnelID;
+								nvalue.memberName = ovalue.PersonnelName;
+								rebuildValue.members.push(nvalue);
+							}
+							rebuildValue.members = [];
+							value.PersonnelList.forEach(rebuildMember);
+							rebuildValue.memberCount = value.PersonnelList.length;
+						}
+
+						return rebuildValue;
+						/**
+						 * 重新构建member
+						 */
+
+					}
+				}
+				callback(data);
+			}
+
+			function showError() {
+
+			}
+		}
+
+	}
+}
+
+/**
+ * 获取考核分组的详细信息
+ * 
+ * @returns {Function}
+ */
+
+function getPerformanceGroupDetail($http) {
+	return callbackWithData;
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = intentionCustomerUrl + "/assessment/assessGroupOne";
+
+		activate();
+
+		function activate() {
+			getDataFromApi();
+
+			function getDataFromApi() {
+				HYhttp($http, {
+					url : API,
+					method : "GET",
+					data : params
+				}).then(constructData, showError);
+
+				function constructData(response) {
+					var rdata = response.data.data;
+					data.groupID = rdata._id;
+					data.groupName = rdata.Title;
+					data.memberCount = 0;
+					data.members = [];
+					data.performanceDetail = {
+						departmentID : rdata.DepartmentID,
+						department : "尚未获取",
+						minusOrderConfirmation : rdata.MinClaimNumber,
+						minusOrderAverage : rdata.MinAverageNumber,
+						minusRecallRate : rdata.MinBackUpNumber,
+						minusSubProfitRate : rdata.MinGrossProfitNumber,
+						minusOrderCountRate : rdata.MinAssessNumber
+					};
+					if (rdata.PersonnelList != undefined) {
+						function rebuildMember(ovalue, index) {
+							var nvalue = {};
+							nvalue.memberID = ovalue.PersonnelID;
+							nvalue.memberName = ovalue.PersonnelName;
+							data.members.push(nvalue);
+						}
+						data.memberCount = rdata.PersonnelList.length;
+						rdata.PersonnelList.forEach(rebuildMember);
+
+					}
+					callback(data);
+				}
+				function showError() {
+
+				}
+			}
+		}
+	}
+}
+
+function submitPerformanceDetail($http) {
+	return submit;
+	/**
+	 * BAGID(string,考核分组id) title(string,考核分组标题) departmentID(string,部门id)
+	 * minClaimNumber(int,最低意向认领数) minAssessNumber(int,最低意向考核数比)
+	 * minAverageNumber(int,最低意向平均数) minBackUpNumber(int,最低回追率)
+	 * minGrossProfitNumber(int,最低毛利百分比)
+	 */
+	function submit(data) {
+		console.log(data);
+		var API = intentionCustomerUrl + "/assessment/updateAGroup";
+		var post = {
+			BAGID : data.groupID,
+			title : data.groupName,
+			departmentID : data.performanceDetail.departmentID,
+			minClaimNumber : data.performanceDetail.minusOrderConfirmation,
+			minAssessNumber : data.performanceDetail.minusOrderCountRate,
+			minAverageNumber : data.performanceDetail.minusOrderAverage,
+			minBackUpNumber : data.performanceDetail.minusRecallRate,
+			minGrossProfitNumber : data.performanceDetail.minusSubProfitRate
+		};
+
+		activate();
+
+		function activate() {
+			submitToApi();
+
+			function submitToApi() {
+				HYhttp($http, {
+					url : API,
+					method : "POST",
+					data : post
+				}).then(success, fail);
+				function success() {
+					console.log("success");
+				}
+				function fail() {
+					console.log("error");
+				}
+			}
+		}
+
+	}
+}
+/**
+ * 目的地分配
+ */
+angular.module("intentionCustomerService").factory("deleteACity", deleteACity);
+angular.module("intentionCustomerService").factory("getCityAssignmentList", getCityAssignmentList);
+angular.module("intentionCustomerService").factory("getCityAssignmentDetail", getCityAssignmentDetail);
+angular.module("intentionCustomerService").factory("updatePerformanceSetting", updatePerformanceSetting);
+angular.module("intentionCustomerService").factory("deleteCitySite", deleteCitySite);
+angular.module("intentionCustomerService").factory("saveCityForSites", saveCityForSites);
+
+/**
+ * filter, 目的地分配详细页只展示有目的地的站点
+ */
+angular.module("HY").filter("checkWithCity", function() {
+  return function(items) {
+    var filtered = [];
+    angular.forEach(items, function(item) {
+      if (item.DestinationList.length) {
+        filtered.push(item);
+      }
+    });
+    return filtered;
+  }
+});
+/**
+ * 城市过滤
+ */
+angular.module("HY").filter("cityArrayFilter", function() {
+  return function(items, search, typeName) {
+    if (!typeName) {
+      typeName = "";
+    }
+    if (search) {
+      var filtered = [];
+      angular.forEach(items, function(item) {
+        if (typeName.indexOf(search) > -1) {
+          filtered.push(item);
+        } else {
+          var nameList = _.extend(_.pluck(item.list, "name"), [item.name]);
+          var str = nameList.join(" ");
+          if (str.indexOf(search) > -1) {
+            filtered.push(item);
+          }
+        }
+      });
+      return filtered;
+    } else {
+      return items;
+    }
+  }
+});
+
+/**
+ * 删除一个城市
+ *
+ * @param $http
+ * @returns {Function}
+ */
+function deleteACity($http) {
+  return func;
+
+  function func(cityID, stationID, memberID) {
+    var API = intentionCustomerUrl + "/desAuthority/deleteCitys";
+    var data = {
+      personelID: memberID,
+      stationID: stationID,
+      destinationIDs: cityID
+    };
+    HYhttp($http, {
+      url: API,
+      data: data,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      console.log("Delete a city");
+    }
+
+    function fail(response) {
+      console.log("Delete a city failed");
+    }
+  }
+}
+/**
+ * the factory used for the save button, which will save all the cities for all
+ * the sites.
+ */
+function saveCityForSites($http) {
+  return callbackWithData;
+
+  function callbackWithData(cityID, stationID, memberID, companyID, departmentID, departmentName, stationName) {
+    var API = intentionCustomerUrl + "/desAuthority/addCitys";
+    var data = {
+      personelID: memberID,
+      companyID: companyID,
+      departmentID: departmentID,
+      departmentName: departmentName,
+      stationID: stationID,
+      stationName: stationName,
+      destinationIDs: cityID
+    };
+    HYhttp($http, {
+      url: API,
+      data: data,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      console.log("Added a city");
+    }
+
+    function fail(response) {
+      console.log("Added city error");
+    }
+  }
+}
+/**
+ * delete a site
+ */
+function deleteCitySite($http) {
+  return callbackWithData;
+
+  function callbackWithData(memberID, stationID) {
+    var API = intentionCustomerUrl + "/desAuthority/Delete";
+
+    var data = {
+      personelID: memberID,
+      stationID: stationID
+    };
+    HYhttp($http, {
+      url: API,
+      data: data,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      console.log("deleted");
+    }
+
+    function fail(response) {
+      console.log("delete failed");
+    }
+  }
+}
+/**
+ * update the performance setting for a member
+ */
+function updatePerformanceSetting($http) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+    var API = intentionCustomerUrl + "/assessment/Setting";
+    HYhttp($http, {
+      url: API,
+      method: "POST",
+      data: params
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+      console.error(response);
+    }
+
+  }
+}
+/**
+ * get the detail city assignment for a memeber
+ */
+function getCityAssignmentDetail($http) {
+  return callbackWithData;
+
+  function callbackWithData(param, callback) {
+    var API = intentionCustomerUrl + "/desAuthority/desAuthorityOne"
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      constructData();
+
+      function constructData() {
+        var rdata = response.data.data;
+        var data = {
+          memberName: rdata.FullName,
+          memberID: rdata._id,
+          role: rdata.permission.role.length ? _.pluck(rdata.permission.role, "name").join("、") : '尚未分配',
+          department: rdata.Department.Name,
+          departmentID: rdata.Department.ID,
+          AssessStartTime: rdata.AssessStartTime,
+          BAGID: rdata.BAGID,
+          ISPA: rdata.ISPA,
+          assessmentGroup: undefined,
+          inAssessment: true,
+          beginTime: "2015-05-30 12:23:32",
+          site: rdata.DestinationAuthorityInfo ? rdata.DestinationAuthorityInfo.StationList : []
+        }
+        callback(data);
+      }
+
+    }
+
+    function fail(response) {
+
+    }
+  }
+
+}
+/**
+ * ge the list for city assignment.
+ */
+function getCityAssignmentList($http, $rootScope) {
+  return callbackWithList;
+  // //////////
+  function callbackWithList(param, callback) {
+    var API = intentionCustomerUrl + "/desAuthority";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      activate();
+
+      function activate() {
+        constructData();
+
+        function constructData() {
+          var data = [];
+          var rdata = response.data.data;
+          rdata.forEach(constructMember);
+
+          function constructMember(object, index) {
+            var member = {
+              memberID: object._id,
+              memberName: object.FullName,
+              department: {},
+              role: "",
+              city: [],
+              assignee: "系统初始化",
+              url: "intentionCustomer/ICCityAssignment/detail?personelID=" + object._id
+            };
+
+            // department
+            if (object.Department != undefined) {
+              var departmentOb = _.find(global.Departments, function(ob) {
+                return ob._id.$id == object.Department.ID;
+              });
+              member.department = departmentOb ? departmentOb.Name : "未知部门";
+            }
+            // roles
+            if (object.permission.role != undefined) {
+
+              function getRole(obj) {
+                role += obj.name + " ";
+              }
+
+              if (object.permission.role.length) {
+                var role = "";
+                object.permission.role.forEach(getRole);
+                member.role = role;
+
+              } else {
+                member.role = "尚未设置"
+              }
+            }
+            // destination
+            if (object.DestinationAuthorityInfo != null) {
+              function getStationName(o, i, a) {
+                a[i].StationName = _.find(global.Station, function(e) {
+                  return e._id.$id == o.StationID
+                }).Station_Name;
+              }
+              member.assignee = object.DestinationAuthorityInfo.UpdateUserID ? "系统初始化" : object.DestinationAuthorityInfo.UpdateUserID;
+              member.city = object.DestinationAuthorityInfo.StationList;
+              member.city.forEach(getStationName);
+
+            }
+            data.push(member);
+          }
+
+          callback({
+            list: data
+          });
+        }
+      }
+
+    }
+
+    function fail(response) {
+      console.log(response);
+    }
+  }
+
+}
+
+angular.module("HY").filter("assessmentGroupFilter", assessmentGroupFilter);
+
+function assessmentGroupFilter() {
+  return func;
+
+  function func(item) {
+    var itemidx = _.findIndex(global.IntentionCustomer.groups, function(i) {
+      return i.groupID == item;
+    });
+    if (itemidx > -1) {
+      return global.IntentionCustomer.groups[itemidx].groupName;
+    } else {
+      return "未知部门";
+    }
+  }
+}
+angular.module("HY").filter("shiftLogStateFilter", shiftLogStateFilter);
+
+function shiftLogStateFilter() {
+  return func;
+
+  function func(item) {
+    switch (item) {
+      case 0:
+        return "等待处理";
+      case 1:
+        return "已接受";
+      case 2:
+        return "已拒绝";
+      default:
+        return "未知";
+    }
+  }
+}
+
+angular.module("HY").filter("stationNameFilter", stationNameFilter);
+
+function stationNameFilter() {
+  return func;
+
+  function func(item) {
+    var stationIndex = _.findIndex(global.Station, function(StationItem) {
+      return StationItem._id.$id == item;
+    });
+    if (stationIndex > -1) {
+      return global.Station[stationIndex].Station_Name;
+    }
+  }
+}
+
+angular.module("intentionCustomerService").factory("getPlanDetailByPlanID", getPlanDetailByPlanID);
+
+function getPlanDetailByPlanID($http) {
+  return func;
+
+  function func(param, callback) {
+    var API = productUrl + "productplans/productplans/findProductPlanById";
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+angular.module("intentionCustomerService").factory("getProductPlanFromAPI", getProductPlanFromAPI);
+
+function getProductPlanFromAPI($http) {
+  return func;
+
+  function func(param, callback) {
+    var API = productUrl + "productplans/productplans/findProductPlanByProductIDAndMonthListAll";
+    HYhttp($http, {
+      url: API,
+      data: {
+        json: JSON.stringify(param)
+      },
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("getVisaListFromAPI", getVisaListFromAPI);
+
+function getVisaListFromAPI($http) {
+  return func;
+
+  function func(param, callback) {
+    var API = productUrl + "products/visas/findList";
+    HYhttp($http, {
+      url: API,
+      data: {
+        json: JSON.stringify(param)
+      },
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("getADestinationFromAPI", getADestinationFromAPI);
+
+function getADestinationFromAPI($http) {
+  return func;
+
+  function func(param, callback) {
+    var API = dreamFlyUrl + "BasicData/BasicsGADDRlData/GetGADDR";
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("sendICMessageToInformationCenter", sendICMessageToInformationCenter);
+
+function sendICMessageToInformationCenter($http) {
+  return func;
+
+  function func(title, content, receiverID, type, targetID, callback) {
+    var API = socketUrl + "crmSendRemind";
+    var param = {};
+    param.sender = global.userinfo._id.$id;
+    param.senderName = global.userinfo.FullName;
+    param.senderIcon = global.userinfo.TinyPhoto;
+    param.targetId = targetID;
+    param.recver = receiverID;
+    param.title = title;
+    param.content = content;
+    param.type = 4;
+    param.subType = type;
+    param.messageType = 1;
+    HYhttp($http, {
+      url: API,
+      data: {
+        token: global.userinfo.token,
+        data: JSON.stringify(param)
+      },
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+/**
+ *
+ */
+angular.module("intentionCustomerService").factory("getLineDetailByProductID", getLineDetailByProductID);
+
+function getLineDetailByProductID($http) {
+  return func;
+
+  function func(param, callback) {
+    var API = getAPI();
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response);
+    }
+
+    function fail(response) {
+
+    }
+
+    function getAPI() {
+      var teamTourAPI = productUrl + "products/teamtours/findOneById";
+      var selfdrivingtoursAPI = productUrl + "products/selfdrivingtours/findOneById";
+      var cruisesAPI = productUrl + "products/cruises/findOneById";
+      var customtoursAPI = productUrl + "products/customtours/findOneById";
+      var independenttravelsAPI = productUrl + "products/independenttravels/findOneById";
+      var type = param.type;
+      switch (+type) {
+        case 1:
+          return teamTourAPI;
+        case 12:
+          return independenttravelsAPI;
+        case 17:
+          return customtoursAPI;
+        case 13:
+          return selfdrivingtoursAPI;
+        case 18:
+          return cruisesAPI;
+        default:
+          return teamTourAPI;
+      }
+    }
+  }
+}
+/**
+ *
+ */
+angular.module("intentionCustomerService").factory("getCustomerServerList", getCustomerServerList);
+
+function getCustomerServerList($http) {
+  return func;
+
+  function func(callback) {
+    var API = baseUrl + "common/user/getPersonnel";
+    HYhttp($http, {
+      url: API,
+      data: {
+        label: 3003,
+        lock: 0,
+        limit: 100
+      },
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data.list);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+/**
+ * 解答
+ */
+angular.module("intentionCustomerService").factory('confirmIntroducedToAPI', confirmIntroducedToAPI);
+
+function confirmIntroducedToAPI($http) {
+  return callbackWithData;
+
+  function callbackWithData(param, callback) {
+    var API = intentionCustomerUrl + "/productSolutionInfo/answer";
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * 解答历史
+ */
+angular.module("intentionCustomerService").factory('getIntroducedHistoryFromAPI', getIntroducedHistoryFromAPI);
+
+function getIntroducedHistoryFromAPI($http) {
+  return callbackWithData;
+
+  function callbackWithData(param, callback) {
+    var API = intentionCustomerUrl + "/productSolutionInfo";
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+/**
+ * 根据产品获得所有的计划
+ */
+angular.module("intentionCustomerService").factory('getProductPlansByProductID', getProductPlansByProductID);
+
+function getProductPlansByProductID($http) {
+  return callbackWithData;
+
+  function callbackWithData(RecordID, callback) {
+    var API = intentionCustomerUrl + "/cusReturnVisit";
+    HYhttp($http, {
+      url: API,
+      data: {
+        RecordID: RecordID
+      },
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+/**
+ * get the record of an intention order.
+ */
+angular.module("intentionCustomerService").factory('getAHelpFromAPI', getAHelpFromAPI);
+
+function getAHelpFromAPI($http) {
+  return callbackWithData;
+
+  function callbackWithData(cid, callback) {
+    var API = intentionCustomerUrl + "/help/helpList";
+    HYhttp($http, {
+      url: API,
+      data: {
+        cid: cid
+      },
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * get the record of an intention order.
+ */
+angular.module("intentionCustomerService").factory('getCommonHelpListClassFromAPI', getCommonHelpListClassFromAPI);
+
+function getCommonHelpListClassFromAPI($http) {
+  return callbackWithData;
+
+  function callbackWithData(callback) {
+    var API = intentionCustomerUrl + "/help/classList";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * get the record of an intention order.
+ */
+angular.module("intentionCustomerService").factory('getCommonHelpListFromAPI', getCommonHelpListFromAPI);
+
+function getCommonHelpListFromAPI($http) {
+  return callbackWithData;
+
+  function callbackWithData(callback) {
+    var API = intentionCustomerUrl + "/help";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * get the record of an intention order.
+ */
+angular.module("intentionCustomerService").factory('getRecordListOfAnOrder', getRecordListOfAnOrder);
+
+function getRecordListOfAnOrder($http) {
+  return callbackWithData;
+
+  function callbackWithData(RecordID, callback) {
+    var API = intentionCustomerUrl + "/cusReturnVisit";
+    HYhttp($http, {
+      url: API,
+      data: {
+        RecordID: RecordID
+      },
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+angular.module("intentionCustomerService").factory("addTrackRecord", addTrackRecord);
+
+function addTrackRecord($http) {
+  return func;
+
+  function func(param, callback) {
+    var API = intentionCustomerUrl + "/cusReturnVisit/add";
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("deleteIntentionOrder", deleteIntentionOrder);
+
+function deleteIntentionOrder($http) {
+  return func;
+
+  function func(RecordID, callback) {
+    var API = intentionCustomerUrl + "/ccr/delete";
+    HYhttp($http, {
+      url: API,
+      data: {
+        recordID: RecordID
+      },
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+angular.module("intentionCustomerService").factory("getProductRecommendation", getProductRecommendation);
+
+function getProductRecommendation($http) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+    var API = dreamFlyUrl + "Order/OrderList/BookingOrderList";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("getLogTrackerList", getLogTrackerList);
+
+function getLogTrackerList($http) {
+  return callbackWithData;
+
+  function callbackWithData(recordID, callback) {
+    var API = intentionCustomerUrl + "/cusRecordReview/Info";
+    HYhttp($http, {
+      url: API,
+      data: {
+        RecordID: recordID
+      },
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * 添加跟踪记录
+ */
+angular.module("intentionCustomerService").factory("saveTrackerRecord", saveTrackerRecord);
+
+function saveTrackerRecord($http, ICFollowNotice) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+    var API = intentionCustomerUrl + "/cusRecordReview/add";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      ICFollowNotice();
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * 获取所有不需要跟踪的理由
+ */
+angular.module("intentionCustomerService").factory("getCancelTypes", getCancelTypes);
+
+function getCancelTypes($http) {
+  return callbackWithData;
+
+  function callbackWithData(callback) {
+    var API = intentionCustomerUrl + "/cancelType";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * 录音记录
+ */
+angular.module("intentionCustomerService").factory("getLogRecordList", getLogRecordList);
+
+function getLogRecordList($http) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+    var API = dreamFlyUrl + "SoundRecording/TelRecord/Index";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * 获取短信模版
+ */
+angular.module("intentionCustomerService").factory("getMessageModels", getMessageModels);
+
+function getMessageModels($http,  $httpParamSerializer) {
+  return callbackWithData;
+
+  function callbackWithData(callback) {
+    var API = dreamFlyUrl + "BasicData/SystemOperation/GetOperationTemplates";
+
+    $http({
+      method: 'POST',
+      url: API,
+      data: $httpParamSerializer({
+        TemplateMainTypeID: 2,
+        TemplateTypeID: 2
+      }),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      withCredentials: false
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * send a message
+ */
+angular.module("intentionCustomerService").factory("sendIntentionCustomerMessage", sendMessage);
+
+function sendMessage($http, $httpParamSerializer) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+    var API = dreamFlyUrl + "BasicData/SystemOperation/AddSMSRequest";
+    params.ValidateSign = 0;
+
+    $http({
+      method: 'POST',
+      url: API,
+      data: $httpParamSerializer({
+        SMSRecord: JSON.stringify(params)
+      }),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      withCredentials: false
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+/**
+ * 向意向客户API发送短信
+ */
+console.log();
+angular.module("intentionCustomerService").factory("bindPhoneToAnOrder", bindPhoneToAnOrder);
+
+function bindPhoneToAnOrder($http) {
+  return callbackWithData;
+
+  function callbackWithData(param, callback) {
+    var API = intentionCustomerUrl + "/ccr/bindPhone";
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+/**
+ * 向意向客户API发送短信
+ */
+angular.module("intentionCustomerService").factory("sendMessageLogToICAPI", sendMessageLogToICAPI);
+
+function sendMessageLogToICAPI($http) {
+  return callbackWithData;
+
+  function callbackWithData(param, callback) {
+    var API = intentionCustomerUrl + "/sms/updateRecord";
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+/*备注号码*/
+angular.module("intentionCustomerService").factory("bindRemarksTel",bindRemarksTel);
+function bindRemarksTel($http){
+  return callbackWithData;
+
+  function callbackWithData(param, callback) {
+    var API = intentionCustomerUrl + "/ccr/RemarksTel";
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+/**
+ * get the message history
+ */
+angular.module("intentionCustomerService").factory("messageList", messageList);
+
+function messageList($http) {
+  return callbackWithData;
+
+  function callbackWithData(RecordID, callback) {
+    var API = intentionCustomerUrl + "/sms";
+    HYhttp($http, {
+      url: API,
+      data: {
+        RecordID: RecordID
+      },
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+/**
+ * 转移订单
+ */
+angular.module("intentionCustomerService").factory("finalConfirmAnOrder", finalConfirmAnOrder);
+
+function finalConfirmAnOrder($http, sendICMessageToInformationCenter) {
+  return func;
+
+  function func(params, callback) {
+    var API = intentionCustomerUrl + "/cusRecordShift/handleShift";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (params.kfID) {
+        sendICMessageToInformationCenter(params.title, params.content, params.kfID, 19, params.RecordID, function(response) {
+          console.log(response);
+        });
+      }
+      if (params.siguID) {
+        sendICMessageToInformationCenter(params.title, params.content, params.kfID, 20, params.RecordID, function(response) {
+          console.log(response);
+        });
+      }
+      callback(response.data);
+
+    }
+
+    function fail(response) {
+
+    }
+  }
+
+}
+/**
+ * 转移订单
+ */
+angular.module("intentionCustomerService").factory("transferAnOrder", transferAnOrder);
+
+function transferAnOrder($http, sendICMessageToInformationCenter) {
+  return func;
+
+  function func(params, callback) {
+    var API = intentionCustomerUrl + "/cusRecordShift/Transfer";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (params.kfID) {
+        sendICMessageToInformationCenter(params.title, params.content, params.kfID, 19, params.RecordID, function(response) {
+          console.log(response);
+        });
+      }
+      if (params.siguID) {
+        sendICMessageToInformationCenter(params.title, params.content, params.siguID, 20, params.RecordID, function(response) {
+          console.log(response);
+        });
+      }
+      callback(response.data.data);
+
+    }
+
+    function fail(response) {
+
+    }
+  }
+
+}
+
+angular.module("intentionCustomerService").factory("workAssessment", workAssessment);
+
+function workAssessment($http) {
+  return callbackfunc;
+
+  function callbackfunc(params, callback) {
+    var API = intentionCustomerUrl + "/ccr/Valid";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+/*手动修改意向客户跟踪状态或者绑定订单id*/
+angular.module("intentionCustomerService").factory("manualUReviewState",manualUReviewState);
+function manualUReviewState($http){
+  return callbackfunc;
+
+  function callbackfunc(params,callback){
+    var API = intentionCustomerUrl + "/cusRecordReview/manualUpdateRecState";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+angular.module("HY").filter('questionTypeFilter', questionTypeFilter);
+
+function questionTypeFilter() {
+  return fun;
+
+  function fun(questionTypeID) {
+    var index = _.findIndex(global.IntentionCustomer.QuestionType, function(i) {
+      return i._id == questionTypeID;
+    });
+    if (index > -1 && global.IntentionCustomer.QuestionType[index]) {
+      return global.IntentionCustomer.QuestionType[index].QuestionType_Name;
+    } else {
+      return '-';
+    }
+  }
+}
+angular.module("HY").filter("validFilter", validFilter);
+
+function validFilter() {
+  return fun;
+
+  function fun(i) {
+    switch (i) {
+      case 0:
+        return "未检查";
+      case 1:
+        return "工作合格";
+      case 2:
+        return "工作不合格";
+      default:
+        return "未知结果";
+        break;
+    }
+  }
+}
+angular.module("HY").filter("validTypeFilter", validTypeFilter);
+
+function validTypeFilter() {
+  return fun;
+
+  function fun(i) {
+    if (i == undefined) {
+      return "";
+    } else {
+      var text = _.filter(global.IntentionCustomer.ValidType, function(item) {
+        return item._id == i;
+      });
+      if (text.length > 0) {
+        return text[0].ValidName;
+      } else {
+        return "未知原因";
+      }
+    }
+  }
+}
+angular.module("HY").filter("recordTypeTableFilter", recordTypeTableFilter);
+
+function recordTypeTableFilter() {
+  return fun;
+
+  function fun(i) {
+    if (i == undefined) {
+      return "未知";
+    } else {
+      var text = _.filter(global.IntentionCustomer.RecordType, function(item) {
+        return item.v == i;
+      });
+      if (text.length > 0) {
+        if (i == 1) {
+          return "";
+        } else {
+          return text[0].n;
+        }
+      } else {
+        return "";
+      }
+    }
+  }
+}
+angular.module("HY").filter("lineTypeFilter", lineTypeFilter);
+
+function lineTypeFilter() {
+  return fun;
+
+  function fun(i) {
+    if (i == undefined) {
+      return "";
+    } else {
+      var text = _.filter(global.IntentionCustomer.RecordType[0].s[2].s, function(item) {
+        return item.v == i;
+      });
+      if (text.length > 0) {
+        return text[0].n;
+      } else {
+        return "";
+      }
+    }
+  }
+}
+angular.module("HY").filter("memberTypeFilter", memberTypeFilter);
+
+function memberTypeFilter() {
+  return fun;
+
+  function fun(i) {
+    if (i == undefined) {
+      return "";
+    } else {
+      var text = _.filter(global.IntentionCustomer.CustomerLevel, function(item) {
+        return item._id.$id == i;
+      });
+      if (text.length > 0) {
+        return text[0].CustomerLevelName;
+      } else {
+        return "非会员";
+      }
+    }
+  }
+}
+angular.module("HY").filter("areaTypeFilter", areaTypeFilter);
+
+function areaTypeFilter() {
+  return fun;
+
+  function fun(i) {
+    if (i == undefined) {
+      return "";
+    } else {
+      var text = _.filter(global.IntentionCustomer.RecordType[0].s, function(item) {
+        return item.v == i;
+      });
+      if (text.length > 0) {
+        return text[0].n;
+      } else {
+        return "";
+      }
+    }
+  }
+}
+angular.module("HY").filter("destinationFilter", destinationFilter);
+
+function destinationFilter($filter) {
+  return fun;
+
+  function fun(i) {
+    if (i == undefined) {
+      return "加载中";
+    }
+    var destinations = [];
+    i.forEach(function(d) {
+      destinations.push(d.DestinationName);
+    })
+    return destinations.join(",");
+  }
+}
+angular.module("HY").filter("passportInfoFilter", passportInfoFilter);
+
+function passportInfoFilter($filter) {
+  return fun;
+
+  function fun(i) {
+    if (i == undefined) {
+      return "加载中";
+    }
+    if (i.HavePassport) {
+      return $filter("date")(i.ExpirationTime, "yyyy-MM-dd");
+    } else {
+      return "无护照";
+    }
+  }
+}
+
+angular.module("HY").filter("urgentStateInfoFilter", urgentStateInfoFilter);
+
+function urgentStateInfoFilter($filter) {
+  return fun;
+
+  function fun(item) {
+    if (item) {
+      return "是";
+    } else {
+      return "否";
+    }
+  }
+}
+
+angular.module("HY").filter("visaInfoFilter", visaInfoFilter);
+
+function visaInfoFilter($filter) {
+  return fun;
+
+  function fun(i) {
+    if (i == undefined) {
+      return "加载中";
+    }
+    if (i.HaveVisa) {
+      return $filter("date")(i.ExpirationTime, "yyyy-MM-dd");
+    } else {
+      return "无护照";
+    }
+  }
+}
+/**
+ * 难搞程度的filter
+ */
+angular.module("HY").filter("messyDegreeFilter", messyDegreeFilter);
+
+function messyDegreeFilter() {
+  return fun;
+
+  function fun(i) {
+    var messyDegree = _.filter(global.IntentionCustomer.DifficultyDegree, function(item) {
+      return item.value == i;
+    });
+    if (messyDegree.length > 0) {
+      return messyDegree[0].name;
+    } else {
+      return "未填写";
+    }
+  }
+}
+/**
+ * 难搞程度的filter
+ */
+angular.module("HY").filter("activityFilter", activityFilter);
+
+function activityFilter() {
+  return fun;
+
+  function fun(i) {
+    var activity = _.filter(global.IntentionCustomer.Activities, function(item) {
+      return item._id == i;
+    });
+    if (activity.length > 0) {
+      return activity[0].Title;
+    } else {
+      return "不参加活动";
+    }
+  }
+}
+/**
+ * 跟踪状态的filter
+ */
+angular.module("HY").filter("recordTypeFilter", recordTypeFilter);
+
+function recordTypeFilter() {
+  return func;
+
+  function func(i) {
+    var recordType = _.filter(global.IntentionCustomer.RecordType, function(item) {
+      return item.v == i;
+    });
+    if (recordType.length > 0) {
+      return recordType[0].n;
+    } else {
+      return "非业务类型";
+    }
+  }
+}
+angular.module("HY").filter("excludePicked", excludePicked);
+
+function excludePicked() {
+  return func;
+
+  function func(items, picked) {
+    var results = items;
+    picked.forEach(function(pickedItem) {
+      results = _.without(items, pickedItem);
+    });
+    return results;
+  }
+}
+/**
+ * 跟踪状态的filter
+ */
+angular.module("HY").filter("reviewStateFilter", reviewStateFilter);
+
+function reviewStateFilter() {
+  return func;
+
+  function func(item) {
+    var state = _.filter(global.IntentionCustomer.ReviewState, function(elem) {
+      return elem._id == item;
+    });
+    if (state.length > 0) {
+      return state[0].StateTitle;
+    } else {
+      return "未知类型";
+    }
+  }
+}
+/**
+ * 时间的filter
+ */
+angular.module("HY").filter("playTimeFilter", playTimeFilter);
+
+function playTimeFilter($filter) {
+  return func;
+
+  function func(item) {
+    if (item == null) {
+      return "未填写";
+    } else {
+      return $filter("date")(item, "yyyy-MM-dd");
+    }
+  }
+}
+/**
+ * 客户级别filter
+ */
+angular.module("HY").filter("memberDegreeFilter", memberDegreeFilter);
+
+function memberDegreeFilter() {
+  return func;
+
+  function func(item) {
+    if (item == false) {
+      return "非会员";
+    }
+    if (item) {
+      return "黑名单";
+    } else {
+      return "普通会员";
+    }
+  }
+}
+
+/**
+ * 意向订单
+ */
+angular.module("intentionCustomerService").factory("getOrderList", getOrderList);
+
+/**
+ * 获取意向订单列表
+ */
+function getOrderList($http, $rootScope, $filter) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+    var API = intentionCustomerUrl + "/ccr";
+    var pageParam = {
+      page: 1,
+      pageSize: 20
+    };
+    if (params.page) {
+      pageParam.page = params.page;
+      pageParam.pageSize = params.pageSize;
+    }
+    console.log(params);
+    var data = _.extend(pageParam, params);
+    HYhttp($http, {
+      url: API,
+      method: "GET",
+      data: data
+    }).then(success, fail);
+
+    function success(response) {
+      var data = [];
+      var url = 'intentionCustomer/ICOrder/detail';
+
+      function constructNewData(item) {
+        var order = {}
+        order.orderID = item._id;
+        order.RecordNO = item.RecordNO;
+        order.customerName = item.CustomerInfo.Name;
+        order.customerID = item.CustomerInfo.ID;
+        order.customerMT = item.CustomerInfo.MT;
+        order.customerTel = item.CustomerInfo.Tel;
+        order.contact = item.CustomerInfo.MT;
+        if (item.CustomerInfo.MT == "" || item.CustomerInfo.MT == null) {
+          order.contact = item.CustomerInfo.Tel;
+        }
+        order.fromDate = item.Play_StartTime;
+        order.toDate = item.Play_EndTime;
+        // order.intentionType =
+        // $filter("recordTypeFilter")(item.Record_Type);
+        var intentionType = {
+          n: "线路"
+        };
+        if (item.Record_Type && global.IntentionCustomer.RecordType) {
+          intentionType = _.find(global.IntentionCustomer.RecordType, function(e) {
+            return e.v == item.Record_Type;
+          });
+        }
+        var trackType = {
+          StateTitle: "未知类型"
+        };
+        if (item.Review.Review_State) {
+          var newtrackType = _.find(global.IntentionCustomer.ReviewState, function(e) {
+            return e._id == item.Review.Review_State;
+          });
+          if (newtrackType) {
+            trackType = newtrackType;
+          }
+        }
+        order.Review_State = item.Review.Review_State;
+        order.Review_Time = item.Review.Review_Time;
+        order.QuestionType_ID = item.QuestionType_ID;
+        order.Record_Content = item.Record_Content;
+        order.Record_TelContent = item.Record_TelContent;
+        order.intentionType = intentionType.n;
+        order.destination = item.DestinationInfo;
+        order.members = item.Adult_Num;
+        order.trackType = trackType.StateTitle;
+        if (item.UserInfo) {
+          order.customerServer = item.UserInfo.Name;
+          order.customerServerID = item.UserInfo.ID;
+        }
+        if (item.Sales) {
+          order.customerSale = item.Sales.Name;
+          order.customerSaleID = item.Sales.ID;
+        }
+        order.RecordReview = item.RecordReview;
+        order.addDate = item.Record_Time;
+        order.url = url + "?recordID=" + order.orderID;
+        data.push(order);
+      }
+      var rdata = response.data.data.List;
+      if (rdata) {
+        rdata.forEach(constructNewData);
+      }
+      callback({
+        list: data,
+        page: response.data.data.page,
+        pageCount: response.data.data.allPageCount
+      });
+    }
+
+    function fail(response) {
+
+    }
+
+  }
+}
+/**
+ * 根据意向类型，站点 目的地 信息，查询符合条件的私顾
+ **/
+angular.module("intentionCustomerService").factory('getICUsersToNotice', getICUsersToNotice);
+
+function getICUsersToNotice($http) {
+  return func;
+
+  function func(params, callback) {
+    var API = intentionCustomerUrl + "/ccr/salesListByDestination";
+    HYhttp($http, {
+      data: params,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+
+  }
+
+}
+/**
+ * 保存一个意向订单
+ */
+angular.module("intentionCustomerService").factory("saveAnOrder", saveAnOrder);
+
+function saveAnOrder($http) {
+  return func;
+
+  function func(params, callback) {
+    var API = intentionCustomerUrl + "/ccr/add";
+    HYhttp($http, {
+      data: params,
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+/**
+ * 保存一个会员
+ */
+angular.module("intentionCustomerService").factory("saveAMember", saveAMember);
+
+function saveAMember($http) {
+  return func;
+
+  function func(params, callback) {
+    console.log(params);
+    var API = productUrl + "customer/customers/addBaseInfo";
+    var data = params;
+    HYhttp($http, {
+      url: API,
+      data: {
+        json: JSON.stringify(params)
+      },
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+
+    }
+  }
+}
+
+/**
+ * 根据顾客的手机，来判定顾客的所有信息
+ *
+ * @param $http
+ */
+angular.module("intentionCustomerService").factory("checkAndGetCustomerInfo", checkAndGetCustomerInfo);
+
+function checkAndGetCustomerInfo($http) {
+  return func;
+
+  function func(params, callback) {
+    var API = intentionCustomerUrl + "";
+    var data = {
+      phone: params
+    };
+    HYhttp($http, {
+      url: API,
+      data: data,
+      method: ""
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      console.log("failed");
+    }
+  }
+
+}
+
+/**
+ * 意向订单详细
+ */
+angular.module("intentionCustomerService").factory("getOrderDetail", getOrderDetail);
+
+function getOrderDetail($http) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+    var API = intentionCustomerUrl + "/ccr/info";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}
+
+/**
+ * 获取意向客户来源
+ */
+angular.module("intentionCustomerService").factory("getIntentionCustomerSource", getIntentionCustomerSource);
+
+function getIntentionCustomerSource($http) {
+  return activate;
+
+  function activate(callback) {
+    var API = intentionCustomerUrl + "/crsource";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+
+}
+/**
+ * 获取意向客户的难搞程度
+ */
+angular.module("intentionCustomerService").factory("getIntentionCustomerDifficultyDegree", getIntentionCustomerDifficultyDegree);
+
+function getIntentionCustomerDifficultyDegree($http) {
+  return activate;
+
+  function activate(callback) {
+    var API = intentionCustomerUrl + "/difficultyDegree";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+
+}
+/**
+ * 获取意向客户意向类型
+ */
+angular.module("intentionCustomerService").factory("getIntentionCustomerRecordType", getIntentionCustomerRecordType);
+
+function getIntentionCustomerRecordType($http) {
+  return activate;
+
+  function activate(callback) {
+    var API = intentionCustomerUrl + "/ccr/RecordType";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+
+  }
+}
+
+/**
+ * 获取意向客户跟踪类型
+ */
+angular.module("intentionCustomerService").factory("getIntentionCustomerReviewState", getIntentionCustomerReviewState);
+
+function getIntentionCustomerReviewState($http) {
+  return activate;
+
+  function activate(callback) {
+    var reviewStateA=[
+      {"_id":"000000000000000000000001","StateTitle":"意向客户"},
+      {"_id":"000000000000000000000002","StateTitle":"跟踪客户"},
+      {"_id":"000000000000000000000003","StateTitle":"跟踪中断"},
+      {"_id":"000000000000000000000005","StateTitle":"订单暂留"},
+      {"_id":"000000000000000000000007","StateTitle":"已签合同"},
+      {"_id":"000000000000000000000008","StateTitle":"已退团"},
+      {"_id":"000000000000000000000009","StateTitle":"订单取消"},
+      {"_id":"000000000000000000000010","StateTitle":"已回访"},
+      {"_id":"000000000000000000000011","StateTitle":"客户投诉"},
+      {"_id":"000000000000000000000012","StateTitle":"结束跟踪"},
+      {"_id":"000000000000000000000013","StateTitle":"旅行归来"}]
+    callback(reviewStateA);
+    /*var API = intentionCustomerUrl + "/reviewState";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {}*/
+  }
+
+}
+
+/**
+ * 获取意向客户问题类型
+ */
+angular.module("intentionCustomerService").factory("getIntentionCustomerQuestionType", getIntentionCustomerQuestionType);
+
+function getIntentionCustomerQuestionType($http) {
+  return activate;
+
+  function activate(callback) {
+    var API = intentionCustomerUrl + "/questionType";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}
+/**
+ * 根据手机号来获取一个会员的详细信息
+ */
+angular.module("intentionCustomerService").factory("checkIfMemberByPhone", checkIfMemberByPhone);
+
+function checkIfMemberByPhone($http) {
+  return func;
+
+  function func(params, callback) {
+    var API = productUrl + "general/general/getCustomerInfoByPhone";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}
+/**
+ * 获取一个会员的历史
+ */
+angular.module("intentionCustomerService").factory("getCustomerHistory", getCustomerHistory);
+
+function getCustomerHistory($http) {
+  return func;
+
+  function func(params, callback) {
+    var API = intentionCustomerUrl + "/ccr/HistoryList";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}
+
+angular.module("intentionCustomerService").factory("getIntentionCustomerActivity", getIntentionCustomerActivity);
+
+function getIntentionCustomerActivity($http) {
+  return func;
+
+  function func(callback) {
+    var API = intentionCustomerUrl + "/crac";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("getSalesByTagID", getSalesByTagID);
+
+function getSalesByTagID($http) {
+  return func;
+
+  function func(tagID, callback) {
+    var API = baseUrl + "common/user/getPersonnel";
+    HYhttp($http, {
+      data: {
+        label: tagID,
+        lock: 0,
+        limit: 50
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      var list = response.data.data.list;
+      list.forEach(function(item) {
+        item.DepartmentID = item.Department.ID.$id;
+        var department = _.filter(global.Departments, function(departmentItem) {
+          return departmentItem._id.$id == item.Department.ID.$id;
+        })[0];
+        var labels = "  <" + _.pluck(_.filter(item.Label, function(labelItem) {
+          return labelItem.LabelGroup == '私顾'
+        }), 'LabelName').join('/') + ">";
+        item.FullName = "[" + department.Name + "] " + item.FullName;
+        item.FullName += labels;
+      });
+      list = _.sortBy(list, 'DepartmentID');
+      callback(list);
+    }
+
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+/**
+ * 获取评价工作类型
+ */
+angular.module("intentionCustomerService").factory("getValidType", getValidType);
+
+function getValidType($http) {
+  return func;
+
+  function func(callback) {
+    var API = intentionCustomerUrl + "/cusValidType";
+    HYhttp($http, {
+      url: API,
+      method: "GET"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.messages);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("getCustomerLevels", getCustomerLevels);
+
+function getCustomerLevels($http) {
+  return func;
+
+  function func(callback) {
+    var API = productUrl + "general/general_customers/getCustomerLevelsAll";
+    HYhttp($http, {
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("getMemberByID", getMemberByID);
+
+function getMemberByID($http) {
+  return func;
+
+  function func(memberID, callback) {
+    var API = productUrl + "customer/customers/findOneById";
+    HYhttp($http, {
+      data: {
+        id: memberID
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+/**
+ * 根据订单ID获取一个订单的全部信息
+ */
+angular.module("intentionCustomerService").factory("getOrderByOrderID", getOrderByOrderID);
+
+function getOrderByOrderID($http) {
+
+  return func;
+
+  function func(orderid, callback) {
+    var API = dreamFlyUrl + "Order/TeamOrder/GetAllOrderInfo";
+    HYhttp($http, {
+      data: {
+        OrderId: orderid
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("getUserByID", getUserByID);
+
+function getUserByID($http) {
+  return func;
+
+  function func(tagID, callback) {
+    var API = baseUrl + "common/user/getPersonnel";
+    HYhttp($http, {
+      data: {
+        id: tagID
+      },
+      url: API,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data.list);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+}
+angular.module("intentionCustomerService").factory("updateIntentionOrder", updateIntentionOrder);
+
+function updateIntentionOrder($http) {
+  return func;
+
+  function func(params, callback) {
+    var API = intentionCustomerUrl + "/ccr/update";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}
+
+angular.module("intentionCustomerService").factory("selectedAddress", selectedAddress);
+
+function selectedAddress($http) {
+  return func;
+
+  function func(callback) {
+    HYhttp($http, {
+      url: baseUrl + "common/Address/getAllDestination",
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  }
+}
+
+angular.module("intentionCustomerService").factory("sendICGTDMessage", sendICGTDMessage);
+
+function sendICGTDMessage($http, getOrderDetail, getLogTrackerList, sendICMsgToLatelyTask, $timeout) {
+  //return func;
+
+  return timeoutFun;
+
+  function timeoutFun(orderID, recverID) {
+    $timeout(func, 10 * 1000, true, {
+      orderID: orderID,
+      recverID: recverID
+    });
+  }
+
+  function func(param) {
+    console.log(param);
+    //var substract = moment().format('x');
+    var needLog = false; //是否需要调取跟踪日志数据
+    var order = {}; //订单
+    var receiverID = global.userinfo._id.$id;
+    //获取订单详情
+    getOrderDetail({
+      recordID: param.orderID
+    }, constructData);
+
+    //构建要发送到任务列表的数据
+    function constructData(response) {
+      order.CustomerInfo = response.CustomerInfo;
+      order.DestinationInfo = response.DestinationInfo;
+      order.Record_Content = response.Record_Content;
+      order.SDName = response.SDName;
+      order.Play_EndTime = response.Play_EndTime;
+      order.Play_StartTime = response.Play_StartTime;
+      order.Review = response.Review;
+      order._id = response._id;
+      order.IsValid = response.IsValid;
+      order.Adult_Num = response.Adult_Num;
+      order.AddType = response.AddType;
+      order.LineType_ID = response.LineType_ID;
+      order.RecordType_ID = response.RecordType_ID;
+      order.Record_Type = response.Record_Type;
+      order.ProductAreaType_ID = response.ProductAreaType_ID;
+      order.Record_Time = response.Record_Time;
+      order.transferedToOthers = getTransferedState();
+      order.transfering = getTransferingState();
+
+      getLogTrackerList(param.orderID, addTrackRecordToDataAndSend);
+
+      function addTrackRecordToDataAndSend(LogTrackerList) {
+        order.LastLog = getLatestLogFromResponse();
+
+        sendICMsgToLatelyTask(order, param.orderID, param.recverID);
+
+        function getLatestLogFromResponse() {
+          logs = LogTrackerList.data;
+          return logs[logs.length - 1];
+        }
+      }
+
+      function getTransferedState() {
+        if (response.Sales.ID != global.userinfo._id.$id) {
+          return true;
+        }
+        return false;
+      }
+
+      function getTransferingState() {
+        var saleShiftLogLength = response.Sales.ShiftLogs.length;
+        if (saleShiftLogLength > 0) {
+          var undealIndex = _.findIndex(response.Sales.ShiftLogs, function(searchItem) {
+            return searchItem.State == 0;
+          });
+          if (undealIndex != -1) {
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+    }
+  }
+}
+
+
+angular.module("intentionCustomerService").factory("sendICMsgToLatelyTask", sendICMsgToLatelyTask);
+
+function sendICMsgToLatelyTask($http) {
+  //return func;
+  return sendNotification;
+
+  function func(data, callback) {
+
+    var API = socketUrl + "crmSendRemind";
+    var param = {};
+    param.sender = global.userinfo._id.$id;
+    param.senderName = global.userinfo.FullName;
+    param.senderIcon = global.userinfo.TinyPhoto;
+    param.targetId = targetID;
+    param.recver = receiverID;
+    param.title = title;
+    param.content = content;
+    param.type = 4;
+    param.subType = type;
+    param.messageType = 1;
+    HYhttp($http, {
+      url: API,
+      data: {
+        token: global.userinfo.token,
+        data: JSON.stringify(param)
+      },
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response);
+    }
+
+    function fail(response) {
+      callback(response);
+    }
+  }
+
+  function sendNotification(data, orderID, recverID) {
+    //console.log(reviewTime);
+    var sendData = {
+      sender: global.userinfo._id.$id,
+      recver: recverID === undefined ? global.userinfo._id.$id : recverID,
+      title: '意向客户任务',
+      content: JSON.stringify(data),
+      targetId: orderID,
+      type: 13,
+      subType: 45,
+      messageType: recverID === undefined ? 5 : 2
+    };
+    global.SocketConnectIO.sendMessage('sendRemind', sendData);
+  }
+}
+/**
+ * 意向客户
+ */
+angular.module("intentionCustomerService")
+		.factory("getICCustomerList", getICCustomerList);
+
+function getICCustomerList() {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		// 数据
+		callback({
+			list : [ {
+				groupName : "123",
+				members : "a b c"
+			}, {
+				groupName : "345",
+				members : "a b c"
+			}, {
+				groupName : "423",
+				members : "a b c"
+			}, {
+				groupName : "889911",
+				members : "a b c d e f"
+			} ]
+		});
+	}
+}/**
+ * 已添加意向订单
+ */
+angular.module("intentionCustomerService").factory("getICOrderAddedList", getICOrderAddedList);
+
+angular.module("intentionCustomerService").factory("editCustomerInfo", editCustomerInfo);
+/**
+ * 编辑顾客的信息
+ */
+function editCustomerInfo() {
+    return callbackWithData;
+
+    function callbackWithData() {}
+}
+/**
+ * 获取已经添加的意向客户的列表
+ */
+function getICOrderAddedList($http) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var API = intentionCustomerUrl + "/ccr/MarketingList";
+
+        HYhttp($http, {
+            url: API,
+            method: "GET",
+            data: params
+        }).then(success, fail);
+
+        function success(response) {
+            var data = [];
+            var url = 'intentionCustomer/ICOrder/detail';
+
+            function constructNewData(item) {
+                var order = {}
+                order.orderID = item._id;
+                order.RecordNO=item.RecordNO;
+                order.customerName = item.CustomerInfo.Name;
+                order.customerID = item.CustomerInfo.ID;
+                order.customerTel=item.CustomerInfo.Tel;
+                order.contact = item.CustomerInfo.MT;
+                if (item.CustomerInfo.MT == "" || item.CustomerInfo.MT == null) {
+                    order.contact = item.CustomerInfo.Tel;
+                }
+
+                order.fromDate = item.Play_StartTime;
+                order.toDate = item.Play_EndTime;
+                var intentionType = {
+                    n: "线路"
+                };
+                if (item.Record_Type && global.IntentionCustomer.RecordType) {
+                    intentionType = _.find(global.IntentionCustomer.RecordType, function(e) {
+                        return e.v == item.Record_Type;
+                    });
+                    if (intentionType) {
+                        order.intentionType = intentionType.n;
+                    }
+                }
+                var trackType = {
+                    StateTitle: "未知类型"
+                };
+                if (item.Review) {
+                    if (item.Review.Review_State) {
+                        var newtrackType = _.find(global.IntentionCustomer.ReviewState, function(e) {
+                            return e._id == item.Review.Review_State;
+                        });
+                        if (newtrackType) {
+                            trackType = newtrackType;
+                        }
+                    }
+                }
+                order.Review_State=item.Review.Review_State;
+                order.Review_Time=item.Review.Review_Time;
+                order.QuestionType_ID = item.QuestionType_ID;
+                order.Record_Content = item.Record_Content;
+                order.Record_TelContent=item.Record_TelContent;
+                order.destination = item.DestinationInfo;
+                order.members = item.Adult_Num;
+                order.trackType = trackType.StateTitle;
+                if (item.UserInfo) {
+                    order.customerServer = item.UserInfo.Name;
+                    order.customerServerID = item.UserInfo.ID;
+                }
+                if (item.Sales) {
+                    order.customerSale = item.Sales.Name;
+                    order.customerSaleID = item.Sales.ID;
+                }
+                order.RecordReview=item.RecordReview;
+                order.addDate = item.Record_Time;
+                order.url = url + "?recordID=" + order.orderID;
+                data.push(order);
+            }
+            var rdata = response.data.data.List;
+            if (rdata) {
+                rdata.forEach(constructNewData);
+            }
+            callback({
+                list: data,
+                page: response.data.data.page,
+                pageCount: response.data.data.allPageCount
+            });
+        }
+
+        function fail(response) {
+            return false;
+        }
+    }
+}
+/**
+ * 获取一个意向客户的基本信息
+ */
+function getCustomerDetailInfo() {
+    return callbackWithData;
+
+    function callbackWithData() {}
+}
+/**
+ * order confirm list page
+ */
+angular.module("intentionCustomerService").factory("getICConfirmOrderList", getICConfirmOrderList); // 我可以认领的意向订单列表
+angular.module("intentionCustomerService").factory("confirmSalesOrder", confirmSalesOrder); // 认领
+/**
+ * confirm an sales' order
+ */
+function confirmSalesOrder($http) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var API = intentionCustomerUrl + "/ccr/salesClaim";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            callback(response.data);
+        }
+
+        function fail(response) {
+            callback(response);
+        }
+
+    }
+}
+angular.module("intentionCustomerService").factory("confirmServerOrder", confirmServerOrder); // 认领
+/**
+ * confirm an sales' order
+ */
+function confirmServerOrder($http) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var API = intentionCustomerUrl + "/ccr/MarketingClaim";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            callback(response.data);
+        }
+
+        function fail(response) {
+            callback(response);
+        }
+
+    }
+}
+/**
+ * get the order list
+ */
+function getICConfirmOrderList($http) {
+    return callbackWithList;
+    // //////////
+    function callbackWithList(param, callback) {
+
+        /*var API = intentionCustomerUrl + "/ccr/RecordClaim";*/
+        var API = intentionCustomerUrl + "/ccr/ScreenRecordClaim";
+        HYhttp($http, {
+            url: API,
+            method: "GET"
+        }).then(success, fail);
+
+        function success(response) {
+            var data = [];
+            var url = 'intentionCustomer/ICOrder/detail';
+
+            function constructNewData(item) {
+                var order = {}
+                order.orderID = item._id;
+                order.customerName = item.CustomerInfo.Name;
+                order.contact = item.CustomerInfo.MT;
+                if (item.CustomerInfo.MT == "" || item.CustomerInfo.MT == null) {
+                    order.contact = item.CustomerInfo.Tel;
+                }
+                order.customerID = item.CustomerInfo.ID;
+                order.fromDate = item.Play_StartTime;
+                order.toDate = item.Play_EndTime;
+                var intentionType = {
+                    n: "线路"
+                };
+                if (item.Record_Type && global.IntentionCustomer.RecordType) {
+                    intentionType = _.find(global.IntentionCustomer.RecordType, function(e) {
+                        return e.v == item.Record_Type;
+                    });
+                    if (intentionType) {
+                        order.intentionType = intentionType.n;
+                    }
+                }
+                var trackType = {
+                    StateTitle: "未知类型"
+                };
+                if (item.Review) {
+                    if (item.Review.Review_State) {
+                        var newtrackType = _.find(global.IntentionCustomer.ReviewState, function(e) {
+                            return e._id == item.Review.Review_State;
+                        });
+                        if (newtrackType) {
+                            trackType = newtrackType;
+                        }
+                    }
+                }
+                order.destination = item.DestinationInfo;
+                order.members = item.Adult_Num;
+                order.trackType = trackType.StateTitle;
+                if (item.UserInfo) {
+                    order.customerServer = item.UserInfo.Name;
+                    order.customerServerID = item.UserInfo.ID;
+                }
+                if (item.Sales) {
+                    order.customerSale = item.Sales.Name;
+                    order.customerSaleID = item.Sales.ID;
+                }
+                order.addDate = item.Record_Time;
+                order.url = url + "?recordID=" + order.orderID;
+                data.push(order);
+            }
+            var rdata = response.data.data;
+            if (rdata) {
+                rdata.forEach(constructNewData);
+            }
+            callback({
+                list: data,
+                page: 1,
+                pageCount: 1
+            });
+        }
+
+        function fail(response) {
+            return false;
+        }
+
+    }
+
+}
+
+function getICConfirmListForServer($http) {
+    return callbackWithList;
+    // //////////
+    function callbackWithList(param, callback) {
+        var API = intentionCustomerUrl + "/ccr/MarketingClaimList";
+        HYhttp($http, {
+            url: API,
+            method: "GET"
+        }).then(success, fail);
+
+        function success(response) {
+            console.log(response);
+            var data = [];
+            var url = 'intentionCustomer/ICOrder/detail';
+
+            function constructNewData(item) {
+                var order = {}
+                order.orderID = item._id;
+                order.customerName = item.CustomerInfo.Name;
+                order.contact = item.CustomerInfo.MT;
+                order.customerID = item.CustomerInfo.ID;
+                order.fromDate = item.Play_StartTime;
+                order.toDate = item.Play_EndTime;
+                var intentionType = {
+                    n: "线路"
+                };
+                if (item.Record_Type && global.IntentionCustomer.RecordType) {
+                    intentionType = _.find(global.IntentionCustomer.RecordType, function(e) {
+                        return e.v == item.Record_Type;
+                    });
+                    if (intentionType) {
+                        order.intentionType = intentionType.n;
+                    }
+                }
+                var trackType = {
+                    StateTitle: "未知类型"
+                };
+                if (item.Review) {
+                    if (item.Review.Review_State) {
+                        var newtrackType = _.find(global.IntentionCustomer.ReviewState, function(e) {
+                            return e._id == item.Review.Review_State;
+                        });
+                        if (newtrackType) {
+                            trackType = newtrackType;
+                        }
+                    }
+                }
+                order.destination = item.DestinationInfo;
+                order.members = item.Adult_Num;
+                order.trackType = trackType.StateTitle;
+                if (item.UserInfo) {
+                    order.customerServer = item.UserInfo.Name;
+                }
+                if (item.Sales) {
+                    order.customerSale = item.Sales.Name;
+                }
+                order.addDate = item.Record_Time;
+                order.url = url + "?recordID=" + order.orderID;
+                data.push(order);
+            }
+            var rdata = response.data.data.List;
+            if (rdata) {
+                rdata.forEach(constructNewData);
+            }
+            console.log(data);
+            callback({
+                list: data,
+                page: 1,
+                pageCount: 1
+            });
+        }
+
+        function fail(response) {
+            return false;
+        }
+
+    }
+
+
+
+}
+angular.module("intentionCustomerService").factory("getICConfirmListForServer", getICConfirmListForServer);
+/**
+ * 跟踪提醒
+ */
+angular.module("intentionCustomerService").factory("ICFollowNotice", ICFollowNotice);
+
+function ICFollowNotice(getICOrderFollowList, getLogTrackerList, $timeout) {
+  function func() {
+    getICOrderFollowList([], function(response) {
+      var FollowList = response.list;
+      initialNotifications();
+      pushNotifications();
+
+      function initialNotifications() {
+        if (!global.notifications) {
+          global.notifications = {
+            //tenMinutes: {},
+            fiveMinutes: {},
+            //oneMinute: {},
+            oneHour: {}
+          };
+        }
+      }
+
+      function cancelNotification(logID) {
+        if (global.notifications.oneHour[logID]) {
+          $timeout.cancel(global.notifications.oneHour[logID]);
+          //$timeout.cancel(global.notifications.tenMinutes[logID]);
+          $timeout.cancel(global.notifications.fiveMinutes[logID]);
+          //$timeout.cancel(global.notifications.oneMinute[logID]);
+        }
+      }
+
+      function sendNotification(reviewTime) {
+        console.log(reviewTime);
+        var sendData = {
+          sender: global.userinfo._id.$id,
+          recver: global.userinfo._id.$id,
+          title: '意向回追',
+          content: "有一个意向客户" + moment(reviewTime).format('HH:mm') + "需要回追。",
+          type: 6,
+          subType: 30,
+          messageType: 4
+        };
+        global.SocketConnectIO.sendMessage('sendRemind', sendData);
+      }
+
+      function pushNotifications() {
+        FollowList.forEach(function(ICOrder) {
+          var orderID = ICOrder.orderID;
+          getLogTrackerList(orderID, function(response) {
+            var logs = response.data;
+            logs.forEach(function(log) {
+              if (log.ReviewTime) {
+                var substract = moment(log.ReviewTime).format('x') - moment().format('x');
+                if (substract > 0 && substract < 24 * 60 * 60 * 1000) {
+                  cancelNotification(log._id);
+                  if (substract - 60 * 60 * 1000 > 0) {
+                    global.notifications.oneHour[log._id] = $timeout(sendNotification, substract - 60 * 60 * 1000, true, log.ReviewTime);
+                  }
+                  if (substract - 10 * 60 * 1000 > 0) {
+                    //global.notifications.tenMinutes[log._id] = $timeout(sendNotification, substract - 10 * 60 * 1000, true, log.ReviewTime);
+                  }
+                  if (substract - 5 * 60 * 1000 > 0) {
+                    global.notifications.fiveMinutes[log._id] = $timeout(sendNotification, substract - 5 * 60 * 1000, true, log.ReviewTime);
+                  }
+                  if (substract - 1 * 60 * 1000 > 0) {
+                    //global.notifications.oneMinute[log._id] = $timeout(sendNotification, substract - 1 * 60 * 1000, true, log.ReviewTime);
+                  }
+                }
+              }
+            });
+          });
+        });
+      }
+    });
+  }
+  return func;
+}
+
+/**
+ * 已添加意向订单
+ */
+angular.module("intentionCustomerService").factory("getICOrderFollowList", getICOrderFollowList);
+/**
+ * 获取已经添加的意向客户的列表
+ */
+function getICOrderFollowList($http) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+    var API = intentionCustomerUrl + "/cusRecordReview";
+    var pageParam = {
+      page: 1,
+      pageSize: 20
+    };
+    if (params.page) {
+      pageParam.page = params.page;
+      pageParam.pageSize = params.pageSize;
+    }
+    var data = _.extend(pageParam, params);
+    HYhttp($http, {
+      url: API,
+      method: "GET",
+      data: data
+    }).then(success, fail);
+
+    function success(response) {
+      var data = [];
+      var url = 'intentionCustomer/ICOrder/detail';
+
+      function constructNewData(item) {
+        var order = {}
+        order.orderID = item._id;
+        order.RecordNO = item.RecordNO;
+        order.customerName = item.CustomerInfo.Name;
+        order.customerID = item.CustomerInfo.ID;
+        order.customerMT = item.CustomerInfo.MT;
+        order.customerTel = item.CustomerInfo.Tel;
+        order.contact = item.CustomerInfo.MT;
+        if (item.CustomerInfo.MT == "" || item.CustomerInfo.MT == null) {
+          order.contact = item.CustomerInfo.Tel;
+        }
+        order.fromDate = item.Play_StartTime;
+        order.toDate = item.Play_EndTime;
+        var intentionType = {
+          n: "线路"
+        };
+        if (item.Record_Type && global.IntentionCustomer.RecordType) {
+          intentionType = _.find(global.IntentionCustomer.RecordType, function(e) {
+            return e.v == item.Record_Type;
+          });
+          if (intentionType) {
+            order.intentionType = intentionType.n;
+          }
+        }
+        var trackType = {
+          StateTitle: "未知类型"
+        };
+        if (item.Review) {
+          if (item.Review.Review_State) {
+            var newtrackType = _.find(global.IntentionCustomer.ReviewState, function(e) {
+              return e._id == item.Review.Review_State;
+            });
+            if (newtrackType) {
+              trackType = newtrackType;
+            }
+          }
+        }
+        order.Review_State = item.Review.Review_State;
+        order.Review_Time = item.Review.Review_Time;
+        order.Record_Content = item.Record_Content;
+        order.Record_TelContent = item.Record_TelContent;
+        order.destination = item.DestinationInfo;
+        order.members = item.Adult_Num;
+        order.trackType = trackType.StateTitle;
+        if (item.UserInfo) {
+          order.customerServer = item.UserInfo.Name;
+          order.customerServerID = item.UserInfo.ID;
+        }
+        if (item.Sales) {
+          order.customerSale = item.Sales.Name;
+          order.customerSaleID = item.Sales.ID;
+        }
+        order.RecordReview = item.RecordReview;
+        order.addDate = item.Record_Time;
+        order.url = url + "?recordID=" + order.orderID;
+        data.push(order);
+      }
+      var rdata = response.data.data;
+      if (rdata) {
+        rdata.forEach(constructNewData);
+      }
+      callback({
+        list: data,
+        page: response.data.data.page,
+        pageCount: response.data.data.allPageCount
+      });
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}

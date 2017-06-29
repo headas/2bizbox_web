@@ -1,0 +1,561 @@
+app.controller("notBussinessCtrl", function($rootScope, $scope, $filter, OtherExpensesData) {
+	var tabvm = $rootScope[position[1]].notBussinessTab;
+	var otherOutvm = $rootScope[position[1]].notBussinessOtherOut;
+	var otherInvm = $rootScope[position[1]].notBussinessOtherIn;
+	var vm = $rootScope[position[1]];
+	if (tabvm == undefined) {
+		tabvm = $rootScope[position[1]].notBussinessTab = {};
+		tabvm.currentPage = "notBussinessOtherOut";
+		tabvm.currentPageUrl = "/public/angularView/finances/notBussiness/Header/OtherOut.html";
+		tabvm.currentDetailUrl = "financeCenter/notBussiness/otherOutDetail";
+		tabvm.PageParam = [{
+			ID: 1,
+			class: "active",
+			Title: "其他支出",
+			Page: "notBussinessOtherOut",
+			PageUrl: "/public/angularView/finances/notBussiness/Header/OtherOut.html",
+			DetailUrl: "financeCenter/notBussiness/otherOutDetail"
+		}, {
+			ID: 2,
+			class: "",
+			Title: "其他收入",
+			Page: "notBussinessOtherIn",
+			PageUrl: "/public/angularView/finances/notBussiness/Header/OtherIn.html",
+			DetailUrl: "financeCenter/notBussiness/otherInDetail"
+		}];
+	}
+
+	if (otherInvm == undefined) {
+		otherInvm = $rootScope[position[1]].notBussinessOtherIn = {};
+		otherInvm.search = {
+			PageIndex: 1,
+			PageSize: 20,
+			FinanceTypeID: 27,
+			Field: "PayPrice"
+		};
+		otherInvm.listLoading = true;
+		$rootScope.showProcessBar = true;
+		OtherExpensesData(otherInvm.search, function(data) {
+			if (otherInvm.search.PageIndex >= Math.ceil(data.count / otherInvm.search.PageSize)) {
+				otherInvm.listMax = true;
+			} else {
+				otherInvm.listMax = false;
+			}
+			otherInvm.listLoading = false;
+			$rootScope.showProcessBar = false;
+			otherInvm.list = data.list;
+		});
+	}
+
+	if (otherOutvm == undefined) {
+		otherOutvm = $rootScope[position[1]].notBussinessOtherOut = {};
+		otherOutvm.search = {
+			PageIndex: 1,
+			PageSize: 20,
+			FinanceTypeID: 26,
+			Field: "PayPrice"
+		};
+		otherOutvm.listLoading = true;
+		$rootScope.showProcessBar = true;
+		OtherExpensesData(otherOutvm.search, function(data) {
+			if (otherOutvm.search.PageIndex >= Math.ceil(data.count / otherOutvm.search.PageSize)) {
+				otherOutvm.listMax = true;
+			} else {
+				otherOutvm.listMax = false;
+			}
+			otherOutvm.listLoading = false;
+			$rootScope.showProcessBar = false;
+			otherOutvm.list = data.list;
+		});
+	}
+
+	$scope.searchList = function() {
+		$rootScope.showProcessBar = true;
+		vm[tabvm.currentPage].listLoading = true;
+		vm[tabvm.currentPage].search.PageIndex = 1;
+		vm[tabvm.currentPage].search.StartTime = $filter('date')(vm[tabvm.currentPage].search.StartTimeDate, "yyyy-MM-dd");
+		vm[tabvm.currentPage].search.EndTime = $filter('date')(vm[tabvm.currentPage].search.EndTimeDate, "yyyy-MM-dd");
+		OtherExpensesData(vm[tabvm.currentPage].search, function(data) {
+			if (vm[tabvm.currentPage].search.PageIndex >= Math.ceil(data.count / vm[tabvm.currentPage].search.PageSize)) {
+				vm[tabvm.currentPage].listMax = true;
+			} else {
+				vm[tabvm.currentPage].listMax = false;
+			}
+			vm[tabvm.currentPage].listLoading = false;
+			$rootScope.showProcessBar = false;
+			vm[tabvm.currentPage].list = data.list;
+		});
+	};
+
+	$scope.changePage = function(index) {
+		tabvm.PageParam.forEach(function(item) {
+			item.class = "";
+		});
+		tabvm.PageParam[index].class = "active";
+		tabvm.currentPage = tabvm.PageParam[index].Page;
+		tabvm.currentPageUrl = tabvm.PageParam[index].PageUrl;
+		tabvm.currentDetailUrl = tabvm.PageParam[index].DetailUrl;
+	};
+
+
+	$scope.loadList = function() {
+		$rootScope.showProcessBar = true;
+		vm[tabvm.currentPage].search.PageIndex += 1;
+		vm[tabvm.currentPage].listLoading = true;
+		OtherExpensesData(vm[tabvm.currentPage].search, function(data) {
+			$rootScope.isloadList = false;
+			if (vm[tabvm.currentPage].search.PageIndex >= Math.ceil(data.count / vm[tabvm.currentPage].search.PageSize)) {
+				vm[tabvm.currentPage].listMax = true;
+			} else {
+				vm[tabvm.currentPage].listMax = false;
+			}
+			vm[tabvm.currentPage].listLoading = false;
+			$rootScope.showProcessBar = false;
+			vm[tabvm.currentPage].list.push.apply(vm[tabvm.currentPage].list, data.list);
+		});
+	};
+
+	//打开明细页控制方法
+	$scope.addNewData = function(Url, FinanceTypeID, PayTypeID) {
+		$scope.fetch(Url);
+		$scope.openItem();
+		$rootScope.editInfo = {
+			FinanceTypeID: FinanceTypeID,
+			PayTypeID: PayTypeID,
+			orders: []
+		}
+	};
+
+	//打开明细页控制方法
+	$scope.GetDetailData = function(sRecordID) {
+		var viewUrl = tabvm.currentDetailUrl + '?RecordID=' + sRecordID;
+		$scope.fetch(viewUrl, sRecordID);
+		$scope.openItem();
+	};
+});
+
+
+app.controller("notBussinessOtherOutCtrl", function($rootScope, $scope, $filter, OtherExpensesData, getNotBussinessOtherOrderList, saveNotBussinessOther, closeSubView, inputCheckEmpty, inputCheckPositivenumber, addRefreshPageByID, showWarningBox, auditFinance, backAuditFinance, delFinanceInOutFinance) {
+	otherOutDetailvm = $rootScope[position[2]].notBussinessOtherOut = {};
+	otherOutvm = $rootScope[position[1]].notBussinessOtherOut;
+	otherInvm = $rootScope[position[1]].notBussinessOtherIn;
+	vm = $rootScope[position[2]];
+	var editInfo = $rootScope.editInfo;
+	$scope.SumbitBut = true;
+	//	if (otherOutDetailvm == undefined) {
+	//	otherOutDetailvm = $rootScope[position[2]].notBussinessOtherOut = {};
+	otherOutDetailvm.edit = {
+		GCOMP: {},
+		GCOMPID: "",
+		GCOMPAccountID: "",
+		UnpaidOutMoney: 0,
+		orders: []
+	};
+	otherOutDetailvm.edit.BillTypeList = [];
+	otherOutDetailvm.OrderList = {};
+	//	}
+	$scope.changeBigType = function() {
+		otherOutDetailvm.edit.BillTypeList = [];
+		$scope.FinancesType.FinanceDeptInOutType.forEach(function(item) {
+			if (item.OtherBalanceTypeClassify.ID == otherOutDetailvm.edit.BillBigType) {
+				otherOutDetailvm.edit.BillTypeList.push({
+					ID: item._id,
+					Name: item.Name,
+				});
+			}
+		});
+	};
+
+	if (editInfo != undefined) {
+		otherOutDetailvm.edit.FinanceID = editInfo.FinanceID;
+		otherOutDetailvm.edit.FinanceTypeID = editInfo.FinanceTypeID;
+		otherOutDetailvm.edit.PayTypeID = editInfo.PayTypeID;
+		otherOutDetailvm.edit.Title = editInfo.Title;
+		otherOutDetailvm.edit.BillBigType = editInfo.BillBigType;
+		otherOutDetailvm.edit.BillType = editInfo.BillType;
+		otherOutDetailvm.edit.GCOMPID = editInfo.GCOMPID;
+		otherOutDetailvm.edit.GCOMPAccountID = editInfo.GCOMPAccountID;
+		otherOutDetailvm.edit.PayModeID = editInfo.PayModeID;
+		otherOutDetailvm.edit.PayPrice = editInfo.PayPrice;
+		otherOutDetailvm.edit.Notes = vm.Notes;
+		otherOutDetailvm.edit.orders = editInfo.orders;
+		otherOutDetailvm.edit.UnpaidOutMoney = 0;
+		if (otherOutDetailvm.edit.orders.length > 0) {
+			otherOutDetailvm.edit.isOrder = true;
+			otherOutDetailvm.edit.orders.forEach(function(item) {
+				otherOutDetailvm.edit.UnpaidOutMoney += item.UnpaidOutMoney;
+			});
+		}
+		$scope.changeBigType();
+	}
+
+
+	$scope.edit = function(url) {
+		$rootScope.editInfo = {};
+		$rootScope.editInfo.FinanceTypeID = vm.FinanceType.ID;
+		$rootScope.editInfo.PayTypeID = vm.PayType.ID;
+		$rootScope.editInfo.FinanceID = vm.ID;
+		$rootScope.editInfo.Title = vm.Title;
+		$rootScope.editInfo.BillBigType = vm.OtherBalanceTypeClassifyID;
+		$rootScope.editInfo.BillType = vm.DeptInOutTypeID;
+		$rootScope.editInfo.GCOMPID = vm.GCOMPID;
+		$rootScope.editInfo.GCOMPAccountID = vm.GCOMPAccountID;
+		$rootScope.editInfo.PayModeID = vm.PayModeID;
+		$rootScope.editInfo.PayPrice = vm.PayPrice;
+		$rootScope.editInfo.Notes = vm.Notes;
+		$rootScope.editInfo.orders = vm.OrderUnpaidOut;
+		$rootScope.editInfo.targetID = vm.targetID;
+		$rootScope.editInfo.subType = vm.subType;
+		$rootScope.editInfo.itemID = vm.itemID;
+		$rootScope.editInfo.OPtype = vm.OPtype;
+		$scope.fetch(url);
+		$scope.openItem();
+	};
+
+	$scope.OrderList = function(state) {
+		var param = {
+			SearchInfo: "",
+			StartTime: "",
+			Endtime: "",
+			iState: state,
+			iPageIndex: 1,
+			iPageSize: 5
+		}
+		otherOutDetailvm.OrderList.search = {
+			iState: state
+		};
+		otherOutDetailvm.OrderList.listLoading = false;
+		getNotBussinessOtherOrderList(param, function(data) {
+			otherOutDetailvm.OrderList.list = data.list;
+			otherOutDetailvm.OrderList.count = data.count;
+			otherOutDetailvm.OrderList.listLoading = true;
+			var Maxindex = Math.ceil(otherOutDetailvm.OrderList.count / 5);
+			if (Maxindex > 5) {
+				otherOutDetailvm.OrderList.Pages = [1, 2, 3, 4, 5];
+			} else {
+				otherOutDetailvm.OrderList.Pages = [];
+				for (var i = 1; i <= Maxindex; i++) {
+					otherOutDetailvm.OrderList.Pages.push(i);
+				}
+			}
+			otherOutDetailvm.OrderList.search.iPageSize = 5;
+			otherOutDetailvm.OrderList.search.iPageIndex = 1;
+		})
+	};
+
+	$scope.checkAll = function() {
+		otherOutDetailvm.OrderList.list.forEach(function(item) {
+			item.isSelected = !item.isSelected;
+		});
+	};
+
+
+	$scope.PageDown = function(type) {
+		if (type == 0) {
+			if (otherOutDetailvm.OrderList.Pages[0] > 1) {
+				var indexChange = 5;
+				if (otherOutDetailvm.OrderList.Pages[0] <= 5) {
+					indexChange = otherOutDetailvm.OrderList.Pages[0] - 1;
+				}
+				var i = 0;
+				otherOutDetailvm.OrderList.Pages.forEach(function(item) {
+					item -= indexChange;
+					otherOutDetailvm.OrderList.Pages[i] = item;
+					i++;
+				});
+			}
+		} else if (type == 1) {
+			var Maxindex = Math.ceil(otherOutDetailvm.OrderList.count / otherOutDetailvm.OrderList.search.iPageSize);
+			if (otherOutDetailvm.OrderList.Pages[0] + 4 < Maxindex) {
+				var indexChange = 5;
+				if (otherOutDetailvm.OrderList.Pages[4] + 5 > Maxindex) {
+					indexChange = Maxindex - otherOutDetailvm.OrderList.Pages[4];
+				}
+				var i = 0;
+				otherOutDetailvm.OrderList.Pages.forEach(function(item) {
+					item += indexChange;
+					otherOutDetailvm.OrderList.Pages[i] = item;
+					i++;
+				});
+			}
+		}
+		// otherOutDetailvm.OrderList.listLoading = false;
+		// otherOutDetailvm.OrderList.search.iPageIndex = otherOutDetailvm.OrderList.Pages[0];
+		// otherOutDetailvm.OrderList.search.StartTime = $filter('date')(otherOutDetailvm.OrderList.search.StartTimeDate, "yyyy-MM-dd");
+		// otherOutDetailvm.OrderList.search.EndTime = $filter('date')(otherOutDetailvm.OrderList.search.EndTimeDate, "yyyy-MM-dd");
+		// getNotBussinessOtherOrderList(otherOutDetailvm.OrderList.search, function(data) {
+		// 	otherOutDetailvm.OrderList.listLoading = true;
+		// 	otherOutDetailvm.OrderList.list = data.list;
+		// 	otherOutDetailvm.OrderList.count = data.count;
+		// });
+	};
+	$scope.SetIndex = function(index) {
+		otherOutDetailvm.OrderList.listLoading = false;
+		otherOutDetailvm.OrderList.search.iPageIndex = index;
+		otherOutDetailvm.OrderList.search.StartTime = $filter('date')(otherOutDetailvm.OrderList.search.StartTimeDate, "yyyy-MM-dd");
+		otherOutDetailvm.OrderList.search.EndTime = $filter('date')(otherOutDetailvm.OrderList.search.EndTimeDate, "yyyy-MM-dd");
+		getNotBussinessOtherOrderList(otherOutDetailvm.OrderList.search, function(data) {
+			otherOutDetailvm.OrderList.listLoading = true;
+			otherOutDetailvm.OrderList.count = data.count;
+			otherOutDetailvm.OrderList.list = data.list;
+		});
+	};
+
+	$scope.searchOrderList = function() {
+		otherOutDetailvm.OrderList.listLoading = true;
+		otherOutDetailvm.OrderList.search.iPageIndex = 1;
+		otherOutDetailvm.OrderList.search.StartTime = $filter('date')(otherOutDetailvm.OrderList.search.StartTimeDate, "yyyy-MM-dd");
+		otherOutDetailvm.OrderList.search.EndTime = $filter('date')(otherOutDetailvm.OrderList.search.EndTimeDate, "yyyy-MM-dd");
+		getNotBussinessOtherOrderList(otherOutDetailvm.OrderList.search, function(data) {
+			otherOutDetailvm.OrderList.listLoading = false;
+			otherOutDetailvm.OrderList.count = data.count;
+			otherOutDetailvm.OrderList.list = data.list;
+			var Maxindex = Math.ceil(otherOutDetailvm.OrderList.count / otherOutDetailvm.OrderList.search.iPageSize);
+			if (Maxindex > 5) {
+				otherOutDetailvm.OrderList.Pages = [1, 2, 3, 4, 5];
+			} else {
+				otherOutDetailvm.OrderList.Pages = [];
+				for (var i = 1; i <= Maxindex; i++) {
+					otherOutDetailvm.OrderList.Pages.push(i);
+				}
+			}
+			//otherOutDetailvm.OrderList.Pages = [1, 2, 3, 4, 5];
+		});
+	};
+
+	$scope.GetOrderList = function() {
+		otherOutDetailvm.edit.UnpaidOutMoney = 0;
+		otherOutDetailvm.edit.orders = new Array();
+		otherOutDetailvm.OrderList.list.forEach(function(item) {
+			if (item.isSelected) {
+				var order = {
+					OrderNo: item.OrderNo,
+					OrderTitle: item.ProductTitle,
+					UnpaidOutMoney: item.TotalUnPayPrice,
+					OrderID: item.OrderID
+				};
+				otherOutDetailvm.edit.orders.push(order);
+				otherOutDetailvm.edit.UnpaidOutMoney += item.TotalUnPayPrice;
+			}
+		});
+		otherOutDetailvm.isOrderListOpen = false;
+	}
+
+	$scope.saveOtherOut = function() {
+		var GCOMPAccountID = "";
+		if (otherOutDetailvm.edit.GCOMP.AccountInfo instanceof Array && otherOutDetailvm.edit.GCOMP.AccountInfo.length > 0) {
+			GCOMPAccountID = otherOutDetailvm.edit.GCOMP.AccountInfo[0].ForeignKeyID;
+		}
+		var param = {
+			FinanceID: otherOutDetailvm.edit.FinanceID,
+			FinanceTypeID: otherOutDetailvm.edit.FinanceTypeID,
+			PayTypeID: otherOutDetailvm.edit.PayTypeID,
+			Title: otherOutDetailvm.edit.Title,
+			BillBigType: otherOutDetailvm.edit.BillBigType,
+			BillType: otherOutDetailvm.edit.BillType,
+			GCOMPID: otherOutDetailvm.edit.GCOMP.ID,
+			GCOMPAccountID: GCOMPAccountID,
+			PayModeID: otherOutDetailvm.edit.PayModeID,
+			PayPrice: otherOutDetailvm.edit.PayPrice,
+			Notes: otherOutDetailvm.edit.Notes,
+			orders: angular.toJson(otherOutDetailvm.edit.orders)
+		};
+		//
+		// var data = {
+		// 	"RequestData": JSON.stringify(param)
+		// };
+
+		if (checkInput()) {
+			$scope.SumbitBut = false;
+			saveNotBussinessOther(param, function(data) {
+				$scope.detailTipInfo = "其他支出保存成功";
+				$scope.detailTipInfoType = "success";
+				$scope.SumbitBut = true;
+				closeSubView();
+				var viewId = $rootScope[switchType[2]].id;
+				addRefreshPageByID(viewId);
+				if (editInfo != undefined && editInfo.OPtype == "Audit") {
+					var audit = _.find($rootScope[position[1]].list, function(item) {
+						if (item.detail.businessID == editInfo.FinanceID && item.subType == editInfo.subType && item.targetId == editInfo.targetID && item._id.$id == editInfo.itemID)
+							return true;
+					});
+					audit.isHandled = true;
+				} else {
+					if (param.FinanceTypeID == 26) {
+						ReshPageList(otherOutvm);
+					} else {
+						ReshPageList(otherInvm);
+					}
+				}
+			});
+		}
+
+		function ReshPageList(list) {
+			list.search.PageIndex = 1;
+			list.search.StartTime = $filter('date')(otherOutvm.search.StartTimeDate, "yyyy-MM-dd");
+			list.search.EndTime = $filter('date')(otherOutvm.search.EndTimeDate, "yyyy-MM-dd");
+			OtherExpensesData(list.search, function(data) {
+				$rootScope.showProcessBar = false;
+				list.list = data.list;
+			});
+		}
+
+		function checkInput() {
+			var flag = true;
+			var requiredList = ["BillBigType", "BillType", "Title", "PayModeID"];
+			for (var item in requiredList) {
+				flag = inputCheckEmpty(param[requiredList[item]]);
+				if (flag === false) {
+					if (requiredList[item] === "BillBigType") {
+						$scope.detailTipInfo = "请选择结算小类";
+					} else if (requiredList[item] === "BillType") {
+						$scope.detailTipInfo = "请选择结算大类";
+					} else if (requiredList[item] === "Title") {
+						$scope.detailTipInfo = "请输入标题";
+					} else if (requiredList[item] === "PayModeID") {
+						$scope.detailTipInfo = "请选择结算方式";
+					}
+					$scope.detailTipInfoType = "error";
+					break;
+				}
+			}
+			if ((!inputCheckPositivenumber(param.PayPrice) || !inputCheckEmpty(param.PayPrice)) && !otherOutDetailvm.edit.isOrder) {
+				$scope.detailTipInfo = "请输入正确结算金额";
+				$scope.detailTipInfoType = "error";
+				flag = false;
+			}
+
+			if (otherOutDetailvm.edit.orders.length == 0 && otherOutDetailvm.edit.isOrder) {
+				$scope.detailTipInfo = "请选择转出的关联订单";
+				$scope.detailTipInfoType = "error";
+				flag = false;
+			}
+
+			if (!inputCheckEmpty(param.GCOMPID) || !inputCheckEmpty(param.GCOMPAccountID)) {
+				$scope.detailTipInfo = "请选择结算单位";
+				$scope.detailTipInfoType = "error";
+				flag = false;
+			}
+			return flag;
+		}
+	};
+
+	$scope.del = function() {
+		showWarningBox("是否删除" + vm.FinanceType.Name, function() {
+			var param = {
+				FinanceID: vm.ID
+			};
+			$scope.detailTipInfo = vm.FinanceType.Name + "数据删除中。。。";
+			$scope.detailTipInfoType = "warning";
+			$rootScope.showProcessBar = true;
+			delFinanceInOutFinance(param, function(detail) {
+				$scope.detailTipInfo = vm.FinanceType.Name + "数据删除成功";
+				$scope.detailTipInfoType = "success";
+				$rootScope.showSubView = false;
+				$rootScope.showProcessBar = false;
+				closeSubView();
+				var viewId = $rootScope[switchType[2]].id;
+				addRefreshPageByID(viewId);
+				if (param.FinanceTypeID == 26) {
+					ReshPageList(otherOutvm);
+				} else {
+					ReshPageList(otherInvm);
+				}
+			});
+		});
+	};
+	/*审核通过*/
+	$scope.auditFinanceOtherOut = function() {
+		showWarningBox("是否审核" + vm.FinanceType.Name + "通过,下一步流程(" + vm.nextStepName + ")", function() {
+			var param = {
+				FinanceID: vm.ID
+			};
+			$scope.detailTipInfo = vm.FinanceType.Name + "通过审核中。。。";
+			$scope.detailTipInfoType = "warning";
+			$rootScope.showProcessBar = true;
+			auditFinance(param, function(detail) {
+				var viewId = $rootScope[switchType[2]].id;
+				addRefreshPageByID(viewId);
+				$scope.detailTipInfo = vm.FinanceType.Name + "通过审核成功";
+				$scope.detailTipInfoType = "success";
+				$rootScope.showSubView = false;
+				$rootScope.showProcessBar = false;
+				var audit = _.find($rootScope[position[1]].list, function(item) {
+					if (item.detail.businessID == param.FinanceID && item.subType == vm.subType && item.targetId == vm.targetID && item._id.$id == vm.itemID)
+						return true;
+				});
+				audit.isHandled = true;
+			});
+		});
+	};
+	/*审核退回弹框*/
+	$scope.openBackAuditFinanceOtherOut = function() {
+		vm.AuditBack = {};
+		vm.AuditBack.BussinessID = vm.ID;
+		vm.AuditBack.User = vm.Belong;
+		vm.AuditBack.Title = vm.FinanceType.Name;
+		vm.AuditBack.Notes = "";
+	};
+	/*审核退回*/
+	$scope.backAudit = function() {
+		showWarningBox("是否退回" + vm.FinanceType.Name, function() {
+			var param = {
+				FinanceID: vm.AuditBack.BussinessID,
+				Notes: vm.AuditBack.Notes
+			};
+			$scope.detailTipInfo = vm.FinanceType.Name + "退回中。。。";
+			$scope.detailTipInfoType = "warning";
+			$rootScope.showProcessBar = true;
+			backAuditFinance(param, function(detail) {
+				var viewId = $rootScope[switchType[2]].id;
+				addRefreshPageByID(viewId);
+				$scope.detailTipInfo = vm.FinanceType.Name + "退回成功";
+				$scope.detailTipInfoType = "success";
+				$rootScope.showSubView = false;
+				$rootScope.showProcessBar = false;
+				var audit = _.find($rootScope[position[1]].list, function(item) {
+					if (item.detail.businessID == param.FinanceID && item.subType == vm.subType && item.targetId == vm.targetID && item._id.$id == vm.itemID)
+						return true;
+				});
+				audit.isHandled = true;
+			});
+		});
+	};
+	// $scope.searchEnter = function($event) {
+	//
+	// };
+});
+
+
+
+app.controller("notBussinessOtherInCtrl", function($rootScope, $scope, $filter, OtherExpensesData) {
+	//otherInvm = $rootScope[position[1]].notBussinessOtherIn;
+	// if (otherInvm == undefined) {
+	// 	otherInvm = $rootScope[position[1]].notBussinessOtherIn = {};
+	// 	otherInvm.search = {
+	// 		PageIndex: 1,
+	// 		PageSize: 20,
+	// 		FinanceTypeID: 27
+	// 	};
+	// 	otherInvm.edit = {};
+	// 	OtherExpensesData(otherInvm.search, function(data) {
+	// 		$rootScope.showProcessBar = false;
+	// 		otherInvm.list = data.list;
+	// 	});
+	// }
+	// $scope.searchList = function() {
+	// 	$rootScope.showProcessBar = true;
+	// 	otherInvm.search.PageIndex = 1;
+	// 	otherInvm.search.StartTime = $filter('date')(otherInvm.search.StartTimeDate, "yyyy-MM-dd");
+	// 	otherInvm.search.EndTime = $filter('date')(otherInvm.search.EndTimeDate, "yyyy-MM-dd");
+	// 	OtherExpensesData(otherInvm.search, function(data) {
+	// 		$rootScope.showProcessBar = false;
+	// 		otherInvm.list = data.list;
+	// 	});
+	// };
+
+	// //	$scope.searchList();
+	// $scope.searchEnter = function($event) {
+	//
+	// };
+});

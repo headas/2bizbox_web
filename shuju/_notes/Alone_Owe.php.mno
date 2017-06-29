@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_Recordset1" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_p2350" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_p3350" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_d3370" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_p6350" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_d6370" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_p7350" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_p8350" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_d8370" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_h6290" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+	<infoitem key="UD_h6390" value="name:SUM(qty);datatype:real,name:SUM(ship);datatype:real" />
+</info>

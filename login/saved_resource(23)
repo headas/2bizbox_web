@@ -1,0 +1,375 @@
+tourGuideCenterRoute
+.factory('TourGuideScheduling', tourGuideSchedule)
+.factory('TourGuideArrange', tourGuideArrange)
+.factory('TourGuideTravels', tourGuideTravels)
+.factory('TourGuideManagement', tourGuideManage)
+.factory('TourGuideHonor', tourGuideHonor);
+
+function tourGuideSchedule($http, matchTourGuideSchedule, matchSelfTrip, getTourGuideArrangeList, getTourGuideManageList, getScheduleTripDay, scheduleDate, getSchedulePlan, teamtour, cruise, freetour){	
+	var schedule = {};
+
+	schedule.list = function(callback, param){
+		var date = scheduleDate(new Date()),
+				request = 0,
+				requestNum = 2,
+				teams, guides;
+				
+		param.search = {
+			page: 1
+		};
+		param.teams = {};
+		param.selfTeams = {};
+		param.time = new Date();
+		param.search = {
+			key: '',
+			page: 1,
+			limit: pageLimit,
+			IsDepartmentGuide: '1'
+		};
+
+		function requestOver(){
+			request++;
+			if(request >= requestNum){
+				param.data = matchTourGuideSchedule(teams, guides);
+				param.selfData = matchTourGuideSchedule(teams, [global.userinfo])[0];
+
+				//根据计划匹配每个计划的每天的行程(对原数组进行操作，不产生新的数组)
+				matchSelfTrip(param.selfData.schedule, function(){
+					param.selfTeams[date.start.date] = param.selfData.schedule;
+					callback(param);
+				});
+			}
+		}
+
+		getTourGuideArrangeList(function(response){
+			param.teams[date.start.date] = teams = response.data.list;
+			requestOver();
+		}, {
+			json: JSON.stringify({
+				page: 1,
+				limit: 99999,
+				justMonth: date.start.date.split('-').slice(0,2).join('-')
+			})			
+		});
+
+		getTourGuideManageList(function(response) {
+			param.guides = guides = response.data.list;
+			requestOver();
+		}, {
+			json: JSON.stringify({
+				page: param.page || 1,
+				limit: param.limit || 25,
+				IsGuide: 1,
+				IsDepartmentGuide: 1
+			})
+		});
+	};
+
+	schedule.teamTourDetail = function(callback, param){
+		teamtour.detail(callback, {id: param.LineID});
+	};
+
+	schedule.cruiseDetail = function(callback, param){
+		cruise.detail(callback, {id: param.LineID});
+	};
+
+	schedule.freeTourDetail = function(callback, param){
+		freetour.detail(callback, {id: param.LineID});
+	};
+
+	schedule.customTourDetail = function(callback, param){
+		customizedtour.detail(callback, {id: param.LineID});
+	};
+
+	schedule.drivingTour = function(callback, param){
+		drivingtour.detail(callback, {id: param.LineID});
+	};
+
+	return schedule;
+}
+
+function tourGuideArrange($http, getTourGuideArrangeList, getTourGuideArrangeDetail, getPersonDetail, getTourGuideInfo, _, getTeamOrders, getTeamPreMoney, getTeamInsurance, getTeamTravelGoods, getTeamBill, guideFilter){
+	var arrange = {};
+
+	arrange.list = function(callback, param){
+		param.search = {
+			page: 1,
+			limit: pageLimit,
+			isTeamGuides: '1'
+		};
+		
+		getTourGuideArrangeList(function(response){
+			param.list = response.data.list;
+			param.list.forEach(guideFilter);
+
+			callback(param);
+		},{
+			json: JSON.stringify(param.search)
+		});
+	};
+
+	arrange.detail = function(callback, param){
+		getTourGuideArrangeDetail(function(response){
+			var request = 0, requestNum = 0;
+
+			function requestOver(){
+				if(++request >= requestNum) callback(param);
+			}
+
+			param.data = response.data;
+			param.teamUrl = 'tourGuideCenter/TourGuideArrange/team?ID='+ param.ID;
+			param.TeamGuides = [];
+
+			if(angular.isArray(param.data.TeamGuides) && param.data.TeamGuides.length > 0)
+				param.arrangeStatus = '已分配';
+			else if(param.data.GuideApplyInfo && (param.data.GuideApplyInfo.IsFull || param.data.GuideApplyInfo.IsSend))
+				param.arrangeStatus = '分配中';
+			else
+				param.arrangeStatus = '未分配';
+
+			param.guideType = '';
+			if(!param.data.TeamGuides || param.data.TeamGuides.length === 0) requestOver();
+
+			var guideType = [];
+			angular.forEach(param.data.TeamGuides, function(ele, index, arr){
+				if(ele.IsFull) guideType.push('带团导游');
+				if(ele.IsSend) guideType.push('送机导游');
+				if(!ele.ForeignKeyID) return;
+				requestNum++;
+				getTourGuideInfo(function(data) {
+					arr[index] = {
+						id: ele.GuideID.$id,
+						IsFull: ele.IsFull,
+						IsSend: ele.IsSend,
+						TinyPhoto: data.data.TinyPhoto,
+						FullName: data.data.FullName
+					};
+					param.TeamGuides.push(data.data.FullName);
+					requestOver();
+				}, {id: ele.GuideID.$id});
+			});
+			
+			param.guideType = _.uniq(guideType).join(',');
+		}, {id: param.ID});
+	};
+
+	arrange.team = function(callback, param){
+		getTourGuideArrangeDetail(function(response){
+			var request = 0, requestNum = 5;
+
+			function requestOver(){
+				request++;
+				if(request >= requestNum) callback(param);
+			}
+
+			param.team = response.data;
+
+			getTeamOrders(function(response){
+				param.orders = response.data;
+				requestOver();
+			}, {TeamID: param.ID});
+
+			getTeamTravelGoods(function(response){
+				param.travelGoods = response.data;
+				requestOver();
+			}, {TeamID: param.ID});
+
+			getTeamBill(function(response){
+				param.bill = response.data;
+				requestOver();
+			}, {TeamID: param.ID});
+
+			getTeamInsurance(function(response){
+				param.insurance = response.data;
+				requestOver();
+			}, {TeamID: param.ID});
+
+			getTeamPreMoney(function(response){
+				param.preMoney = response.data;
+				requestOver();
+			}, {TeamID: param.ID});
+			
+		}, {id: param.ID});
+	};
+
+	return arrange;
+}
+
+function tourGuideTravels(getTourGuideTravelsList, getTourGuideTravelsDetail, getPersonDetail){
+	var travels = {};
+
+	travels.list = function(callback, param){
+		getTourGuideTravelsList(function(response){
+			param.list = response.data.list;
+			param.search = {
+				page: 1,
+				limit: pageLimit
+			};
+			callback(param);
+		}, {
+			json: JSON.stringify({
+				page: 1,
+				limit: pageLimit
+			})
+		});
+	};
+
+	travels.detail = function(callback, param){
+		getTourGuideTravelsDetail(function(response){
+			param.data = response.data;
+			param.editUrl = "tourGuideCenter/TourGuideTravels/edit?ID="+param.ID;
+			getPersonDetail({
+				id: param.data.AddInfo.ForeignKeyID.$id
+			}, function(data){
+				param.data.writer = {
+					TinyPhoto: data.TinyPhoto,
+					// TinyPhoto: picUrl + data.TinyPhoto,
+					IsGuide:data.IsGuide
+				};
+
+				callback(param);
+			});
+		}, {id: param.ID});
+	};
+
+	travels.add = function(callback, param){
+		param.data = {};
+		callback(param);
+	};
+
+	travels.edit = function(callback, param){
+		getTourGuideTravelsDetail(function(response){
+			param.data = response.data;
+			if(param.data.GADDRs){
+				param.data.GADDRsId = param.data.GADDRs.ForeignKeyID.$id;
+				if(angular.isArray(param.data.GADDRs.Parents)){
+					param.data.GADDRs.Title = param.data.GADDRs.Parents.map(function(item){
+						if(item.Name) return item.Name;
+						else return '';
+					}).join(' / ');
+				}
+			}
+			param.isEditMode = true;
+			callback(param);
+		}, {id: param.ID});
+	};
+
+	return travels;
+}
+
+function tourGuideManage($http, getTourGuideManageList, getTourGuideInfo, getTourGuideArrangeList){
+	var manage = {};
+
+	manage.list = function(callback, param){
+		getTourGuideManageList(function(response){
+			param.search = {
+				page: 1,
+				limit: pageLimit,
+				IsGuide: 1
+			};
+			param.list = response.data.list;
+			callback(param);
+		},{
+			json:JSON.stringify({
+				page: '1',
+				limit: pageLimit,
+				IsGuide: 1
+			})
+		});
+	};
+
+	manage.detail = function(callback, param){
+		getTourGuideInfo(function(response){
+			param.data = response.data;
+			param.editUrl = 'tourGuideCenter/TourGuideManagement/edit?ID=' + param.ID;
+			getTourGuideArrangeList(function(response){
+				param.teams = response.data.list;
+				callback(param);
+			}, {
+				json: JSON.stringify({
+					myself: param.ID
+				})
+			});
+		}, {id: param.ID});
+	};
+
+	manage.add = function(callback, param){
+		param.data = {};
+		callback(param);
+	};
+
+	manage.edit = function(callback, param){
+		getTourGuideInfo(function(response){
+			param.data = {
+				FullName: response.data.FullName,
+				Sex: response.data.Sex,
+				TelPhone: response.data.TelPhone,
+				Short: response.data.Short,
+				Card: response.data.Guide.Card || '',
+				LeaderCard: response.data.Guide.LeaderCard || '',
+				ManagerCard: response.data.Guide.ManagerCard || '',
+				Company: response.data.Guide.Company || '',
+				Content: response.data.Content,
+				AccountName: response.data.AccountName
+			};
+			param.isEditMode = true;
+			callback(param);
+		}, {id: param.ID});
+	};
+
+	return manage;
+}
+
+function tourGuideHonor($http, getTourGuideHonorList, getTourGuideHonorInfo){
+	var honor = {};
+
+	honor.list = function(callback, param){
+		getTourGuideHonorList(function(response){
+			param.list = response.data.list;
+			param.search = {
+				page: 1,
+				limit: pageLimit
+			};
+			callback(param);
+		}, {
+			json: JSON.stringify({
+				page: 1,
+				limit: pageLimit
+			})
+		});
+	};
+
+	honor.detail = function(callback, param){
+		getTourGuideHonorInfo(function(response){
+			param.data = response.data;
+			param.editUrl = 'tourGuideCenter/TourGuideHonor/edit?ID='+param.ID;
+			callback(param);
+		}, {id: param.ID});
+	};
+
+	honor.add = function(callback, param){
+		param.data = {
+			personID: '',
+			Title: '',
+			Content: ''
+		};
+		callback(param);
+	};
+
+	honor.edit = function(callback, param){
+		getTourGuideHonorInfo(function(response){
+			param.data = response.data;
+			param.staff = {
+				FullName: param.data.Personnel.FullName,
+				_id: {
+					$id: param.data.Personnel._id.$id
+				},
+				TinyPhoto: param.data.Personnel.TinyPhoto
+			};
+			param.isEditMode = true;
+			callback(param);
+		}, {id: param.ID});
+	};
+
+	return honor;
+}

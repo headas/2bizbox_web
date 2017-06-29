@@ -1,0 +1,58 @@
+angular.module("financeCenterRoute").service("notBussiness", notBussiness);
+
+
+function notBussiness(getNotBussinessTab, OtherExpensesDataDetail) {
+	var notBussiness = {
+		tab: tab,
+		otherOutDetail: otherOutDetail,
+		otherInDetail: otherInDetail,
+		saveOtherOut: saveOtherOut,
+		saveOtherIn: saveOtherIn
+	};
+	return notBussiness;
+
+	function tab(callback, param) {
+		getNotBussinessTab([], constructResponse);
+
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+
+	function otherOutDetail(callback, param) {
+		var data = {
+			Guid: param.RecordID
+		};
+		OtherExpensesDataDetail(data, constructResponse);
+		function constructResponse(response) {
+      response.targetID = param.targetID;
+      response.subType = param.subType;
+      response.itemID = param.itemID;
+      response.OPtype = param.OPtype;
+			callback(response);
+		}
+	}
+
+
+	function otherInDetail(callback, param) {
+		var data = {
+			Guid: param.RecordID
+		};
+		OtherExpensesDataDetail(data, constructResponse);
+
+		function constructResponse(response) {
+			callback(response);
+		}
+	}
+
+
+	function saveOtherOut(callback, param) {
+			callback();
+	}
+
+
+	function saveOtherIn(callback, param) {
+		callback();
+	}
+
+}

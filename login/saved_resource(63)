@@ -1,0 +1,38 @@
+/**
+ * 用户信息、收藏、历史、常用页面控制器
+ */
+app.controller("UserInfoController", function($scope, login,browser) {
+
+  $scope.browser = browser();
+  console.log($scope.browser);
+  $scope.status = {
+    openWram : $scope.browser!='chrome'
+  };
+
+  console.log($scope.status);
+
+  $scope.user = {
+    isRemember: true
+  };
+
+  $scope.loginText = '登录';
+
+  $scope.nowTime = new Date();
+  console.log($scope.nowTime);
+
+  $scope.login = function() {
+    if($scope.isSubmit){
+      return ;
+    }
+    $scope.isSubmit = true;
+    $scope.loginText = '登录中';
+    login($scope.user.name, $scope.user.password, $scope.user.isRemember,function(){
+      location.reload();
+    },function(){
+      $scope.isSubmit = false;
+      $scope.loginText = '登录';
+      alert("登录失败");
+    });
+  };
+
+});

@@ -1,0 +1,108 @@
+@charset "utf-8";
+
+
+.tip_2 { border:1px solid #4b77be; padding:5px 10px; text-align:center;}
+.tip_2 strong { color:#4b77be; font-size:14px;}
+.border_panel { margin-right:-30px;}
+.border_panel .box { float:left; margin-right:10px; padding:10px; height:100px; border:1px solid #ccc;}
+.box1 { width:250px;}
+.box2{ width:200px;}
+.box3 { width:140px;}
+.box4 { width:132px; margin-right:0;}
+.t1 { width:110px; float:left; height:25px;display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size:24px; line-height:25px; font-weight:bold;}
+.s_li li{ margin-bottom:5px;}
+
+
+.fjap { background-position: 0 -565px; margin-right:3px;}
+.fpqy { background-position: 0 -596px;  margin-right:3px;}
+.ckyl {background-position: 0 -627px;  margin-right:3px;}
+
+.miniPop .arr_t { right:30px; left:auto;}
+.b_box{ border:1px solid #4b77be; padding:10px;}
+.b_box .left_border { border-color:#f39801;}
+
+
+
+.insurance_list li { float:left; border:1px solid #c9c9c9; display:block; width:80px; margin-right:10px; height:40px; line-height:40px; text-align:center; overflow:hidden; word-break:break-all;}
+.insurance_list li i { width:20px; height:20px; font-style:normal; margin-right:6px; margin-top:-3px; display:inline-block; vertical-align:middle; line-height:18px; text-align:center; border-radius:20px;  color:#fff;}
+.insurance_list li.active { border-color:#f86b4f;}
+.insurance_list li i.greenBg { background:#70c170;}
+.insurance_list li i.redBg { background:#ff3e3e; }
+.insurance_list li i.yellowBg { background:#ffbb19; }
+.insurance_list li i.grayBg { background:#999; }
+
+.avaBox_h {padding:10px 0; border-bottom:1px solid #f7a594;}
+.ava100 { width:100px; height:100px; border-radius:50%; display:inline-block; margin:0 auto;}
+.avaInfo li { float:left; width:100%; color:#bfbfbf; font-size:12px; line-height:20px; margin-bottom:10px;}
+.communication { font-size:14px; padding:15px 0 5px; text-align:center; border-top:1px solid #e6e6e6; margin:0 -14px;}
+.communication a { color:#666;}
+.orderSeat .integralBody{ height:300px;}
+
+.orderSeat .int_con .tab-content { padding-right:20px; height:285px;}
+.get_seat { margin-right:-30px; min-height:210px; margin-bottom:10px;}
+
+.get_seat li { float:left; margin-right:10px; margin-bottom:10px; width:68px; height:44px; display:block; border:1px solid #c9c9c9; box-sizing:content-box; padding:2px 5px;}
+.topNum { margin-bottom:8px;}
+.botM { text-align:right;}
+.guide_i { width:15px; height:13px; display: inline-block; vertical-align:middle; background: url(http://gsm.wanmagps.com/images/guide_i.png) no-repeat 0 0; margin-top:2px;}
+.get_seat li.g_row { background:#c9c9c9; color:#fff; border-color:#c9c9c9;}
+.get_seat li.r_row { background:#f86b4f; border-color:#f86b4f; color:#fff;}
+.get_seat li.y_row { color:#fff; background:#fcb322; border-color:#fcb322;}
+a.name_o { color:#fff; text-decoration:underline;}
+a.close_o { color:#fff; font-weight:bold; font-size:16px;}
+.squre_i { width:16px; height:16px; display:inline-block; vertical-align:middle; margin:-2px 5px 0 0;}
+.r { background:#f86b4f;}
+.y { background:#fcb322;}
+.g { background: #c9c9c9;}
+.empty_seat { border:1px solid #ccc;}
+.seat_tip span{ margin-right:15px; display: inline-block;}
+.crown_i { width:16px; height:15px; display:inline-block; vertical-align:middle; background: url(http://gsm.wanmagps.com/images/crown_i.png) no-repeat 0 0; margin-right:5px;}
+.vip_cst { background-position: 0 -26px;}
+.mvp_cst { background-position: 0 -50px;}
+.it { height:26px; line-height:26px;}
+.picD { margin-right:-25px;}
+.picD img { float:left; margin:0 2px 2px 0; display:block;}
+/*门票下单*/
+
+
+.order_box { border:1px solid #f86b4f; padding: 5px 0 0; height:367px;}
+.list_seat { float:right;}
+.list_seat .panel-s { border:1px solid #fcb322; width:75px; display: inline-block; text-align:center; border-radius:0; vertical-align:middle;}
+.list_seat .panel-s font { height:18px; line-height:17px; display: block; color:#666;}
+.list_seat .panel-s span, .list_seat .panel-s a  { height:28px; line-height:28px; display:block; color:#fff; background:#fcb322;}
+.list_seat .panel-s i { font-style:normal;}
+.list_seat .zk { border-color:#f86b4f;}
+.list_seat .zk a, .list_seat .zk span { background:#f86b4f;}
+.list_seat .th { border-color:#4b78bc;}
+.list_seat .th a, .list_seat .th span { background:#4b78bc;}
+.menu_tab > li.active > a { border:1px solid #c9c9c9; border-bottom:1px solid #fff;}
+.menu_tab {border-bottom:1px solid #c9c9c9;}
+.borderT { border:1px solid #c9c9c9; padding:10px; border-top:none;}
+.c1 { width:60px; display:inline-block; float:left;}
+.c2 { width:100px; display:inline-block; float:left;}
+.c3 { width:100px; display:inline-block; float:right;}
+.c_row { overflow:hidden; margin-bottom:5px;}
+.c_row .vhInput, .c_row  a.numVH { float:left;}
+
+.l_pic { display:block; float:left; margin-left:5px;}
+a.btn-m { height:26px; line-height:26px; color:#fff; padding:0 10px; display:inline-block; background:#ffbb19;}
+a.blue_btn { background:#4b77be;}
+.border_tab td .tab-i { margin-left:15px; width:96%; box-sizing:content-box;}
+.border_tab td .tab-i th { background:#ebebeb;}
+.border_tab td .tab-i td { vertical-align:middle;}
+.border-3 { border-left:4px solid #f97a61; height:13px; line-height:1; display:inline-block;}
+.border_tab td .innerTab td { vertical-align:middle;}
+.lineBoxTab td { border-bottom:1px solid #e6e6e6; padding:10px 0;}
+
+.line-dot { border-bottom:1px dotted #c9c9c9; height:1px; line-height:1; padding:5px 0 0;}
+.right_form { padding-left:35px;}
+.p1 { border:1px solid #ccc; display:inline-block; padding:5px 8px;}
+.hideMore { height:20px;display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+
+.seatPop { width: 500px; margin-left:-235px; height:200px; left:50%; top:58px;}
+.spePan { margin-right:0;}
+.spePan .box { margin:0 10px 0 0;}
+.spePan .box4 { margin-right:0;}
+.spePan .box2 { width:25%;}
+.spePan .box3 { width:23%;}
+.box1 .popover { max-width:none;}

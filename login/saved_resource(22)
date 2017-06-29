@@ -1,0 +1,279 @@
+//获取三清单成本结算列表
+financeCenterService.factory("GetPurchaseBillList", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinancePurchase/GetPurchaseBillList",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null || failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null || failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});
+
+//取其它收入结算列表
+financeCenterService.factory("OtherExpensesData", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceOtherExpenses/OtherExpensesData",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null && failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});
+
+//取导游津贴结算列表
+financeCenterService.factory("GetFinanceGuideSubsidyList", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceGuideSubsidy/GetFinanceGuideSubsidyList",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null && failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});
+
+//取指定三清单成本结算详情
+financeCenterService.factory("GetPurchaseBillData", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinancePurchase/GetPurchaseBillData",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null && failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});
+
+//取指定其它支出结算详情
+financeCenterService.factory("OtherExpensesDataDetail", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceOtherExpenses/OtherExpensesDataDetail",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null && failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});
+
+//确认结算的方法，全部
+financeCenterService.factory("SaveBillData", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceBill/SaveBillData",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null && failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});
+
+//取消结算的方法，全部
+financeCenterService.factory("SaveUnBillData", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceBill/SaveUnBillData",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null && failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});
+
+//取指定会员卡结算详情
+financeCenterService.factory("GetCardBackInfo", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceCard/GetCardBackInfo",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null && failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});
+
+//会员卡退款结算(确认结算)
+financeCenterService.factory("FinanceCardBackBill", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceCard/FinanceCardBackBill",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null && failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});
+
+//会员卡退款结算(取消结算)
+financeCenterService.factory("FinanceCardBackCancelBill", function($http, showErrorInfo) {
+  return function(param, callBack,failCallBack) {
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Finance/FinanceCard/FinanceCardBackCancelBill",
+        data: withoutFlaseKey(param),
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data.message);
+          if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+        }
+      },
+      function() {
+        if (failCallBack !== null && failCallBack !== undefined) {
+          failCallBack();
+        }
+      });
+  };
+});

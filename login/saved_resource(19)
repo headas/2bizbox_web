@@ -1,0 +1,91 @@
+angular.module("financeCenterService").factory("getNotBussinessTab", getNotBussinessTab);
+angular.module("financeCenterService").factory("getNotBussinessOtherOrderList", getNotBussinessOtherOrderList);
+angular.module("financeCenterService").factory("saveNotBussinessOther", saveNotBussinessOther);
+angular.module("financeCenterService").factory("delFinanceInOutFinance", delFinanceInOutFinance);
+
+function getNotBussinessTab($http, $timeout) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		$timeout(function(){
+            callback();
+        });
+	}
+}
+
+
+function getNotBussinessOtherOrderList($http,showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceOtherExpenses/OtherExpensesOrderFinance";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+function saveNotBussinessOther($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var API = dreamFlyUrl + "Finance/FinanceOtherExpenses/SaveOtherExpensesData";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+
+function delFinanceInOutFinance($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var API = dreamFlyUrl + "Finance/FinanceOtherExpenses/DelOtherExpenses";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}

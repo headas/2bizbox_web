@@ -1,0 +1,584 @@
+/*frame*/
+
+body, html { height: 100%; background: #eee; overflow: hidden; }
+#container { width: 100%; min-height: 100%; height: 100%; background: #eee; }
+#sideBar { position: absolute; left: 0; width: 180px; height: 100%; background: #4b77be; color: #fff; z-index: 900; }
+#main_con { min-height: 100%; padding-left: 200px; height: 100%; overflow: hidden; padding-right: 20px; }
+#avatar_info_panel { padding: 15px 10px; position: relative; height: 235px; }
+#wrap_header a { position: relative; width: 20px; }
+*, .btn { border-radius: 0; }
+#toolbar { position: relative; line-height: 30px; }
+#toolbar a.btn_s { padding: 8px 18px 7px; }
+#main { position: relative; padding: 10px 0; height: 100%; }
+.inline { display: inline-block; }
+.algin_left { text-align: left; }
+a.blue_txt { color: #4b77be; }
+.form-horizontal .form-group { margin-left: 0; margin-right: 0; }
+.col-md-23 { width: 23.33%; float: left; }
+.col-md-20 { width: 20%; float: left; }
+.col-md-80 { width: 80%; float: left; }
+/*navi*/
+
+#global_navi { width: 513px; padding: 5px; background: #fff; padding: 5px; position: absolute; left: 13px; top: 50px; z-index: 9999; box-shadow: 0 0 5px rgba(0, 0, 0, 0.8); box-sizing: content-box;/*display: none;黄宇注释*/ }
+#global_navi * { box-sizing: content-box; }
+.navi { padding: 30px 0 0 25px; border: 1px solid #dcdcdc; overflow: hidden; zoom: 100%; }
+.navi li { width: 60px; margin: 0 20px 20px 0; float: left; height:80px; overflow:hidden; }
+#global_navi .navi li a { width: 100%; display: block; text-align: center; color: #666; }
+.navi li i { width: 50px; height: 50px; display: block; background: url(http://gsm.wanmagps.com/images/navi_bg.png) no-repeat; margin-bottom: 5px; margin:0 auto 5px; }
+.navi li.pro-manage i { background-position: 0 0; }
+.navi li.pro-reservation i { background-position: 0 -51px; }
+.navi li.order-manage i { background-position: 0 -102px; }
+.navi li.intention-cst i { background-position: 0 -153px; }
+.navi li.cst-service i { background-position: 0 -204px; }
+.navi li.guide-center i { background-position: 0 -255px; }
+.navi li.financial-center i { background-position: 0 -306px; }
+.navi li.member-center i { background-position: 0 -357px; }
+.navi li.purchase-cneter i { background-position: 0 -408px; }
+.navi li.personnel-admin i { background-position: 0 -459px; }
+.navi li.system-set i { background-position: 0 -510px; }
+.navi li.notice-item i { background-position: 0 -561px; }
+.arr_up { border: 6px solid transparent; width: 0; height: 0; border-bottom: 6px solid #fff; position: absolute; left: 10px; top: -12px; }
+.msYellow_close { width: 15px; height: 15px; display: inline-block; background: url(http://gsm.wanmagps.com/images/i_common.png) no-repeat 4px -322px; vertical-align: middle; }
+.tips { background: #df4a32; color: #fff; padding: 2px 5px; font-size: 12px; line-height: 12px; border-radius: 10px; display: inline-block; vertical-align: middle; margin-left: 10px; }
+/*及时提醒*/
+
+#info_tipPop { width: 300px; padding: 12px 0 15px; position: absolute; left: 180px; top: -1px; border: 1px solid #d2d1d1; background: #fff; box-shadow: 0 0 3px rgba(0, 0, 0, 0.2); z-index: 100; }
+.ava50 { width: 50px; height: 50px; border-radius: 50%; }
+.close_s { width: 20px; height: 20px; display: block; position: absolute; top: 0; right: 0; background: url(http://gsm.wanmagps.com/images/set_i.png) no-repeat 0 -100px; }
+.i_common, i.i_common { background: url(http://gsm.wanmagps.com/images/i_common.png) no-repeat; }
+.close_b { background-position: 0 -260px; }
+.ms_close { background: url(http://gsm.wanmagps.com/images/i_common.png) 0 -297px; width: 12px; height: 12px; }
+/*avatar info*/
+
+i.w { width: 20px; height: 20px; display: inline-block; background: url(http://gsm.wanmagps.com/images/i_common.png) no-repeat 0 0; }
+i.info_t { background-position: 5px -200px; }
+i.OA { background-position: 1px -374px; }
+i.info_b { background-position: 0 -226px; }
+i.navi_icon { background-position: 0 2px; }
+i.warn { background-position: 0 -53px; }
+/*i.navi_icon:hover { background-position: 0 -23px; }黄宇注释*/
+
+
+/*i.warn:hover { background-position: 0 -81px; }黄宇注释*/
+
+.avatar_Panel { margin-bottom: 10px; }
+.avatar_Panel img { display: block; border-radius: 80px; margin: 0 auto 10px; }
+.warn_tip { padding: 2px 5px; background: #dd4b2f; display: inline-block; position: absolute; right: -7px; top: -14px; color: #fff; border-radius: 10px; line-height: 1; }
+.line20 { line-height: 20px; }
+.double_line { height: 1px; line-height: 1; border-top: 1px solid #385d9a; border-bottom: 1px solid #4f88e3; }
+.subTit { font-size: 18px; padding: 15px 20px; }
+.i-c { width: 15px; height: 15px; display: block; margin: 0 auto; background: url(http://gsm.wanmagps.com/images/icon-c.png) no-repeat; margin-bottom: 5px; }
+.useI { background-position: 0 0; }
+.saveI { background-position: 0 -20px; }
+.recentlyI { background-position: 0 -43px; }
+.functions li { width: 33.3%; text-align: center; float: left; }
+.functions li a { color: #fff; width: 100%; display: block; }
+.functions li.disable a { color: #ccc; }
+/*sub_menu*/
+
+.sub_menu { overflow: hidden; zoom: 100%; display: none; }
+.showM { display: block }
+.sub_menu li { position: relative; }
+.sub_menu li a.menu .glyphicon-refresh { vertical-align: middle; font-size: 13px; margin-top: 13px; display: none; }
+.sub_menu li a.menu:hover .glyphicon-refresh { display: block; }
+.sub_menu li a.menu { font-size: 14px; padding: 0 20px; color: #fff; height: 40px; line-height: 40px; display: block; transition: all 0.2s ease-in-out; -ms-transition: all 0.2s ease-in-out 0s; -webkit-transition: all 0.2s ease-in-out; -moz-transition: all 0.2s ease-in-out; -o-transition: all 0.2s ease-in-out; position: relative; }
+.sub_menu li a.menu span { font-size: 12px; float: right; }
+.sub_menu li a.menu:hover { background: #3062ac; color: #fff; }
+.sub_menu li a.menu.active { background: #eee; color: #000; }
+.sub_menu li a.menu .edit, .sub_menu li a.menu.active:hover .edit { display: none; }
+.sub_menu li a.menu:hover .edit { display: inline-block; }
+.sub_menu li .subMenu_panel a.menu { font-size: 12px; padding-left: 38px; }
+.subMenu_panel { display: none; }
+.subArr_tit { padding: 10px 20px 10px 35px; background: url(http://gsm.wanmagps.com/images/arr.png) no-repeat 17px -20px; font-size: 14px; cursor: pointer; line-height: 20px; }
+.subArr_tit.active { background-position: 17px 16px; }
+.sub_menu li a.edit { font-size: 12px; color: #fff; display: none; position: absolute; right: 20px; top: 10px; }
+.add_icon { width: 20px; height: 20px; background: url(http://gsm.wanmagps.com/images/set_i.png) no-repeat left -26px; display: inline-block; }
+.sub_menu li:hover a.edit { display: block; }
+.e_r { position: absolute; right: -120px; top: 0; }
+.e_r a { height: 40px; line-height: 40px; text-align: center; display: inline-block; width: 56px; color: #fff; background: #88abda; float: right; color: #fff; }
+.e_r a.delete { background: #d34d58; }
+.set { padding: 0 20px; }
+.set .form-control { border: 1px solid #30548d; height: 32px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) inset; }
+/*Bootstrap 修改*/
+
+.form-control { border-radius: 0; color: #333; display: inline-block; font-size: 12px; font-weight: normal; height: 31px; padding: 3px 6px; line-height: 30px; vertical-align: middle; }
+.popover.myPop .arrow { left: 20px; }
+.popover.myPop { margin-top: 27px; }
+.col-md-9s { width: 9%; float: left; }
+.col-md-91s { width: 91%; float: left; position: relative; }
+.bootstrap-dialog-footer .btn { font-size: 12px; }
+.pagination { margin-bottom: auto; }
+.btn { padding: 8px 20px; line-height: 1; }
+.btn-primary { background: #4b77be; border: none; }
+.btn-primary:hover, .btn-primary:focus, .btn-primary.focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary { color: #fff; background-color: #3c6ab4; }
+.modal-body { max-height: 550px; overflow: auto; }
+.popover { border-radius: 0; font-size: 12px; background: #fff; min-width: 200px; max-width: 753px; }
+.popover.auto { width: auto; }
+textarea.form-control { line-height: 16px; }
+.radio-inline, .checkbox-inline { padding-left: 5px; margin-right: 5px; }
+input[type="radio"], input[type="checkbox"] { vertical-align: middle; margin-top: -2px; }
+select[disabled], input[type="text"][disabled], input[type="number"][disabled] { background-color: #ddd; }
+/*--------------permission_set权限设置 page------------*/
+
+.search_qp { position: relative; }
+.search_i { font-family: Arial, Helvetica, sans-serif; width: 18px; height: 18px; cursor: text; display: inline-block; background: url(http://gsm.wanmagps.com/images/i_IM.png) no-repeat 0 -227px; vertical-align: middle; position: absolute; left: 7px; top: 6px; }
+.search_qp .form-control { padding-left: 30px; }
+.out_width .search_qp .form-control { width: 270px; }
+.per_list { clear: both; }
+.per_list li { height: 38px; line-height: 38px; padding: 0 10px; font-size: 14px; overflow: hidden; zoom: 100%; cursor: pointer; border: 1px solid #eee; }
+.per_list li div { display: inline-block; float: left; min-width: 60px; height: 38px; overflow: hidden; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.per_list li div.left { text-align: left; }
+.per_list li div:first-child { text-align: left; }
+.per_list li:hover { background: #fff; box-shadow: 0 0 3px rgba(0, 0, 0, 0.1); border: 1px solid #fff; }
+.per_list li.active { border: 1px solid #4a78be; background: #fff; }
+.per_list li.active a.glyphicon { display: inline-block; color: #4b77be; }
+.per_list li.active a { color: #4b77be; }
+.per_list md-list-item.active { border: 1px solid #4a78be; background: #fff; }
+.per_list md-list-item.active a.glyphicon { display: inline-block; color: #4b77be; }
+.per_list md-list-item.active a { color: #4b77be; }
+.left_side { width: 20%; min-width: 200px; }
+.per_list li a.glyphicon-trash, .per_list li a.glyphicon-edit { vertical-align: middle; float: right; margin: 11px 3px 0 3px; display: none; }
+.per_list li:hover a.glyphicon { display: inline-block; color: #999; }
+.left_side a.glyphicon-trash { margin-left: 10px; }
+.mid_side { width: 60%; color: #999; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 40px; padding-left: 40px; }
+.per_list li .right_side { width: 13%; text-align: right; min-width: 120px; float: right }
+.red_t { color: #ff0000; }
+#zz_info { position: absolute; right: 0; bottom: 0; width: 800px; padding: 0 20px; background: #fff; height: 100%; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); overflow: auto; overflow-x: hidden; z-index: 1000; }
+.zz_conts { padding: 10px 0; position: relative; }
+.coll_btn { width: 32px; height: 32px; display: inline-block; background: url(http://gsm.wanmagps.com/images/i_common.png) no-repeat 0 -113px; position: relative; z-index: 100000; display: none; }
+.coll_btn:hover { background-position: 0 -155px; }
+.info_row { font-size: 14px; line-height: 30px; height: 30px; }
+.info_row .form-control { height: 28px; line-height: 28px; display: inline-block; transition: none; }
+.info_row font { color: #666; }
+.linkRow a { margin-left: 15px; display: inline-block; }
+.info_row .form-control, .edit_s span { display: none; }
+.edit_s .form-control { display: inline-block; }
+.info_row label { display: inline-block; width: 150px; display: inline-block; }
+#zz_info h4 { clear: both; padding: 10px 0; }
+#zz_info h4 span { padding-left: 12px; border-left: 2px solid #333; height: 13px; line-height: 13px; font-size: 14px; display: inline-block; }
+.info_pad { margin-bottom: 10px; clear: both; }
+.info_pad li { margin: 0 10px 10px 0; float: left; }
+.info_pad a.s_panel { display: inline-block; border: 1px solid #c9c9c9; width: 90px; height: 24px; line-height: 23px; display: inline-block; text-align: center; background: #fff; position: relative; }
+.edit_pad a.s_panel { border: 1px solid #c9c9c9; background: #fff; }
+.info_pad a.active { border-color: #fcb322; }
+.add_role { position: relative; }
+.add_role .form-control { height: 40px; line-height: 40px; font-size: 14px; padding-left: 35px; }
+.add_role i { position: absolute; left: 10px; top: 11px; width: 17px; height: 17px; display: block; background: url(http://gsm.wanmagps.com/images/set_i.png) no-repeat left top; }
+.tit_qx { background: #e2e2e2; border: 1px solid #c9c9c9; height: 30px; line-height: 30px; padding: 0 10px; color: #666; }
+.tit_qx.mb10 { margin-bottom: 0; }
+.tit_qx .pad_L { width: 20%; }
+.tit_qx span { overflow: hidden; display: inline-block; float: left; min-width: 60px; text-align: center; }
+.tit_qx span.left { text-align: left; }
+.tit_qx span:first-child { text-align: left; }
+.tit_qx .pad_M { width: 60%; text-align: center; }
+.tit_qx .pad_R { width: 13%; text-align: right; float: right; }
+.show_pop { background: #eee; border: 1px solid #fcb322; width: 750px; position: absolute; left: 0px; margin-top: 2px; z-index: 100; padding: 5px 20px; display: none; }
+.arr_top { border: 5px solid transparent; border-bottom-color: #fcb322; width: 0; height: 0; position: absolute; top: -11px; left: 36px; }
+.show_pop .checkbox-inline { padding-left: 0; margin-left: 0; display: inline-block; }
+.show_pop strong { float: left; }
+.show_pop p { padding-left: 80px; }
+.groupCheck { width: 640px; float: right; margin-right: -10px; }
+.info_pad a .arr_top { display: none; }
+.info_pad a.active .arr_top { display: block; }
+.seTab_menu { margin-left: 90px; margin-bottom: 5px; }
+.seTab_menu a { display: inline-block; margin-right: 15px; }
+.seTab_menu a.active { color: #ff5a00; }
+.tabTra td.spaceTd { height: 10px; line-height: 10px; padding: 0; border-left: 1px solid #fff; border-right: 1px solid #fff; }
+.empty_space { height: 60px; clear: both; }
+/*-------------任务 page---------------*/
+
+a.btn_s, .btn_s { padding: 7px 15px; text-align: center; display: inline-block; color: #fff; border: none; line-height: 15px; }
+a.blue_btn, input.blue_btn { background: #2273a8; }
+.per_list li.redRow { color: #ff0000; }
+.per_list input[type="checkbox"] { vertical-align: middle; margin-top: -2px; }
+.per_list li.overRow * { color: #999; text-decoration: line-through; }
+.per_list li.overRow .btn_s { background: #d2d2d2; }
+.l_c { display: inline-block; overflow: hidden; height: 30px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.per_list .l_c { margin: 0 auto; }
+.tabTra .l_c { height: 20px; margin: 0; }
+.l_c.center { text-align: center; }
+.full { width: 100%; }
+.titT { line-height: 25px; }
+.detail_p { padding-left: 28px; }
+.passed { width: 120px; height: 112px; display: block; background: url(http://gsm.wanmagps.com/images/over_bg.png) no-repeat; position: absolute; top: 13px; right: 255px; }
+.actP { background: url(http://gsm.wanmagps.com/images/task_over.png) no-repeat; }
+.ed_row { padding: 10px; border: 1px solid #fff; }
+.ed_row:hover { border: 1px solid #ccc; }
+.edit_form { display: none; }
+.line_b { border-bottom: 1px solid #c9c9c9; padding-bottom: 20px; height: 1; line-height: 1; }
+.task_menu { border: 1px solid #c9c9c9; height: 83px; }
+.task_menu li { float: left; border-right: 1px solid #c9c9c9; width: 33.33%; height: 100%; position: relative; }
+.task_menu li.last { border: none; }
+.task_menu li .innerBox { padding: 15px 15px 0 20px; overflow: hidden; zoom: 100%; }
+.ava30 { width: 30px; height: 30px; border-radius: 50%; }
+.ava80 { width: 80px; height: 80px; border-radius: 50%; }
+.ava100 { width: 100px; height: 100px; border-radius: 50%; }
+.innerBox .r_info { line-height: 30px; font-size: 14px; }
+.mt5 { margin-top: 5px; }
+.btn_s.s { width: 50px; height: 20px; }
+.lev_pop { position: absolute; left: 0; top: 85px; }
+.levP { line-height: 20px; padding: 5px 0; }
+.levP .btn_s { margin-right: 15px; float: left; }
+#dateSpe { float: left; }
+#dateSpe .cL { left: -40px; top: 2px; position: absolute; background: none; border: none; padding-top: 30px; }
+#dateSpe .input-group-addon { background: none; border: none; }
+#dateSpe .form-control { font-size: 14px; border-color: #fff; box-shadow: none; width: 140px; box-shadow: none; }
+.task_menu li:hover #dateSpe .form-control { border-color: #ccc; }
+#priorit_level { cursor: pointer; }
+#priorit_level a { display: block; }
+#priorit_level .btn_s { vertical-align: middle; margin: -2px 10px 0 0; }
+.dis_box { border: 1px solid #c9c9c9; }
+.dis_row { padding: 15px; }
+.dis_list li { float: left; width: 40px; margin-right: 10px; text-align: center; margin-right: 10px; position: relative; }
+.dis_list li img { margin: 0 auto; display: block; margin-bottom: 5px; }
+a.add_ava { background: #4b77be; color: #fff; text-align: center; width: 30px; height: 30px; display: inline-block; border-radius: 50%; line-height: 30px; font-size: 24px; font-family: Arial, Helvetica, sans-serif; }
+dl.dis_dl { font-size: 14px; }
+dl.dis_dl dt { float: left; clear: left; font-weight: normal; line-height: 30px; }
+dl.dis_dl dd { padding-left: 600px; text-align: right; color: #999; line-height: 30px; }
+.arr { border: 6px solid transparent; width: 0; height: 0; display: inline-block; vertical-align: middle; }
+.arr_right { border: 6px solid transparent; width: 0; height: 0; border-left: 6px solid #b5b5b5; display: inline-block; vertical-align: middle; }
+.arr_down { border-top: 6px solid #333; margin-top: 5px; }
+.mem_list li { float: none; margin: 0; text-align: left; width: 100%; font-size: 12px; clear: both; }
+a.lev_1 { width: 100%; line-height: 25px; display: block; }
+a.lev_1 .arr_right { margin-right: 7px; margin-top: -2px; }
+.sub_ava { display: none; clear: both; }
+.sub_ava a { display: block; overflow: hidden; zoom: 100%; width: 100%; height: 30px; line-height: 30px; margin-bottom: 10px; }
+.sub_ava a img { float: left; margin-right: 15px; display: block; }
+.mem_list li.active .arr_right { border-top: 6px solid #555; border-left-color: transparent; margin-top: 5px; }
+#dis_pop { top: 33px; left: -76px; }
+#dis_pop .popover-content { max-height: 200px; overflow-y: auto; }
+#dis_pop .mem_list { clear: both; width: 100%; overflow: hidden; }
+.fixed_btnRow .red_btn, input.big_button, a.big_button, input.cancelBtn { padding: 10px 0; color: #fff; width: 100px; font-size: 14px; }
+.tabBox_p { margin-bottom: 15px; }
+/*评论*/
+
+.cmt_row { padding: 10px 0; border-bottom: 1px dashed #e5e5e5; overflow: hidden; zoom: 100%; }
+.cmt_info { padding-left: 70px; margin-top: -5px; }
+.feedBack { margin-left: 58px; padding-top: 15px; }
+.feedBack .cmt_info { width: 615px; }
+.cmt_box .cmt_row:last-child { border: none; }
+/*warn_box*/
+
+#warn_box { width: 260px; padding: 0 20px; height: 100%; background: url(http://gsm.wanmagps.com/images/warn_bg.png) repeat; position: absolute; left: 0; top: 0; z-index: 20000; box-sizing: content-box; color: #fff; overflow: auto; }
+#warn_box .close_b { top: 15px; right: 15px; }
+#warn_box h2 { font-size: 14px; border-bottom: 1px solid #707070; padding-bottom: 10px; }
+.warn_rowAva { padding: 10px 0; border-bottom: 1px solid #707070; position: relative; }
+.warn_rowAva .date { font-family: Arial, Helvetica, sans-serif; }
+/*form*/
+
+.row_h { clear: both; }
+.my_form .form-group { margin-left: 0; margin-right: 0; }
+.row_h .n2 { float: right; }
+.my_form .form-group { float: left; width: 50%; }
+.row_full .form-group { width: 100%; }
+.form-group { margin-bottom: 10px; }
+input.filePrew { cursor: pointer; display: block; font-size: 100px; height: 29px; left: 0; opacity: 0; position: absolute; top: 0; width: 120px; }
+.per_list li .half, .half { width: 50%; }
+.per_list li .full, .full { width: 100%; }
+a.blue_button { background: #4b77be; padding: 5px 20px; color: #fff; display: inline-block; text-align: center; }
+.toolBar_top { position: absolute; left: 0; top: 0; width: 100%; padding: 10px 0 0 0; z-index: 99; }
+.page_con { overflow: auto; overflow-x: hidden; clear: both; }
+.btn_ok, .btn_cancel, a.btn_ok { line-height: 1; border: none; background: #fcb322; color: #fff; padding: 7px 22px; display: inline-block; vertical-align: middle; }
+a.red_btn, input.red_btn { background: #f86b4f; }
+a.blueBtn, .blueBtn { background: #4b77be; }
+.btn_cancel, a.btn_cancel { background: #c4c4c4; color: #fff; }
+a.cancelBtn, input.cancelBtn { background: #c9c9c9; }
+a.btn_ok.s { background: #f86b4f; }
+a.s, a.s:hover { color: #fff; padding: 6px 20px; font-size: 12px; }
+.arr_st { font-family: '宋体'; }
+.algin_left { text-align: left; }
+/*formInline intention*/
+
+.row_input { clear: both; overflow: hidden; margin-bottom: 10px; margin-right: -20px; }
+.formInline .form-group { margin-right: 15px; }
+.formInline .form-control { width: 110px; }
+/*auto-complete*/
+
+form .auto-complete-div-multi-wrapper, .auto-complete-div-multi-wrapper { background: #fff; border: 1px solid #ccc; z-index: 9999; position: relative; }
+form .auto-complete-div-multi-wrapper auto-complete-div.default-style input { width: 62px; }
+form auto-complete-div.default-style ul li { line-height: 23px; color: #333; cursor: pointer; }
+form div .auto-complete-repeat .delete { font-family: "PhinsterFine"; font-size: 14px; margin: 0 0 0 3px; color: #fff; }
+form auto-complete-div.default-style ul li:hover { background: #eee; }
+.auto-complete-div-multi-wrapper auto-complete-div.default-style ul { box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); max-height: 200px; overflow: auto; }
+form div .auto-complete-repeat { background: #4b77be; border: none; color: #fff; line-height: 1; padding: 3px 0 4px 5px; }
+.pageGuide { color: #999; text-align: center; line-height: 1; overflow: hidden; }
+.linkToolBar .pageGuide a { margin: 0; }
+.pageGuide span { color: #999; padding: 5px 8px; display: inline-block; }
+.pageGuide span.active { color: #4b77be; font-weight: bold; }
+.default-style { display: none; }
+/*提示*/
+
+.pop-tip { height: 50px; line-height: 50px; text-align: center; color: #fff; font-size: 16px; position: fixed; right: 0; top: 0; background: #739de0; width: 800px; z-index: 1000002; }
+.pop-tip-error { background-color: #db0015 }
+.pop-tip-success { background-color: #42c495 }
+.pop-tip-warning { background-color: #cd8d13 }
+.dialog-foot { text-align: right; padding: 10px 20px; }
+.dialog-body { padding: 40px 20px; word-break: break-all; }
+.need { font-size: 9px; display: inline-block; color: #4e76fb; margin: -9px 3px 0 -11px; vertical-align: middle; }
+.need_success { font-size: 9px; display: inline-block; color: #4079c1; margin: -9px 3px 0 -11px; vertical-align: middle; }
+.need_error { font-size: 9px; display: inline-block; color: #ff4229; margin: -9px 3px 0 -11px; vertical-align: middle; }
+.need_warning { font-size: 9px; display: inline-block; color: #fb914f; margin: -9px 3px 0 -11px; vertical-align: middle; }
+.error_input { border: 1px solid #ff0000; }
+.form_tab { width: 100%; }
+.form_tab > tbody > tr > th, .form_tab > tbody > tr > td { font-weight: normal; padding: 5px 0; vertical-align: top; line-height: 30px; }
+.form_tab > tbody > tr th { text-align: right; padding-right: 5px; }
+.ver_top > tbody > tr > th, .ver_top > tbody > tr td { vertical-align: top; }
+/*innerTab 自驾游下拉table*/
+
+.border_tab td .innerTab { width: 100%; table-layout: fixed; }
+.border_tab td .innerTab th { font-weight: normal; color: #666; background: #fff; }
+.border_tab td .innerTab th, .border_tab td .innerTab td { padding: 5px; text-align: center; border: none; vertical-align: top; }
+.border_tab td .innerTab td.left { text-align: left; }
+.arrB { width: 20px; height: 10px; display: inline-block; vertical-align: middle; background: url(http://gsm.wanmagps.com/images/arr_down.png) no-repeat 9px center; }
+.border_tab td.activeTd { border-bottom: 1px solid #fff; }
+.border_tab td.activeTd .arrB { background: url(http://gsm.wanmagps.com/images/arr_up.png) no-repeat 9px center; }
+.border_tab .sub_tr { display: none; border-right: 1px solid #f60; }
+.sub_info { max-height: 200px; overflow: auto; text-align: left; color: #666; padding: 10px; }
+/*pop*/
+
+.popBox, .bigPop { background-color: #fff; border: 1px solid #ccc; box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2); left: 0; min-width: 350px; position: absolute; top: 30px; z-index: 1060; font-size: 12px; max-width: 760px; text-align: left; }
+.bigPop { max-width: 960px; }
+.popBox.right { left: auto; right: 0; }
+.popBox.right .arr_t { right: 40px; left: auto; }
+.full-width { width: 100%; }
+.popover-footer { padding: 15px; text-align: right; }
+.popover-content .popover-footer { padding-right: 0; }
+.arr_t { position: absolute; top: -19px; left: 20px; }
+.arr_t:after, .arr_t:before { border: 10px solid transparent; border-bottom: 10px solid #fff; width: 0; height: 0; position: absolute; top: 0; right: -20px; content: ' ' }
+.arr_t:before { border-bottom-color: #ccc; right: -20px; top: -1px; }
+.dialogPop { background-color: #fff; border: 1px solid #ccc; box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2); z-index: 1060; position: absolute; left: 50%; top: 50%; width: 600px; margin: -150px 0 0 -300px; padding: 20px; }
+.dialogPop .close { margin-top: -10px; }
+.dialogPop.smallPop { width: 400px; margin-left: -200px; }
+/*loading*/
+
+.loading { text-align: center; padding: 20px 0; clear: both; }
+.loader1 { display: inline-block; font-size: 0px; padding: 0px; }
+.loader1 span { vertical-align: middle; border-radius: 100%; display: inline-block; width: 10px; height: 10px; margin: 3px 2px; -webkit-animation: loader1 0.8s linear infinite alternate; animation: loader1 0.8s linear infinite alternate; }
+.loader1 span:nth-child(1) { -webkit-animation-delay: -1s; animation-delay: -1s; background: rgba(75, 119, 190, 0.6); }
+.loader1 span:nth-child(2) { -webkit-animation-delay: -0.8s; animation-delay: -0.8s; background: rgba(75, 119, 190, 0.8); }
+.loader1 span:nth-child(3) { -webkit-animation-delay: -0.26666s; animation-delay: -0.26666s; background: rgba(75, 119, 190, 1); }
+.loader1 span:nth-child(4) { -webkit-animation-delay: -0.8s; animation-delay: -0.8s; background: rgba(75, 119, 190, 0.8); }
+.loader1 span:nth-child(5) { -webkit-animation-delay: -1s; animation-delay: -1s; background: rgba(75, 119, 190, 0.4); }
+@keyframes loader1 { from {
+ transform: scale(0, 0);
+}
+to { transform: scale(1, 1); }
+}
+@-webkit-keyframes loader1 { from {
+ -webkit-transform: scale(0, 0);
+}
+to { -webkit-transform: scale(1, 1); }
+}
+/*loading END*/
+
+.btn-group { margin-bottom: 5px; }
+.btn-group .btn { opacity: 1; padding: 7px 10px; font-size: 13px; }
+.ta-text h1 { font-size: 36px; }
+.ta-text h2 { font-size: 30px; }
+.ta-text h3 { font-size: 24px; }
+.ta-text h4 { font-size: 18px; }
+.ta-text h5 { font-size: 14px; }
+.ta-text h6 { font-size: 12px; }
+/*table*/
+
+.tab_infoList { width: 100%; }
+.tab_infoList > tbody > tr> th, .tab_infoList > tbody > tr> td { font-weight: normal; padding: 4px 0; vertical-align: middle; }
+.tabTra { width: 100%; table-layout: fixed; }
+.tabTra > tbody > tr > th, .tabTra > tbody > tr > td { border: 1px solid #c9c9c9; padding: 8px 5px; vertical-align: middle; word-break: break-all; line-height: 20px; }
+.speTr td, .speTr th { border: none; }
+.speTr tr { border: 1px solid #c9c9c9; }
+.tabTra td { padding-left: 10px; }
+.tabTra > tbody > tr > td.left { text-align: left; }
+.tabTra > tbody > tr > th.right { text-align: right; padding-right: 15px; }
+.th-center th { text-align: center; }
+.tabTra > tbody > tr > th { background: #eee; text-align: center; font-weight: normal; padding: 5px; }
+.ver_top th { vertical-align: top; }
+.tit_y { border-left: 2px solid #f39800; padding-left: 10px; font-weight: bold; font-size: 14px; }
+.th-right th { text-align: right; padding-right: 10px; }
+.tabTra th.gray_th { color: #666; background: #eee; }
+.speTab { border: 1px solid #c9c9c9; }
+.speTab th, .speTab td { border: none; border-bottom: 1px solid #c9c9c9; }
+.speTab th { background: #e2e2e2; }
+.speTab th.tbody-th { background: #f2f2f2; color: #666; }
+.speTab td.space { border-left: 1px solid #fff; border-right: 1px solid #fff; height: 1; line-height: 1; padding: 0; }
+.speTab tr.active td { border-bottom: none; }
+.tabMenu { height: 59px; line-height: 59px; background: #f2f2f2; margin: -10px 0 5px -20px; }
+.tbT { padding-left: 20px; border-bottom: 1px solid #d9d9d9; }
+.tbT li a, .tbT li a:hover { font-size: 15px; padding: 0 15px; height: 50px; background: none; line-height: 48px; color: #999; border: none; }
+.tbT li.active a { border: none; background: none; border-bottom: 4px solid #4b77be; color: #4b77be; }
+.line_t { border-top: 1px dashed #d2d2d2; padding-top: 8px; }
+.min-auto { min-width: 0; }
+.pink_txt { color: #f86b4f; }
+.noFixed { table-layout: auto; }
+.ticketInfo { border: 1px solid #ccc; padding: 5px 10px; }
+.ticketInfo li, .lineBox { background: url(http://gsm.wanmagps.com/images/line_repeat.gif) repeat-x left center; overflow: hidden; zoom: 100%; padding: 5px 0; }
+.ticke_l { float: left; display: inline-block; background: #fff; padding-right: 15px; }
+.ticket_r { float: right; background: #fff; padding-left: 10px; }
+.l_p { display: inline-block; padding: 5px; border: 1px solid #4b77be; float: left; }
+.l_p i { font-size: 10px; font-weight: normal; color: #a2cd46; margin-right: 3px; }
+.noborder { border: none; }
+.ticketOrder { border: 1px solid #c9c9c9; }
+.arr_b { width: 9px; height: 6px; display: inline-block; background: url(http://gsm.wanmagps.com/images/arr_b.png) no-repeat 0 -19px; vertical-align: middle; }
+.arr_t1 { background-position: 0 0; }
+a.numVH { width: 25px; height: 28px; display: inline-block; border: 1px solid #d3d3d3; line-height: 18px; text-align: center; color: #b3b3b3; background: url(http://gsm.wanmagps.com/images/arr_b.png) no-repeat 7px -29px; vertical-align: middle; }
+.vhInput { height: 28px; line-height: 28px; font-weight: bold; width: 35px; text-align: center; margin: 0 -1px; position: relative; color: #4b77be; padding: 0; }
+a.plus { background-position: 7px -61px; }
+.numPanel { display: inline-block; vertical-align: middle; }
+.numPanel .numVH, .numPanel .vhInput { float: left; }
+.dropInfo { display: none; color: #666; line-height: 20px; }
+i.step_dot { display: inline-block; width: 20px; height: 20px; line-height: 20px; color: #fff; background: #4b77be; margin-right: 8px; text-align: center; font-style: normal; border-radius: 20px; }
+.effective { font-size: 11px; display: inline-block; color: #fff; background: #79c279; padding: 2px; line-height: 1; }
+.noBorder th, .noBorder td { border: none; vertical-align: top; }
+.hide-moreInfo { max-height: 55px; overflow: hidden; }
+.underlineT { text-decoration: underline; }
+/*日历*/
+
+.cal-box { border: 1px solid #d9d9d9; overflow: hidden; }
+.cal-tab-sch { width: 100%; table-layout: fixed; background: #fafafa; }
+.cal-tab-sch th { text-align: center; font-size: 16px; padding: 15px 0; font-weight: normal; }
+.cal-tab-sch td { border: 1px solid #ebebeb; height: 110px; position: static; border-right: none; }
+.day_date { font-size: 16px; color: #999; text-align: right; padding: 10px 13px; }
+.old_day .day_date { color: #ccc; }
+.td-inner { width: 100%; height: 100%; }
+.journey { font-size: 14px; color: #666; background: #fff; padding: 5px; margin: 0 5px; }
+.cal-tab-sch .sch-td { background: #ededed; border: 1px solid #d7d7d7; }
+.cal-tab-sch .sch-td.borderL .td-inner { border-left: 6px solid #93baf8; }
+.cal-tab-sch .spe_td .td-inner { border-left: 6px solid #f7d72e; }
+.cal-tab-sch .sch-td.active .day_date { color: #6698e8; }
+.cal-tab-sch .sch-td.active .journey { background: #6698e8; font-size: 14px; color: #fff; }
+.cal-tab-sch tr td:last-child { border-right: none; }
+.cal-tab-sch .sch-td.active .tra_tool { background-image: url(http://gsm.wanmagps.com/images/tra_tool-white.png); }
+.cal-tab-sch .sch-td.yellowB { border-left: 6px solid #f6d72e; }
+#toolbar .popover { max-width: 1100px; }
+.editor_body .btn-group .btn { height: 30px; }
+.popover-content h3 { font-size: 14px; font-weight: bold; margin-bottom: 10px; }
+.popover-content h3 a { font-weight: normal; font-size: 12px; }
+.glyphicon-plus { margin-right: 5px; }
+.content-inner { padding: 20px; }
+.cal-search-panel .search_qp { margin-top: -5px; }
+.tTab .maxH { max-height: 35px; overflow: hidden; }
+.gatherT { border-bottom: 1px solid #ccc; margin-bottom: 10px; padding-bottom: 10px; }
+.dropPanel { display: inline-block; z-index: 100; width: 100%; }
+.drop-panel { display: inline-block; z-index: 100; }
+.dropPanel ul, .drop-panel ul { max-height: 200px; overflow: hidden; overflow-y: auto; z-index: 100; }
+.panelB { border: 1px solid #ccc; }
+.bgT { background: #f2f2f2; padding: 7px; }
+.dropTra { background: #fff; border: 1px solid #ccc; position: absolute; width: 100%; z-index: 100; border-top: none; display: none; }
+.dropTra li { cursor: pointer; padding: 2px 0; }
+.dropTra li:hover { background: #f8f8f8; }
+.open .dropTra { display: block; }
+leftmenu > div { height: -moz-calc(100% - 235px); height: -webkit-calc(100% - 235px); height: calc(100% - 235px); overflow: auto; overflow-x: hidden; }
+#listLoading { width: 100%; text-align: center; }
+a.delBtn { font-size: 20px; position: absolute; top: 0; right: 0; color: #fff; width: 20px; height: 20px; display: block; text-align: center; z-index: 10; }
+.progress-bar-info { line-height: 1; }
+.sub-panel { position: fixed; top: 0px; right: 0px; width: 810px !important; height: 100%; overflow: hidden; z-index: 1000; padding-bottom: 0 !important; }
+
+::-webkit-scrollbar {
+ width: 8px;
+ height: 12px;
+}
+
+/*定义滚动条轨道 内阴影+圆角*/
+
+::-webkit-scrollbar-track {
+  /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);*/
+  /*border-radius: 10px;*/
+  background-color: #d1d1d1;
+}
+
+/*定义滑块 内阴影+圆角*/
+
+::-webkit-scrollbar-thumb {
+  /*border-radius: 10px;*/
+  /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);*/
+  background-color: #777;
+}
+.w-800 .cropArea.big { height: 454px; }
+.subRMenu { height: 100%; background: #fff; position: absolute; left: 180px; top: 0; box-shadow: 1px 0px 1px #AAA; font-size: 14px; z-index: 899; padding: 15px 0 15px 20px; }
+.panelM h3 { font-weight: bold; line-height: 25px; margin-bottom: 5px; }
+.panelM ul li { display: block; line-height: 25px; clear: both; }
+.contB li a.remove_r { float: right; font-size: 14px; font-family: "宋体"; display: none; }
+.contB li { cursor: pointer; }
+.contB li:hover a.remove_r { display: block; }
+.contA { width: 140px; height: 100%; overflow: auto; }
+.contB { width: 250px; height: 100%; overflow: auto; padding-right: 15px; }
+.contB li a { font-size: 12px; }
+.pagination > li > a:hover, .pagination > li > span:hover, .pagination > li > a:focus, .pagination > li > span:focus { background: #337ab7; color: #fff; }
+#tel_num { margin-left: 30px; }
+.w40 { width: 40px; }
+.w50 { width: 50px; }
+.w65 { width: 65px; }
+.w80 { width: 80px; }
+.w90 { width: 90px; }
+.w100 { width: 100px; }
+.w110 { width: 110px; }
+.w120 { width: 120px; }
+.w150 { width: 150px; }
+.w180 { width: 180px; }
+.w190 { width: 190px; }
+.w200 { width: 200px; }
+.w250 { width: 250px; }
+.w280 { width: 280px; }
+.w300 { width: 300px; }
+.w320 { width: 320px; }
+.w350 { width: 350px; }
+.w400 { width: 400px; }
+.w450 { width: 450px; }
+.w500 { width: 500px; }
+.w600 { width: 600px; }
+.w720 { width: 720px; }
+.w730 { width: 730px; }
+.w700 { width: 700px; }
+.w760 { width: 760px; }
+textarea.form-control { min-height: 70px; }
+.col-md-0-8 { width: 7.5%; float: left; }
+.squreIcon { width: 14px; height: 14px; vertical-align: middle; margin-right: 5px; background: #963; display: inline-block; margin-top: -2px; }
+.yxkh { background: #4a76bf; }
+.gzkh { background: #ff6c2a; }
+.gzzd { background: #ff3424; }
+.ddzl { background: #ffc152; }
+.yqht { background: #48d146; }
+.ddqx { background: #9a9a9a; }
+.jsgz { background: #ff7e7e; }
+.lxgl { background: #3abdff; }
+.sbTab { border: 1px solid #6593df; }
+.sbTab li { width: 50%; float: left; }
+.sbTab li a { text-align: center; width: 100%; height: 30px; line-height: 30px; padding: 0; }
+.sbTab > li.active > a { background: #6593df; border: none; color: #fff; }
+.mask-pop { background: rgba(180,180,180,0.15); width: 800px; height: 100%; position: absolute; right: 0; top: 0; z-index: 9999999; }
+.mask-blur { -webkit-filter: blur(1.5px); }
+.dis_list li .close_btn { display: none; }
+.dis_list li:hover .close_btn { display: block; }
+.moreInfo li { height: auto; line-height: 20px; padding: 5px 0; }
+.moreInfo li div { height: auto; white-space: normal; }
+.smP > tbody > tr > td { padding: 5px; color: #666; }
+.visible .popover-content { overflow: visible; }
+.tab_in { width: 100%; margin-top: 10px; }
+.tab_in th, .tab_in td { padding: 10px; border: 1px solid #c9c9c9; vertical-align: middle; }
+.tab_in th { font-weight: normal; background: #f2f2f2; }
+.tab_in td { background: #fff; font-size: 14px; line-height: 20px; }
+.tab_in.active th { border-top: 1px solid #4a78be; border-left: 1px solid #4a78be; border-right: 1px solid #4a78be; }
+.tab_in.active tr td:first-child { border-left: 1px solid #4a78be; }
+.tab_in.active tr td:last-child { border-right: 1px solid #4a78be; }
+.tab_in.active tr:last-child td { border-bottom: 1px solid #4a78be; }
+.speList li { display: -webkit-box; line-height: 18px; height: auto; padding-top: 7px; padding-bottom: 7px; display: -ms-flexbox; display: -webkit-flex; display: flex; text-align: center; -webkit-box-align: center; -ms-flex-align: center; -webkit-align-items: center; align-items: center; -ms-flex-item-align: stretch; -webkit-align-self: stretch; align-self: stretch; }
+.speList li div { height: auto; white-space: normal; }
+.speList .l_c { height: auto; }
+#test-impress { width: 100%; height: 100%; }
+#test-impress.active { perspective: 1000px; }
+#test-impress #container { width: 100%; height: 100%; transition: .4s; transform-origin: 0; transform-style: preserve-3d; overflow: hidden; }
+#test-impress.active #container { position: absolute; z-index: 1; }
+#test-impress.active #container:before { content: ''; position: absolute; z-index: 10000; display: block; width: 100%; height: 100%; cursor: pointer; }
+#test-impress #historyScreen { position: absolute; top: 50%; left: 0; width: 80%; height: 80%; transform: translate(-100%, -50%); transition: .4s; transform-style: preserve-3d; overflow: hidden; }
+#test-impress #historyScreen>ul { width: 70%; height: 100%; overflow: auto; }
+#test-impress #historyScreen>ul>li { float: left; position: relative; width: 30%; height: 21%; margin-right: 2.5%; margin-bottom: 20px; padding-bottom: 40px; box-sizing: content-box; box-shadow: 1px 1px 4px #666; overflow: hidden; }
+#test-impress #historyScreen>ul>li>a { position: relative; display: block; width: 595.25%; height: 595.25%; /*transform: scale(0.168);*/
+transform-origin: 0 0; color: inherit; background: #eee; }
+#test-impress #historyScreen>ul>li>a:before { content: ''; position: absolute; top: 0; left: 0; display: block; width: 100%; height: 100%; z-index: 10000; cursor: pointer; }
+#test-impress #historyScreen>ul>li>a.list { transform: translateX(-180px); }
+#test-impress #historyScreen>ul>li>a.detail { right: -800px; transform: translateX(-100%); }
+.lev-menu a { border:1px solid #ccc; display: inline-block; padding:3px 8px; margin-right:10px; background:#fff; position:relative;}
+.lev-menu .warn_tip { top:-9px;}
+.lev-menu a.active { border-color:#4b77be ; color:#4b77be;}
+.schedule td.normal.yellow span { border-color:#f7d72e;}
+

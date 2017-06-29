@@ -1,0 +1,209 @@
+var userinfo = {};
+var disneyHotelAPI = "";
+var disneyHotelOfficailAPI = "";
+var dreamFlyType = 'dreamFly';
+var pageLimit = 25;
+var embeddedPageLimt = 5;
+var underscore = angular.module('underscore', []);
+var position = [];
+var intentionCustomerType = "intentionCustomer";
+var productType = "product";
+var commomType = "common";
+var crmType = 'crm';
+var global = {};
+global.RemindMessageType = "sendRemind";
+position[1] = 'mainData';
+position[2] = 'detailData';
+var switchType = [];
+switchType[1] = 'mainSwitchVal';
+switchType[2] = 'detailSwitchVal';
+var activeStatus = [];
+activeStatus[1] = 'menuCssClass';
+activeStatus[2] = 'mainCssClass';
+var current = [];
+current[1] = 'currentMian';
+current[2] = 'currentDetail';
+var cacheMaxNum = 500;
+var tempCache = [];
+var noCacheUrls = ['erpIndex/erpIndexTemp/list', 'administration/goodsExport/list'];
+underscore.factory('_', ['$window', function($window) {
+  return $window._; // assumes underscore has already been loaded on the
+  // page
+}]);
+moment.locale("zh-cn");
+angular.module("textAngularSetup").run(function(taOptions) {
+  taOptions.classes.textEditor = "txtInput";
+  taOptions.classes.htmlEditor = "txtInput";
+});
+
+/**
+ * 框架 需要的js,UrlConfig.js,Util.js
+ */
+var app = angular.module('HY', [
+  'ngAnimate', // 动画
+  'Sidebar', // 边栏
+  'ngMaterial',
+  'List', // 列表
+  "SubView", // 副屏
+  "MainView", // 主屏
+  "User", // 用户
+  'ui.bootstrap', // BootStrapUI
+  'Dialog', // 弹窗
+  'LoadingBar', // 超过100ms加载进度条的插件
+  'Scroll', // 滚动条
+  'permission', // 权限
+  'Route', // 路由
+  'ngDialog', // 弹出框
+  'HYpage', // 页面处理
+  'commonFactory', // 公共的服务
+  'ui.event', 'underscore', 'angularjs-autocomplete', // 自动补全
+  'ngImgCrop', // 裁剪图片
+  'ngHyCalendar', // 日历
+
+  'socketio', 'productRoute', 'customerRoute', 'systemRoute', 'productOrderRoute', 'administrationRoute', 'textAngular', "ui.calendar", // 基于UI.Calendar的日历日程表控件
+  'intentionCustomerService', // 意向客户服务
+  'intentionCustomerRoute', // 意向客服跳转信息
+  'purchaseCenterService', // 采购中心Service
+  'purchaseCenterRoute', // 采购中心Route
+  'tourGuideCenterService', // 导游中心service
+  'orderManagementRoute', // 订单管理-组团游Route
+  'orderManagementService', // 订单管理-组团游service
+  'customerCenterService', // 400客服中心Service
+  'customerCenterRoute', // 400客服中心Route
+  'financeCenterService', // 财务中心Service
+  'financeCenterRoute', // 财务中心Route
+  "informationCenterService", //通知中心service
+  "informationCenterRoute" //通知中心route
+]);
+
+app.run(function config($rootScope, $http) {
+  $rootScope.apiPath = "http://erp.iflying.com/";
+  $rootScope.baseUrl = 'http://erp.iflying.com/';
+  $rootScope.productUrl = "http://product.system.qianbailv.com/";
+  $rootScope.picUrl = "http://pic.iflying.com/";
+  $rootScope.insuranceUrl = "http://115.29.222.6:86/";
+  $rootScope.uploadPic = "http://121.199.39.2:8888/";
+  $rootScope.socketUrl = "http://121.199.39.2:8888/";
+  $rootScope.contractUrl = 'http://erp.iflying.com/contract?orderID=';
+  $rootScope.entrustcontractUrl = 'http://erp.iflying.com/contract/entrustcontract?orderID=';
+  $rootScope.crmUrl = 'http://crm.feiyang.cn/';
+  $rootScope.loadingText = "加载中";
+  $rootScope.tipDelayTime = 400;
+  $rootScope.mainViewList = new Array([]);
+  $rootScope.detailViewList = new Array([]);
+  $rootScope.mainSwitchVal = {};
+  $rootScope.detailSwitchVal = {};
+  $rootScope.mainData = {};
+  $rootScope.detailData = {};
+  $rootScope.urlConfig = urlConfig;
+  $rootScope.showProcessBar = false;
+  $rootScope.showSidebar = false;
+  $rootScope.isLoadingList = new Array([]);
+  $rootScope.letter = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+  $rootScope.currentNavi = 'home';
+  $rootScope.mainViewWidth = $(window).width() - 220;
+  $rootScope.refreshPage = new Array([]);
+  $rootScope.permission = new Array([]);
+  $rootScope.pageLimit = 25;
+  $rootScope.embeddedPageLimt = 5;
+  $rootScope.select = {};
+  $rootScope.show = {};
+  $rootScope.Pagination = {};
+  $rootScope.userinfo = {};
+  $rootScope.lastViewList = [];
+
+  $rootScope.isShowComponents = function(name, boolean) {
+    $rootScope.show[name] = boolean;
+  };
+
+  $rootScope.hideAllComponents = function() {
+    $rootScope.show = {};
+  };
+
+});
+
+app.config(['ngDialogProvider', function(ngDialogProvider) {
+  ngDialogProvider.setDefaults({
+    className: 'ngdialog-theme-default',
+    plain: false,
+    showClose: true,
+    closeByDocument: true,
+    closeByEscape: true,
+    appendTo: false,
+    preCloseCallback: function() {
+      console.log('default pre-close callback');
+    }
+  });
+}]);
+
+
+app.config(function($mdThemingProvider) {
+  $mdThemingProvider.theme('default')
+    .primaryPalette('blue', {
+      'default': '900', // by default use shade 400 from the pink palette for primary intentions
+      'hue-1': '100', // use shade 100 for the <code>md-hue-1</code> class
+      'hue-2': '600', // use shade 600 for the <code>md-hue-2</code> class
+      'hue-3': 'A100' // use shade A100 for the <code>md-hue-3</code> class
+    })
+    // If you specify less than all of the keys, it will inherit from the
+    // default shades
+    .accentPalette('purple', {
+      'default': '200' // use shade 200 for default, and keep all other shades the same
+    });
+});
+
+var route = angular.module('Route', []);
+
+var productService = angular.module("productService", ['ng', 'underscore']); // 产品中心服务类
+var customerService = angular.module("customerService", ['ng', 'underscore']); // 会员中心
+var systemService = angular.module("systemService", ['ng', 'underscore']); // 系统设置
+var tourGuideCenterService = angular.module("tourGuideCenterService", ['ng', 'underscore']); // 导游中心
+var administrationService = angular.module("administrationService", ['ng', 'underscore', 'commonFactory']); // 人事行政
+var productOrderService = angular.module('productOrderService', ['ng', 'underscore']); // 产品下单
+var orderManagementService = angular.module('orderManagementService', ['ng', 'underscore']); // 订单管理
+
+var productRoute = angular.module('productRoute', ['productService', 'systemService', 'underscore', 'commonFactory', 'ngDialog']);
+var customerRoute = angular.module('customerRoute', ['customerService', 'underscore', 'commonFactory', 'ngDialog', 'HYpage']);
+var administrationRoute = angular.module('administrationRoute', ['administrationService', 'underscore', 'commonFactory', 'ngDialog', 'systemService']);
+var systemRoute = angular.module('systemRoute', ['systemService', 'underscore', 'commonFactory', 'ngDialog', 'HYpage']);
+var tourGuideCenterRoute = angular.module('tourGuideCenterRoute', ['tourGuideCenterService', 'commonFactory', 'ngDialog', 'productRoute']);
+var productOrderRoute = angular.module('productOrderRoute', ['productOrderService', 'systemService', 'customerService', 'productService', 'underscore', 'commonFactory', 'ngDialog']);
+var orderManagementRoute = angular.module('orderManagementRoute', ['orderManagementService', 'productService', 'productOrderService', 'underscore', 'commonFactory', 'ngDialog', 'customerService', 'HYpage']);
+var hyTestRoute = angular.module('hyTestRoute', ['commonFactory']);
+
+// 意向客户
+angular.module("intentionCustomerService", ['ng', "User"]);
+angular.module("intentionCustomerRoute", ['intentionCustomerService', "commonFactory", 'ngDialog']);
+// 采购中心
+var purchaseCenterService = angular.module("purchaseCenterService", ['ng', "User", "underscore", "commonFactory", "ngDialog"]);
+var purchaseCenterRoute = angular.module("purchaseCenterRoute", ['purchaseCenterService', "commonFactory", 'ngDialog', "underscore", "ng"]);
+// 400客服中心
+var customerCenterService = angular.module("customerCenterService", ['ng', "User"]);
+var customerCenterRoute = angular.module("customerCenterRoute", ['customerCenterService', "commonFactory", 'ngDialog']);
+
+// 财务中心
+var financeCenterService = angular.module("financeCenterService", ['ng', "ngDialog"]);
+var financeCenterRoute = angular.module("financeCenterRoute", ['financeCenterService', "commonFactory", 'ngDialog']);
+// 通知中心
+angular.module("informationCenterService", ['ng', "User"]);
+angular.module("informationCenterRoute", ['informationCenterService', "commonFactory", 'ngDialog']);
+
+angular.module('OARoute', ['ng', 'ngSanitize']);
+
+angular.module('erpIndexRoute', ['informationCenterService']);
+var baseUrl = 'http://erp.iflying.com/';
+var picUrl = 'http://pic.iflying.com';
+var productUrl = "http://product.system.qianbailv.com/";
+var crmUrl = 'http://crm.feiyang.cn/';
+var insuranceUrl = "http://115.29.222.6:86/";
+var intentionCustomerUrl = "http://intentionCustomer.iflying.com";
+var insuranceDownloadUrl = "http://crm.feiyang.cn:9969/Insure/DownloadInsure.ashx";
+var disneyTicketAPI = "http://erp.iflying.com/purchaseCenter/Disney/DisneyTicketAPI/";
+var disneyProductAPI = "http://erp.iflying.com/purchaseCenter/Disney/DisneyProduct/";
+var disneyTicketOfficialAPI = "http://erp.iflying.com/purchaseCenter/Disney/DisneyTicket/";
+var dreamFlyUrl = "http://rpc.iflying.com/";
+var socketUrl = "http://121.199.39.2:8888/";
+var contractUrl = 'http://erp.iflying.com/contract?orderID=';
+var entrustcontractUrl = 'http://erp.iflying.com/contract/entrustcontract?orderID=';
+var operationModel = 'debug';
+var onlinePurchaseAPI = "http://erptest.iflying.com/purchaseCenter/Disney/OnlineDisneyPurchase/";

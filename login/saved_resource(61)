@@ -1,0 +1,1872 @@
+/**
+ * Created by li on 2016/4/19.
+ * 支出结算列表 控制器
+ */
+app.controller('IExpenditureSettlementViewController', function($scope, $rootScope, $filter,
+  expenditureSettlement,
+  getPersonnel,
+  getFinanceOrderAdvanceList,
+  getFinanceGuidePreCollarList,
+  getFinanceGuideReimList,
+  GetPurchaseBillList,
+  OtherExpensesData,
+  GetFinanceGuideSubsidyList,
+  getCardRefundlist) {
+
+  var view = this;
+  $scope.template = {};
+  $scope.mainData.showDetailUrl = 'financeCenter/expenditureSettlement/detail_';
+  $scope.template.baseUrl = '/public/angularView/finances/expenditureSettlement/';
+  $scope.currentTypeName = 'orderadvancepayment';
+  $scope.currentClickUrl = $scope.template.baseUrl + 'list_extend/list_orderadvancepayment.html';
+
+  $scope.currentTypeCondition = $scope.template.baseUrl + 'list_condition_extend/list_condition_';
+  $scope.template.orderadvancepaymentcondition = $scope.currentTypeCondition + 'orderadvancepayment.html';
+  $scope.template.ordertemporaryloancondition = $scope.currentTypeCondition + 'ordertemporaryloan.html';
+  $scope.template.guideprecollarcondition = $scope.currentTypeCondition + 'guideprecollar.html';
+  $scope.template.guidereimbursementcondition = $scope.currentTypeCondition + 'guidereimbursement.html';
+  $scope.template.censuscostsettlementcondition = $scope.currentTypeCondition + 'censuscostsettlement.html';
+  $scope.template.otherexpensescondition = $scope.currentTypeCondition + 'otherexpenses.html';
+  $scope.template.membershipcardrefundcondition = $scope.currentTypeCondition + 'membershipcardrefund.html';
+
+  var filters = $rootScope[position[1]].filters;
+  if (typeof filters == "undefined") {
+    $rootScope[position[1]].filters = {};
+  }
+  var search = $rootScope[position[1]].filters.search;
+  if (typeof search == "undefined") {
+    $rootScope[position[1]].filters.search = {};
+  }
+  var orderadvancepayment = $rootScope[position[1]].filters.search.orderadvancepayment;
+  if (typeof orderadvancepayment == "undefined") {
+    $rootScope[position[1]].filters.search.orderadvancepayment = {
+      ConditionField: "PayPrice",
+      PayStatus: "1",
+      AuditTypeValue: 3,
+      TimeType: 1
+    };
+  }
+  var ordertemporaryloan = $rootScope[position[1]].filters.search.ordertemporaryloan;
+  if (typeof ordertemporaryloan == "undefined") {
+    $rootScope[position[1]].filters.search.ordertemporaryloan = {
+      ConditionField: "PayPrice",
+      PayStatus: "1",
+      AuditTypeValue: 3,
+      TimeType: 1
+    };
+  }
+  var guideprecollar = $rootScope[position[1]].filters.search.guideprecollar;
+  if (typeof guideprecollar == "undefined") {
+    $rootScope[position[1]].filters.search.guideprecollar = {
+      ConditionField: "PayPrice",
+      PayStatus: "1",
+      AuditTypeValue: 3,
+      TimeTypeID: "1"
+    };
+  }
+  var guidereimbursement = $rootScope[position[1]].filters.search.guidereimbursement;
+  if (typeof guidereimbursement == "undefined") {
+    $rootScope[position[1]].filters.search.guidereimbursement = {
+      ConditionField: "PayPrice",
+      PayStatus: "1",
+      AuditTypeValue: 3,
+      TimeTypeID: "1"
+    };
+  }
+  var censuscostsettlement = $rootScope[position[1]].filters.search.censuscostsettlement;
+  if (typeof censuscostsettlement == "undefined") {
+    $rootScope[position[1]].filters.search.censuscostsettlement = {
+      ConditionField: "PayPrice",
+      PayStatus: "1",
+      AuditTypeValue: 3,
+      TimeType: "1"
+    };
+  }
+  var otherexpenses = $rootScope[position[1]].filters.search.otherexpenses;
+  if (typeof otherexpenses == "undefined") {
+    $rootScope[position[1]].filters.search.otherexpenses = {
+      PayStatus: "1",
+      AuditTypeValue: 3,
+      ConditionField: "PayPrice"
+    };
+  }
+  var membershipcardrefund = $rootScope[position[1]].filters.search.membershipcardrefund;
+  if (typeof membershipcardrefund == "undefined") {
+    $rootScope[position[1]].filters.search.membershipcardrefund = {
+      PayStatus: "1",
+      AuditTypeValue: 3,
+      ConditionField: "PayPrice"
+    };
+  }
+
+  var sorderadvancepayment = $rootScope[position[1]].orderadvancepayment;
+  if (typeof sorderadvancepayment == "undefined") {
+    $rootScope[position[1]].orderadvancepayment = {
+      isLoading: true
+    };
+  }
+  var orderadvancepaymentstatus = $rootScope[position[1]].orderadvancepayment.status;
+  if (typeof orderadvancepaymentstatus == "undefined") {
+    $rootScope[position[1]].orderadvancepayment.status = {
+      StartTime: false,
+      EndTime: false
+    };
+  }
+  var sordertemporaryloan = $rootScope[position[1]].ordertemporaryloan;
+  if (typeof sordertemporaryloan == "undefined") {
+    $rootScope[position[1]].ordertemporaryloan = {
+      isLoading: true
+    };
+  }
+  var ordertemporaryloanstatus = $rootScope[position[1]].ordertemporaryloan.status;
+  if (typeof ordertemporaryloanstatus == "undefined") {
+    $rootScope[position[1]].ordertemporaryloan.status = {
+      StartTime: false,
+      EndTime: false
+    };
+  }
+  var sguideprecollar = $rootScope[position[1]].guideprecollar;
+  if (typeof sguideprecollar == "undefined") {
+    $rootScope[position[1]].guideprecollar = {
+      isLoading: true
+    };
+  }
+  var guideprecollarstatus = $rootScope[position[1]].guideprecollar.status;
+  if (typeof guideprecollarstatus == "undefined") {
+    $rootScope[position[1]].guideprecollar.status = {
+      StartTime: false,
+      EndTime: false
+    };
+  }
+  var sguidereimbursement = $rootScope[position[1]].guidereimbursement;
+  if (typeof sguidereimbursement == "undefined") {
+    $rootScope[position[1]].guidereimbursement = {
+      isLoading: true
+    };
+  }
+  var guidereimbursementstatus = $rootScope[position[1]].guidereimbursement.status;
+  if (typeof guidereimbursementstatus == "undefined") {
+    $rootScope[position[1]].guidereimbursement.status = {
+      StartTime: false,
+      EndTime: false
+    };
+  }
+  var scensuscostsettlement = $rootScope[position[1]].censuscostsettlement;
+  if (typeof scensuscostsettlement == "undefined") {
+    $rootScope[position[1]].censuscostsettlement = {
+      isLoading: true
+    };
+  }
+  var censuscostsettlementstatus = $rootScope[position[1]].censuscostsettlement.status;
+  if (typeof censuscostsettlementstatus == "undefined") {
+    $rootScope[position[1]].censuscostsettlement.status = {
+      StartTime: false,
+      EndTime: false
+    };
+  }
+  var sotherexpenses = $rootScope[position[1]].otherexpenses;
+  if (typeof sotherexpenses == "undefined") {
+    $rootScope[position[1]].otherexpenses = {
+      isLoading: true
+    };
+  }
+  var otherexpensesstatus = $rootScope[position[1]].otherexpenses.status;
+  if (typeof otherexpensesstatus == "undefined") {
+    $rootScope[position[1]].otherexpenses.status = {
+      StartTime: false,
+      EndTime: false
+    };
+  }
+  var smembershipcardrefund = $rootScope[position[1]].membershipcardrefund;
+  if (typeof smembershipcardrefund == "undefined") {
+    $rootScope[position[1]].membershipcardrefund = {
+      isLoading: true
+    };
+  }
+  var membershipcardrefundstatus = $rootScope[position[1]].membershipcardrefund.status;
+  if (typeof membershipcardrefundstatus == "undefined") {
+    $rootScope[position[1]].membershipcardrefund.status = {
+      StartTime: false,
+      EndTime: false
+    };
+  }
+
+  view.openDatePicker = openDatePicker;
+  //设置控制时间控件的开启，关闭
+  function openDatePicker($event, type) {
+    $rootScope[position[1]][$scope.currentTypeName].status[type] = true;
+  }
+
+  view.getListExtendUrl = getListExtendUrl;
+  //获取，并初始化设置当前使用的数据
+  function getListExtendUrl(value) {
+    var tabConditionTag = value + 'condition';
+    $scope.currentTypeCondition = $scope.template[tabConditionTag];
+    $scope.currentClickUrl = $scope.template[value];
+    $scope.currentTypeName = value;
+
+    changeAuditType();
+
+    if (($rootScope[position[1]][$scope.currentTypeName].list !== undefined && $rootScope[position[1]][$scope.currentTypeName].list.length <= 0) ||
+      $rootScope[position[1]][$scope.currentTypeName].list === null ||
+      $rootScope[position[1]][$scope.currentTypeName].list === undefined) {
+      loadBasicData();
+    }
+  }
+
+  view.loadBasicData = loadBasicData;
+  //加载基础数据
+  function loadBasicData($event) {
+    var bIsPass = false;
+    if ($event) {
+      switch ($event.keyCode) {
+        case 13: // Enter
+          bIsPass = true;
+          break;
+      }
+    } else {
+      bIsPass = true;
+    }
+    if (bIsPass) {
+      $rootScope[position[1]][$scope.currentTypeName].maxPage = false;
+      var sFunName = 'Get' + $scope.currentTypeName + 'List()';
+      $scope.$eval(sFunName);
+      //eval(sFunName);
+    }
+  }
+
+  //初始化公用检索条件
+  function GetCommonFilters(bIsExistPrefix, bIsFullTimeName) {
+    if (!($rootScope[position[1]].filters.search[$scope.currentTypeName]))
+      $rootScope[position[1]].filters.search[$scope.currentTypeName] = {};
+    if (bIsExistPrefix) {
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].iPageIndex = 1;
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].iPageSize = $rootScope.pageLimit;
+    } else {
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].PageIndex = 1;
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].PageSize = $rootScope.pageLimit;
+    }
+    if (bIsFullTimeName) {
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].StartTime = $filter("date")($rootScope[position[1]].filters.search[$scope.currentTypeName].StartTime, "yyyy-MM-dd");
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].EndTime = $filter("date")($rootScope[position[1]].filters.search[$scope.currentTypeName].EndTime, "yyyy-MM-dd");
+    } else {
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].STime = $filter("date")($rootScope[position[1]].filters.search[$scope.currentTypeName].StartTime, "yyyy-MM-dd");
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].ETime = $filter("date")($rootScope[position[1]].filters.search[$scope.currentTypeName].EndTime, "yyyy-MM-dd");
+    }
+  }
+
+  //获取订单预付款结算列表
+  $scope.GetorderadvancepaymentList = function() {
+    GetCommonFilters(true, false);
+    expenditureSettlement.list(function(param) {
+      $rootScope[position[1]][$scope.currentTypeName].isLoading = true;
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].FinanceType = 2;
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].Department) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptID = $rootScope[position[1]].filters.search[$scope.currentTypeName].Department._id.$id;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptID = null;
+      }
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType.Value;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = null;
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].Field = $rootScope[position[1]].filters.search[$scope.currentTypeName].ConditionField;
+      if (!$rootScope[position[1]].filters.search[$scope.currentTypeName].TimeType)
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].TimeType = 2;
+      getFinanceOrderAdvanceList($rootScope[position[1]].filters.search[$scope.currentTypeName], function(response) {
+        $rootScope[position[1]].orderadvancepayment.isLoading = false;
+        $rootScope[position[1]].orderadvancepayment.list = response.list;
+        if (1 == response.pageCount) {
+          $rootScope[position[1]].orderadvancepayment.maxPage = true;
+        }
+      });
+    }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+  };
+
+  //获取订单暂借款结算列表
+  $scope.GetordertemporaryloanList = function() {
+    GetCommonFilters(true, false);
+    expenditureSettlement.list(function(param) {
+      $rootScope[position[1]][$scope.currentTypeName].isLoading = true;
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].FinanceType = 3;
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].Department) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptID = $rootScope[position[1]].filters.search[$scope.currentTypeName].Department._id.$id;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptID = null;
+      }
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType.Value;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = null;
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].Field = $rootScope[position[1]].filters.search[$scope.currentTypeName].ConditionField;
+      if (!$rootScope[position[1]].filters.search[$scope.currentTypeName].TimeType)
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].TimeType = 2;
+      getFinanceOrderAdvanceList($rootScope[position[1]].filters.search[$scope.currentTypeName], function(response) {
+        $rootScope[position[1]].ordertemporaryloan.isLoading = false;
+        $rootScope[position[1]].ordertemporaryloan.list = response.list;
+        if (1 == response.pageCount) {
+          $rootScope[position[1]].ordertemporaryloan.maxPage = true;
+        }
+      });
+    }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+  };
+
+  //获取导游预领结算列表
+  $scope.GetguideprecollarList = function() {
+    GetCommonFilters(false, true);
+    expenditureSettlement.list(function(param) {
+      $rootScope[position[1]][$scope.currentTypeName].isLoading = true;
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].Department) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DepartmentID = $rootScope[position[1]].filters.search[$scope.currentTypeName].Department._id.$id;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DepartmentID = null;
+      }
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType.Value;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = null;
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].Field = $rootScope[position[1]].filters.search[$scope.currentTypeName].ConditionField;
+      getFinanceGuidePreCollarList($rootScope[position[1]].filters.search[$scope.currentTypeName], function(response) {
+        $rootScope[position[1]].guideprecollar.isLoading = false;
+        $rootScope[position[1]].guideprecollar.list = response.list;
+        if (1 == response.pageCount) {
+          $rootScope[position[1]].guideprecollar.maxPage = true;
+        }
+      });
+    }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+  };
+
+  //获取导游报账结算列表
+  $scope.GetguidereimbursementList = function() {
+    GetCommonFilters(true, true);
+    expenditureSettlement.list(function(param) {
+      $rootScope[position[1]][$scope.currentTypeName].isLoading = true;
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].Department) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptID = $rootScope[position[1]].filters.search[$scope.currentTypeName].Department._id.$id;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptID = null;
+      }
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType.Value;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = null;
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].Field = $rootScope[position[1]].filters.search[$scope.currentTypeName].ConditionField;
+      getFinanceGuideReimList($rootScope[position[1]].filters.search[$scope.currentTypeName], function(response) {
+        $rootScope[position[1]].guidereimbursement.isLoading = false;
+        $rootScope[position[1]].guidereimbursement.list = response.list;
+        if (1 == response.pageCount) {
+          $rootScope[position[1]].guidereimbursement.maxPage = true;
+        }
+      });
+    }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+  };
+
+  //获取三清单成本结算列表
+  $scope.GetcensuscostsettlementList = function() {
+    GetCommonFilters(true, true);
+    expenditureSettlement.list(function(param) {
+      $rootScope[position[1]][$scope.currentTypeName].isLoading = true;
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].Department) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptID = $rootScope[position[1]].filters.search[$scope.currentTypeName].Department._id.$id;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptID = null;
+      }
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType.Value;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = null;
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].Field = $rootScope[position[1]].filters.search[$scope.currentTypeName].ConditionField;
+      GetPurchaseBillList($rootScope[position[1]].filters.search[$scope.currentTypeName], function(response) {
+        $rootScope[position[1]].censuscostsettlement.isLoading = false;
+        $rootScope[position[1]].censuscostsettlement.list = response.list;
+        var pageCount = Math.ceil(response.count / response.limit);
+        if (1 == pageCount) {
+          $rootScope[position[1]].censuscostsettlement.maxPage = true;
+        }
+      });
+    }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+  };
+
+  //获取其它支出结算列表
+  $scope.GetotherexpensesList = function() {
+    GetCommonFilters(false, true);
+    expenditureSettlement.list(function(param) {
+      $rootScope[position[1]][$scope.currentTypeName].isLoading = true;
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].Department) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DepartmentID = $rootScope[position[1]].filters.search[$scope.currentTypeName].Department._id.$id;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].DepartmentID = null;
+      }
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].DeptInOutType) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].FinanciaType = $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptInOutType._id;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].FinanciaType = null;
+      }
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType.Value;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = null;
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].Field = $rootScope[position[1]].filters.search[$scope.currentTypeName].ConditionField;
+      OtherExpensesData($rootScope[position[1]].filters.search[$scope.currentTypeName], function(response) {
+        $rootScope[position[1]].otherexpenses.isLoading = false;
+        $rootScope[position[1]].otherexpenses.list = response.list;
+        var pageCount = Math.ceil(response.count / response.limit);
+        if (1 == pageCount) {
+          $rootScope[position[1]].otherexpenses.maxPage = true;
+        }
+      });
+    }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+  };
+
+  //获取导游津贴结算列表
+  $scope.GetguideallowanceList = function() {
+    GetCommonFilters(false, true);
+    expenditureSettlement.list(function(param) {
+      $rootScope[position[1]][$scope.currentTypeName].isLoading = true;
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].GuidePerson) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].GuideID = $rootScope[position[1]].filters.search[$scope.currentTypeName].GuidePerson._id.$id;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].GuideID = null;
+      }
+      GetFinanceGuideSubsidyList($rootScope[position[1]].filters.search[$scope.currentTypeName], function(response) {
+        $rootScope[position[1]].guideallowance.isLoading = false;
+        $rootScope[position[1]].guideallowance.list = response.list;
+      });
+    }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+  };
+
+  //获取会员卡退款结算列表
+  $scope.GetmembershipcardrefundList = function() {
+    GetCommonFilters(true, false);
+    expenditureSettlement.list(function(param) {
+      $rootScope[position[1]][$scope.currentTypeName].isLoading = true;
+      if ($rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType.Value;
+      } else {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditStatus = null;
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].Field = $rootScope[position[1]].filters.search[$scope.currentTypeName].ConditionField;
+      getCardRefundlist($rootScope[position[1]].filters.search[$scope.currentTypeName], function(response) {
+        $rootScope[position[1]].membershipcardrefund.isLoading = false;
+        $rootScope[position[1]].membershipcardrefund.list = response.list;
+        if (1 == response.pageCount) {
+          $rootScope[position[1]].membershipcardrefund.maxPage = true;
+        }
+      });
+    }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+  };
+
+  view.addNewData = addNewData;
+  //打开明细页控制方法
+  function addNewData(sRecordID) {
+    var viewUrl = $scope.mainData.showDetailUrl + $scope.currentTypeName + '?RecordID=' + sRecordID + '&CurrentTypeName=' + $scope.currentTypeName;
+    $scope.fetch(viewUrl);
+    $scope.openItem();
+  }
+
+  view.refreshorderadvancepaymentPage = refreshorderadvancepaymentPage;
+  //加载新的数据到当前列表数据中【订单预付款】
+  function refreshorderadvancepaymentPage(iDefaultIndex) {
+    if ($rootScope[position[1]][$scope.currentTypeName].maxPage !== true) {
+      var iPIndex = iDefaultIndex ? iDefaultIndex : 1;
+      if (!$rootScope[position[1]].filters.search[$scope.currentTypeName]) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName] = {
+          iPageIndex: iPIndex,
+          iPageSize: pageLimit
+        };
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].iPageIndex += 1;
+      expenditureSettlement.list(function(data) {
+        getFinanceOrderAdvanceList($rootScope[position[1]].filters.search[$scope.currentTypeName],
+          function(data) {
+            if (!$scope.listMax) {
+              $rootScope[position[1]][$scope.currentTypeName].list = _.union($rootScope[position[1]][$scope.currentTypeName].list, data.list);
+              if (iPIndex == data.pageCount) {
+                $rootScope[position[1]][$scope.currentTypeName].maxPage = true;
+              }
+              $rootScope.isloadList = false;
+              $rootScope.showProcessBar = false;
+            }
+          });
+      }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+    } else {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }
+  }
+
+  view.refreshordertemporaryloanPage = refreshordertemporaryloanPage;
+  //加载新的数据到当前列表数据中【订单暂借款】
+  function refreshordertemporaryloanPage(iDefaultIndex) {
+    if ($rootScope[position[1]][$scope.currentTypeName].maxPage !== true) {
+      var iPIndex = iDefaultIndex ? iDefaultIndex : 1;
+      if (!$rootScope[position[1]].filters.search[$scope.currentTypeName]) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName] = {
+          iPageIndex: iPIndex,
+          iPageSize: pageLimit
+        };
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].iPageIndex += 1;
+      expenditureSettlement.list(function(data) {
+        getFinanceOrderAdvanceList($rootScope[position[1]].filters.search[$scope.currentTypeName],
+          function(data) {
+            if (!$scope.listMax) {
+              $rootScope[position[1]][$scope.currentTypeName].list = _.union($rootScope[position[1]][$scope.currentTypeName].list, data.list);
+              if (iPIndex == data.pageCount) {
+                $rootScope[position[1]][$scope.currentTypeName].maxPage = true;
+              }
+              $rootScope.isloadList = false;
+              $rootScope.showProcessBar = false;
+            }
+          });
+      }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+    } else {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }
+  }
+
+  view.refreshguideprecollarPage = refreshguideprecollarPage;
+  //加载新的数据到当前列表数据中【导游预领】
+  function refreshguideprecollarPage(iDefaultIndex) {
+    if ($rootScope[position[1]][$scope.currentTypeName].maxPage !== true) {
+      var iPIndex = iDefaultIndex ? iDefaultIndex : 1;
+      if (!$rootScope[position[1]].filters.search[$scope.currentTypeName]) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName] = {
+          PageIndex: iPIndex,
+          PageSize: pageLimit
+        };
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].PageIndex += 1;
+      expenditureSettlement.list(function(data) {
+        getFinanceGuidePreCollarList($rootScope[position[1]].filters.search[$scope.currentTypeName],
+          function(data) {
+            $rootScope[position[1]][$scope.currentTypeName].list = _.union($rootScope[position[1]][$scope.currentTypeName].list, data.list);
+            if (iPIndex == data.pageCount) {
+              $rootScope[position[1]][$scope.currentTypeName].maxPage = true;
+            }
+            $rootScope.isloadList = false;
+            $rootScope.showProcessBar = false;
+          });
+      }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+    } else {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }
+  }
+
+  view.refreshguidereimbursementPage = refreshguidereimbursementPage;
+  //加载新的数据到当前列表数据中【导游报帐】
+  function refreshguidereimbursementPage(iDefaultIndex) {
+    if ($rootScope[position[1]][$scope.currentTypeName].maxPage !== true) {
+      var iPIndex = iDefaultIndex ? iDefaultIndex : 1;
+      if (!$rootScope[position[1]].filters.search[$scope.currentTypeName]) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName] = {
+          iPageIndex: iPIndex,
+          iPageSize: pageLimit
+        };
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].iPageIndex += 1;
+      expenditureSettlement.list(function(data) {
+        getFinanceGuideReimList($rootScope[position[1]].filters.search[$scope.currentTypeName],
+          function(data) {
+            $rootScope[position[1]][$scope.currentTypeName].list = _.union($rootScope[position[1]][$scope.currentTypeName].list, data.list);
+            if (iPIndex == data.pageCount) {
+              $rootScope[position[1]][$scope.currentTypeName].maxPage = true;
+            }
+            $rootScope.isloadList = false;
+            $rootScope.showProcessBar = false;
+          });
+      }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+    } else {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }
+  }
+
+  view.refreshcensuscostsettlementPage = refreshcensuscostsettlementPage;
+  //加载新的数据到当前列表数据中【三清单成本结算】
+  function refreshcensuscostsettlementPage(iDefaultIndex) {
+    if ($rootScope[position[1]][$scope.currentTypeName].maxPage !== true) {
+      var iPIndex = iDefaultIndex ? iDefaultIndex : 1;
+      if (!$rootScope[position[1]].filters.search[$scope.currentTypeName]) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName] = {
+          iPageIndex: iPIndex,
+          iPageSize: pageLimit
+        };
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].iPageIndex += 1;
+      expenditureSettlement.list(function(data) {
+        GetPurchaseBillList($rootScope[position[1]].filters.search[$scope.currentTypeName],
+          function(data) {
+            $rootScope[position[1]][$scope.currentTypeName].list = _.union($rootScope[position[1]][$scope.currentTypeName].list, data.list);
+            var pageCount = Math.ceil(data.count / data.limit);
+            if (iPIndex == pageCount) {
+              $rootScope[position[1]][$scope.currentTypeName].maxPage = true;
+            }
+            $rootScope.isloadList = false;
+            $rootScope.showProcessBar = false;
+          });
+      }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+    } else {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }
+  }
+
+  view.refreshotherexpensesPage = refreshotherexpensesPage;
+  //加载新的数据到当前列表数据中【其它支出】
+  function refreshotherexpensesPage(iDefaultIndex) {
+    if ($rootScope[position[1]][$scope.currentTypeName].maxPage !== true) {
+      var iPIndex = iDefaultIndex ? iDefaultIndex : 1;
+      if (!$rootScope[position[1]].filters.search[$scope.currentTypeName]) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName] = {
+          PageIndex: iPIndex,
+          PageSize: pageLimit
+        };
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].PageIndex += 1;
+      expenditureSettlement.list(function(data) {
+        OtherExpensesData($rootScope[position[1]].filters.search[$scope.currentTypeName],
+          function(data) {
+            $rootScope[position[1]][$scope.currentTypeName].list = _.union($rootScope[position[1]][$scope.currentTypeName].list, data.list);
+            var pageCount = Math.ceil(data.count / data.limit);
+            if (iPIndex == pageCount) {
+              $rootScope[position[1]][$scope.currentTypeName].maxPage = true;
+            }
+            $rootScope.isloadList = false;
+            $rootScope.showProcessBar = false;
+          });
+      }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+    } else {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }
+  }
+
+  view.refreshguideallowancePage = refreshguideallowancePage;
+  //加载新的数据到当前列表数据中【导游津贴】
+  function refreshguideallowancePage(iDefaultIndex) {
+    if (!$rootScope[position[1]].filters.search[$scope.currentTypeName]) {
+      $rootScope[position[1]].filters.search[$scope.currentTypeName] = {
+        PageIndex: iDefaultIndex ? iDefaultIndex : 1,
+        PageSize: pageLimit
+      };
+    }
+    $rootScope[position[1]].filters.search[$scope.currentTypeName].PageIndex += 1;
+    expenditureSettlement.list(function(data) {
+      GetFinanceGuideSubsidyList($rootScope[position[1]].filters.search[$scope.currentTypeName],
+        function(data) {
+          $rootScope[position[1]][$scope.currentTypeName].list = _.union($rootScope[position[1]][$scope.currentTypeName].list, data.list);
+          $rootScope.isloadList = false;
+          $rootScope.showProcessBar = false;
+        });
+    }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+  }
+
+  view.refreshmembershipcardrefundPage = refreshmembershipcardrefundPage;
+  //加载新的数据到当前列表数据中【会员卡退款】
+  function refreshmembershipcardrefundPage(iDefaultIndex) {
+    if ($rootScope[position[1]][$scope.currentTypeName].maxPage !== true) {
+      var iPIndex = iDefaultIndex ? iDefaultIndex : 1;
+      if (!$rootScope[position[1]].filters.search[$scope.currentTypeName]) {
+        $rootScope[position[1]].filters.search[$scope.currentTypeName] = {
+          iPageIndex: iPIndex,
+          iPageSize: pageLimit
+        };
+      }
+      $rootScope[position[1]].filters.search[$scope.currentTypeName].iPageIndex += 1;
+      expenditureSettlement.list(function(data) {
+        getCardRefundlist($rootScope[position[1]].filters.search[$scope.currentTypeName],
+          function(data) {
+            $rootScope[position[1]][$scope.currentTypeName].list = _.union($rootScope[position[1]][$scope.currentTypeName].list, data.list);
+            if (iPIndex == data.pageCount) {
+              $rootScope[position[1]][$scope.currentTypeName].maxPage = true;
+            }
+            $rootScope.isloadList = false;
+            $rootScope.showProcessBar = false;
+          });
+      }, $rootScope[position[1]].filters.search[$scope.currentTypeName]);
+    } else {
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }
+  }
+
+  view.reloadChangeDepartment = reloadChangeDepartment;
+
+  function reloadChangeDepartment() {
+    changeDepartment();
+    loadBasicData();
+  }
+
+  view.changeDepartment = changeDepartment;
+  //切换部门时，进行数据对象的绑定
+  function changeDepartment() {
+    var DepartmentObjectIndex = _.findIndex($rootScope.Departments, function(item) {
+      return item._id == $rootScope[position[1]].filters.search[$scope.currentTypeName].DepartmentValue;
+    });
+    $rootScope[position[1]].filters.search[$scope.currentTypeName].Department = $rootScope.Departments[DepartmentObjectIndex];
+  }
+
+  view.changeAuditType = changeAuditType;
+  changeAuditType();
+  //切换审核状态时，进行数据对象的绑定
+  function changeAuditType() {
+    var AuditTypeObjectIndex = _.findIndex($rootScope.FinancesType.AuditStatusList, function(item) {
+      return item.Value == $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditTypeValue;
+    });
+    $rootScope[position[1]].filters.search[$scope.currentTypeName].AuditType = $rootScope.FinancesType.AuditStatusList[AuditTypeObjectIndex];
+  }
+
+  view.changeDeptInOutType = changeDeptInOutType;
+  //切换结算类型时，进行数据对象的绑定
+  function changeDeptInOutType() {
+    var DeptInOutTypeObjectIndex = _.findIndex($rootScope.FinancesType.FinanceDeptInOutType, function(item) {
+      return item._id == $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptInOutTypeValue;
+    });
+    $rootScope[position[1]].filters.search[$scope.currentTypeName].DeptInOutType = $rootScope.FinancesType.FinanceDeptInOutType[DeptInOutTypeObjectIndex];
+  }
+
+  view.GuidePersons = [];
+  //获取导游人员数据
+  function getGuidePerson() {
+    if (view.GuidePersons.length <= 0) {
+      var filter = {
+        page: 1,
+        limit: 10000,
+        label: 4000
+      };
+      getPersonnel(filter, function(response) {
+        view.GuidePersons = response.list;
+      });
+    }
+  }
+
+  view.changeGuidePerson = changeGuidePerson;
+  //切换导游时，进行数据对象的绑定
+  function changeGuidePerson() {
+    var GuidePersonObjectIndex = _.findIndex(view.GuidePersons, function(item) {
+      return item._id == $rootScope[position[1]].filters.search[$scope.currentTypeName].GuidePersonValue;
+    });
+    $rootScope[position[1]].filters.search[$scope.currentTypeName].GuidePerson = view.GuidePersons[GuidePersonObjectIndex];
+  }
+
+  if (($rootScope[position[1]][$scope.currentTypeName].list !== undefined && $rootScope[position[1]][$scope.currentTypeName].list.length <= 0) ||
+    $rootScope[position[1]][$scope.currentTypeName].list === null ||
+    $rootScope[position[1]][$scope.currentTypeName].list === undefined) {
+    loadBasicData();
+  }
+  getGuidePerson();
+});
+/**
+ * Created by li on 2016/4/27.
+ * 订单收款明细 控制器
+ */
+app.controller('IExpenditureSettlementOperateController', function($scope, $filter, $rootScope,
+  showWarningBox, ngDialog,
+  SaveBillData,
+  SaveUnBillData,
+  getFinanceOrderAdvanceList,
+  getFinanceGuidePreCollarList,
+  getFinanceGuideReimList,
+  OtherExpensesData,
+  GetPurchaseBillList,
+  GetCardBackInfo,
+  FinanceCardBackBill,
+  FinanceCardBackCancelBill,
+  closeSubView) {
+  var view = this;
+  $scope.detailData.template = {};
+  $scope.detailData.template.baseUrl = "/public/angularView/finances/expenditureSettlement/";
+  $scope.detailData.template.baseExtendUrl = $scope.detailData.template.baseUrl + "confirm_extend/";
+  $scope.detailData.template.baseCancelUrl = $scope.detailData.template.baseUrl + "cancel_extend/";
+  $scope.detailData.template[$scope.detailData.CurrentTypeName] = {
+    Popover: ($scope.detailData.template.baseExtendUrl + 'confirm_' + $scope.detailData.CurrentTypeName + '.html'),
+    CancelPopover: ($scope.detailData.template.baseCancelUrl + 'cancel_' + $scope.detailData.CurrentTypeName + '.html')
+  };
+
+  $scope.detailData[$scope.detailData.CurrentTypeName] = {};
+  $scope.detailData[$scope.detailData.CurrentTypeName].popStatus = {
+    IsShowPop: false,
+    IsShowCancelPop: false
+  };
+
+  view.changeStatus = changeStatus;
+  view.changePayMode = changePayMode;
+  view.changePayBank = changePayBank;
+  view.submitApply = submitApply;
+  view.cancelApply = cancelApply;
+  view.removeApply = removeApply;
+  view.deleteApply = deleteApply;
+
+  $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+
+  $scope.detailData[$scope.detailData.CurrentTypeName].edits = {};
+  $scope.detailData[$scope.detailData.CurrentTypeName].edits.GCOMP = {};
+  if ($scope.detailData.Finances !== undefined && $scope.detailData.Finances.RealPrice !== undefined && $scope.detailData.Finances.RealPrice >= 0) {
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney = $scope.detailData.Finances.RealPrice;
+  }
+  else if ($scope.detailData.FeeTotalPrice !== undefined && $scope.detailData.FeeTotalPrice >= 0) {
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney = $scope.detailData.FeeTotalPrice;
+  }
+  else if ($scope.detailData.PayPrice !== undefined && $scope.detailData.PayPrice >= 0) {
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney = $scope.detailData.PayPrice;
+  }
+  $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'] = {
+    payModeStatus: false,
+    payBankStatus: false,
+    moneyStatus: false
+  };
+
+  $scope.detailData.detailTipInfo = "";
+  $scope.detailData.detailTipInfoType = "";
+
+  function changeStatus(type) {
+    $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'][type] = false;
+  }
+
+  //切换收款方式时，进行数据对象的绑定
+  function changePayMode() {
+    var PayModeObjectIndex = _.findIndex($rootScope.FinancesType.paymodeList, function(item) {
+      return item._id == $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayModeValue;
+    });
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode = $rootScope.FinancesType.paymodeList[PayModeObjectIndex];
+  }
+
+  //切换支付银行时，进行数据对象的绑定
+  function changePayBank() {
+    var PayBankObjectIndex = _.findIndex($rootScope.FinancesType.bankList, function(item) {
+      return item._id == $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayBankValue;
+    });
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayBank = $rootScope.FinancesType.bankList[PayBankObjectIndex];
+  }
+
+  function submitApply() {
+    $rootScope[position[1]][$scope.detailData.CurrentTypeName].maxPage = false;
+    var sFunName = 'submitApply_' + $scope.detailData.CurrentTypeName + '()';
+    $scope.$eval(sFunName);
+  }
+
+  view.opentCancel_censuscostsettlement = opentCancel_censuscostsettlement;
+
+  function opentCancel_censuscostsettlement(sRecordID, dBillMoney) {
+    //设置当前数据值
+    ngDialog.open({
+      id: 'opentCancel_censuscostsettlement',
+      //className: 'w-500',
+      template: $scope.detailData.template[$scope.detailData.CurrentTypeName].CancelPopover,
+      controller: 'IExpenditureSettlementOperateController',
+      data: {
+        RecordID: sRecordID,
+        BillMoney: dBillMoney
+      }
+    });
+  }
+
+  //提交收款确认--三清单成本结算
+  $scope.submitApply_censuscostsettlement = function() {
+    if (checkInput()) {
+      var pars = {
+        FinanceID: $scope.detailData.Finances._id,
+        BillMoney: $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney,
+        Notes: $scope.detailData[$scope.detailData.CurrentTypeName].edits.ConfirmNotes
+      };
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        pars.PayModeID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id;
+      }
+
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+      $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+      SaveBillData(pars, refreshPage_censuscostsettlement, function() {
+        $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = false;
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = false;
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney) {
+        $scope.detailData.detailTipInfo = "付款金额为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!_.isNumber($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney)) {
+        $scope.detailData.detailTipInfo = "付款金额格式错误";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney <= 0) {
+        $scope.detailData.detailTipInfo = "付款金额不能小于等于0";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择支付方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择支付方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  //刷新界面并关闭当前的Pop界面--三清单成本结算
+  function refreshPage_censuscostsettlement(data) {
+    console.info(data);
+    if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+      $scope.detailData.PayMode = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode.Name;
+    }
+    $scope.detailData.Finances.PayStatus = data.Finances.PayStatus;
+    $scope.detailData.Finances.FinancialTime = data.Finances.FinancialTime;
+    $scope.detailData.Finances.RealPrice -= data.fb.PayPrice;
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    var record = {
+      _id: data.fb._id,
+      PayPrice: data.fb.PayPrice,
+      PayMode: {
+        Name: data.fb.PayMode.Name
+      },
+      Notes: data.fb.Notes,
+      PayStatus: data.fb.PayStatus,
+      FinancialStaff: {
+        ForeignKeyID: "",
+        EmployeeName: ""
+      },
+      FinancialTime: data.fb.FinancialTime
+    };
+    if (data.fb.FinancialStaff) {
+      record.FinancialStaff = {
+        ForeignKeyID: data.fb.FinancialStaff.ForeignKeyID,
+        EmployeeName: data.fb.FinancialStaff.EmployeeName
+      };
+    }
+
+    $scope.detailData.FinanceBill.push(record);
+    initStatus();
+    reflashcensuscostsettlementList(null);
+  }
+
+  function reflashcensuscostsettlementList(callback) {
+    $rootScope[position[1]][$scope.detailData.CurrentTypeName].isLoading = true;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageIndex = 1;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageSize = $rootScope.pageLimit;
+    if ($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue) {
+      $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue;
+    }
+    GetPurchaseBillList($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName], function(response) {
+      $rootScope[position[1]].censuscostsettlement.isLoading = false;
+      $rootScope[position[1]].censuscostsettlement.list = response.list;
+      var pageCount = Math.ceil(response.count / response.limit);
+      if (1 == pageCount) {
+        $rootScope[position[1]].censuscostsettlement.maxPage = true;
+      }
+      if (callback !== null) {
+        callback();
+      }
+    });
+  }
+
+  $scope.removeApply_censuscostsettlement = function() {
+    var pars = {
+      FinanceID: $scope.detailData.Finances._id,
+      BillID: $scope.ngDialogData.RecordID,
+      Notes: $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+    };
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowCancelPop = false;
+    SaveUnBillData(pars, removeRefreshPage_censuscostsettlement, function() {
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    });
+  };
+
+  function removeRefreshPage_censuscostsettlement() {
+    $scope.detailData.Finances.PayStatus = 1;
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes = '';
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    $scope.detailData.Finances.FinancialTime = null;
+    if ($scope.detailData.FinanceBill) {
+      var arrData = [];
+      for (var i = 0; i < $scope.detailData.FinanceBill.length; i++) {
+        if ($scope.detailData.FinanceBill[i]._id != $scope.ngDialogData.RecordID)
+          arrData.push($scope.detailData.FinanceBill[i]);
+        else {
+          $scope.detailData.Finances.RealPrice += $scope.detailData.FinanceBill[i].PayPrice;
+        }
+      }
+      $scope.detailData.FinanceBill = arrData;
+    }
+    reflashcensuscostsettlementList(callback_censuscostsettlement);
+  }
+
+  function callback_censuscostsettlement() {
+    $scope.closeThisDialog();
+    //closeSubView();
+  }
+
+  //取消收款确认
+  $scope.cancelApply_censuscostsettlement = function() {
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+    initStatus();
+  };
+
+  //提交收款确认--导游预领
+  $scope.submitApply_guideprecollar = function() {
+    if (checkInput()) {
+      var pars = {
+        FinanceID: $scope.detailData.FinanceID,
+        BillMoney: $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney,
+        Notes:$scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+      };
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        pars.PayModeID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id;
+      }
+
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+      $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+      SaveBillData(pars, refreshPage_guideprecollar, function() {
+        $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = false;
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = false;
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney) {
+        $scope.detailData.detailTipInfo = "付款金额为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!_.isNumber($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney)) {
+        $scope.detailData.detailTipInfo = "付款金额格式错误";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney <= 0) {
+        $scope.detailData.detailTipInfo = "付款金额不能小于等于0";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney != $scope.detailData.FeeTotalPrice) {
+        $scope.detailData.detailTipInfo = "付款金额必须等于结算金额";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择支付方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择支付方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  //刷新界面并关闭当前的Pop界面--导游预领
+  function refreshPage_guideprecollar(data) {
+    if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+      $scope.detailData.PayMode = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode.Name;
+    }
+    $scope.detailData.PayStatus = 2;
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    initStatus();
+    reflashguideprecollarList(null);
+  }
+
+  function reflashguideprecollarList(callback) {
+    $rootScope[position[1]][$scope.detailData.CurrentTypeName].isLoading = true;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].PageIndex = 1;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].PageSize = $rootScope.pageLimit;
+    if ($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue) {
+      $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue;
+    }
+    getFinanceGuidePreCollarList($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName], function(response) {
+      $rootScope[position[1]].guideprecollar.isLoading = false;
+      $rootScope[position[1]].guideprecollar.list = response.list;
+      if (1 == response.pageCount) {
+        $rootScope[position[1]].guideprecollar.maxPage = true;
+      }
+      if (callback !== null) {
+        callback();
+      }
+    });
+  }
+
+  $scope.removeApply_guideprecollar = function() {
+    var pars = {
+      FinanceID: $scope.detailData.FinanceID,
+      Notes: $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+    };
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowCancelPop = false;
+    SaveUnBillData(pars, removeRefreshPage_guideprecollar, function() {
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    });
+  };
+
+  function removeRefreshPage_guideprecollar() {
+    $scope.detailData.PayStatus = 1;
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes = '';
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    reflashguideprecollarList(callback_guideprecollar);
+  }
+
+  function callback_guideprecollar() {
+    //$scope.closeSubView();
+  }
+
+  //取消收款确认
+  $scope.cancelApply_guideprecollar = function() {
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+    initStatus();
+  };
+
+  //提交收款确认--导游报帐
+  $scope.submitApply_guidereimbursement = function() {
+    if (checkInput()) {
+      var pars = {
+        FinanceID: $scope.detailData.finance._id,
+        BillMoney: $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney,
+        Notes:$scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+      };
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        pars.PayModeID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id;
+      }
+
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+      $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+      SaveBillData(pars, refreshPage_guidereimbursement, function() {
+        $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = false;
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = false;
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney) {
+        $scope.detailData.detailTipInfo = "付款金额为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!_.isNumber($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney)) {
+        $scope.detailData.detailTipInfo = "付款金额格式错误";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney <= 0) {
+        $scope.detailData.detailTipInfo = "付款金额不能小于等于0";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney != $scope.detailData.finance.RealPrice) {
+        $scope.detailData.detailTipInfo = "付款金额必须等于结算金额";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择支付方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择支付方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  //刷新界面并关闭当前的Pop界面--导游报帐
+  function refreshPage_guidereimbursement(data) {
+    if ($scope.detailData.GuideReimDetail) {
+      for (var i = 0; i < $scope.detailData.GuideReimDetail.length; i++) {
+        $scope.detailData.GuideReimDetail[i].PayStatusID = 2;
+      }
+    }
+    $scope.detailData.finance.PayStatus = 2;
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    initStatus();
+    reflashguidereimbursementList(null);
+  }
+
+  function reflashguidereimbursementList(callback) {
+    $rootScope[position[1]][$scope.detailData.CurrentTypeName].isLoading = true;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageIndex = 1;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageSize = $rootScope.pageLimit;
+    if ($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue) {
+      $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue;
+    }
+    getFinanceGuideReimList($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName], function(response) {
+      $rootScope[position[1]].guidereimbursement.isLoading = false;
+      $rootScope[position[1]].guidereimbursement.list = response.list;
+      if (1 == response.pageCount) {
+        $rootScope[position[1]].guidereimbursement.maxPage = true;
+      }
+      if (callback !== null) {
+        callback();
+      }
+    });
+  }
+
+  $scope.removeApply_guidereimbursement = function() {
+    var pars = {
+      FinanceID: $scope.detailData.finance._id,
+      Notes: $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+    };
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowCancelPop = false;
+    SaveUnBillData(pars, removeRefreshPage_guidereimbursement, function() {
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    });
+  };
+
+  function removeRefreshPage_guidereimbursement() {
+    if ($scope.detailData.GuideReimDetail) {
+      for (var i = 0; i < $scope.detailData.GuideReimDetail.length; i++) {
+        $scope.detailData.GuideReimDetail[i].PayStatusID = 1;
+      }
+    }
+    $scope.detailData.finance.PayStatus = 1;
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes = '';
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    reflashguidereimbursementList(callback_guidereimbursement);
+  }
+
+  function callback_guidereimbursement() {
+    //$scope.closeSubView();
+  }
+
+  //取消收款确认
+  $scope.cancelApply_guidereimbursement = function() {
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+    initStatus();
+  };
+
+  //提交收款确认--订单预付款
+  $scope.submitApply_orderadvancepayment = function() {
+    if (checkInput()) {
+      var pars = {
+        FinanceID: $scope.detailData._id,
+        BillMoney: $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney,
+        Notes:$scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+      };
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        pars.PayModeID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayBank) {
+        pars.PayBankID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayBank._id;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.GCOMP) {
+        pars.GCOMPID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.GCOMP.ID;
+      }
+
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+      $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+      SaveBillData(pars, refreshPage_orderadvancepayment, function() {
+        $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = false;
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = false;
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney) {
+        $scope.detailData.detailTipInfo = "付款金额为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!_.isNumber($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney)) {
+        $scope.detailData.detailTipInfo = "付款金额格式错误";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney <= 0) {
+        $scope.detailData.detailTipInfo = "付款金额不能小于等于0";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney != $scope.detailData.PayPrice) {
+        $scope.detailData.detailTipInfo = "付款金额必须等于结算金额";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择支付方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择支付方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  //刷新界面并关闭当前的Pop界面--订单预付款
+  function refreshPage_orderadvancepayment(data) {
+    if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+      $scope.detailData.PayMode = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode.Name;
+    }
+    if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.GCOMP) {
+      $scope.detailData.GCOMPName = $scope.detailData[$scope.detailData.CurrentTypeName].edits.GCOMP.Name;
+    }
+    $scope.detailData.PayStatus = 2;
+    $scope.detailData.WaitVerificationMoney += $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney;
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    initStatus();
+    reflashorderadvancepaymentList(null);
+  }
+
+  function reflashorderadvancepaymentList(callback) {
+    $rootScope[position[1]][$scope.detailData.CurrentTypeName].isLoading = true;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageIndex = 1;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageSize = $rootScope.pageLimit;
+    if ($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue) {
+      $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue;
+    }
+    getFinanceOrderAdvanceList($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName], function(response) {
+      $rootScope[position[1]].orderadvancepayment.isLoading = false;
+      $rootScope[position[1]].orderadvancepayment.list = response.list;
+      if (1 == response.pageCount) {
+        $rootScope[position[1]].orderadvancepayment.maxPage = true;
+      }
+      if (callback !== null) {
+        callback();
+      }
+    });
+  }
+
+  $scope.removeApply_orderadvancepayment = function() {
+    var pars = {
+      FinanceID: $scope.detailData._id,
+      Notes: $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+    };
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowCancelPop = false;
+    SaveUnBillData(pars, removeRefreshPage_orderadvancepayment, function() {
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    });
+  };
+
+  function removeRefreshPage_orderadvancepayment() {
+    $scope.detailData.PayStatus = 1;
+    $scope.detailData.WaitVerificationMoney = 0;
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes = '';
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    reflashorderadvancepaymentList(callback_orderadvancepayment);
+  }
+
+  function callback_orderadvancepayment() {
+    //$scope.closeSubView();
+  }
+
+  //取消收款确认
+  $scope.cancelApply_orderadvancepayment = function() {
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+    initStatus();
+  };
+
+  //提交收款确认--订单暂借款
+  $scope.submitApply_ordertemporaryloan = function() {
+    if (checkInput()) {
+      var pars = {
+        FinanceID: $scope.detailData._id,
+        BillMoney: $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney,
+        Notes:$scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+      };
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        pars.PayModeID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayBank) {
+        pars.PayBankID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayBank._id;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.GCOMP) {
+        pars.GCOMPID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.GCOMP.ID;
+      }
+
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+      $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+      SaveBillData(pars, refreshPage_ordertemporaryloan, function() {
+        $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = false;
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = false;
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney) {
+        $scope.detailData.detailTipInfo = "付款金额为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!_.isNumber($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney)) {
+        $scope.detailData.detailTipInfo = "付款金额格式错误";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney <= 0) {
+        $scope.detailData.detailTipInfo = "付款金额不能小于等于0";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney != $scope.detailData.PayPrice) {
+        $scope.detailData.detailTipInfo = "付款金额必须等于结算金额";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择支付方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择支付方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  //刷新界面并关闭当前的Pop界面--订单暂借款
+  function refreshPage_ordertemporaryloan(data) {
+    if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+      $scope.detailData.PayMode = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode.Name;
+    }
+    if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.GCOMP) {
+      $scope.detailData.GCOMPName = $scope.detailData[$scope.detailData.CurrentTypeName].edits.GCOMP.Name;
+    }
+    $scope.detailData.PayStatus = 2;
+    $scope.detailData.WaitVerificationMoney += $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney;
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    initStatus();
+    reflashordertemporaryloanList(null);
+  }
+
+  function reflashordertemporaryloanList(callback) {
+    $rootScope[position[1]][$scope.detailData.CurrentTypeName].isLoading = true;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageIndex = 1;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageSize = $rootScope.pageLimit;
+    if ($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue) {
+      $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue;
+    }
+    getFinanceOrderAdvanceList($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName], function(response) {
+      $rootScope[position[1]].ordertemporaryloan.isLoading = false;
+      $rootScope[position[1]].ordertemporaryloan.list = response.list;
+      if (1 == response.pageCount) {
+        $rootScope[position[1]].ordertemporaryloan.maxPage = true;
+      }
+      if (callback !== null) {
+        callback();
+      }
+    });
+  }
+
+  $scope.removeApply_ordertemporaryloan = function() {
+    var pars = {
+      FinanceID: $scope.detailData._id,
+      Notes: $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+    };
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowCancelPop = false;
+    SaveUnBillData(pars, removeRefreshPage_ordertemporaryloan, function() {
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    });
+  };
+
+  function removeRefreshPage_ordertemporaryloan() {
+    $scope.detailData.PayStatus = 1;
+    $scope.detailData.WaitVerificationMoney = 0;
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes = '';
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    reflashordertemporaryloanList(callback_ordertemporaryloan);
+  }
+
+  function callback_ordertemporaryloan() {
+    //$scope.closeSubView();
+  }
+
+  //取消收款确认
+  $scope.cancelApply_ordertemporaryloan = function() {
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+    initStatus();
+  };
+
+  //提交收款确认--其它支出
+  $scope.submitApply_otherexpenses = function() {
+    if (checkInput()) {
+      var pars = {
+        FinanceID: $scope.detailData.ID,
+        BillMoney: $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney,
+        Notes:$scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+      };
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        pars.PayModeID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id;
+      }
+
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+      $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+      SaveBillData(pars, refreshPage_otherexpenses, function() {
+        $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = false;
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = false;
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney) {
+        $scope.detailData.detailTipInfo = "付款金额为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!_.isNumber($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney)) {
+        $scope.detailData.detailTipInfo = "付款金额格式错误";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney <= 0) {
+        $scope.detailData.detailTipInfo = "付款金额不能小于等于0";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney != $scope.detailData.PayPrice) {
+        $scope.detailData.detailTipInfo = "付款金额必须等于结算金额";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择支付方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择支付方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  //刷新界面并关闭当前的Pop界面--其它支出
+  function refreshPage_otherexpenses(data) {
+    if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+      $scope.detailData.PayMode = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode.Name;
+    }
+    $scope.detailData.PayStatusID = 2;
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    initStatus();
+    reflashotherexpensesList(null);
+  }
+
+  function reflashotherexpensesList(callback) {
+    $rootScope[position[1]][$scope.detailData.CurrentTypeName].isLoading = true;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].PageIndex = 1;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].PageSize = $rootScope.pageLimit;
+    if ($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue) {
+      $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue;
+    }
+    OtherExpensesData($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName], function(response) {
+      $rootScope[position[1]].otherexpenses.isLoading = false;
+      $rootScope[position[1]].otherexpenses.list = response.list;
+      var pageCount = Math.ceil(response.count / response.limit);
+      if (1 == pageCount) {
+        $rootScope[position[1]].otherexpenses.maxPage = true;
+      }
+      if (callback !== null) {
+        callback();
+      }
+    });
+  }
+
+  $scope.removeApply_otherexpenses = function() {
+    var pars = {
+      FinanceID: $scope.detailData.ID,
+      Notes: $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+    };
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowCancelPop = false;
+    SaveUnBillData(pars, removeRefreshPage_otherexpenses, function() {
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    });
+  };
+
+  function removeRefreshPage_otherexpenses() {
+    $scope.detailData.PayStatusID = 1;
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes = '';
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    reflashotherexpensesList(callback_otherexpenses);
+  }
+
+  function callback_otherexpenses() {
+    //$scope.closeSubView();
+  }
+
+  //取消收款确认
+  $scope.cancelApply_otherexpenses = function() {
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+    initStatus();
+  };
+
+  //提交收款确认--会员卡退款
+  $scope.submitApply_membershipcardrefund = function() {
+    if (checkInput()) {
+      var pars = {
+        _id: $scope.detailData._id,
+        BillMoney: $scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney
+      };
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        pars.PayModeID = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id;
+        pars.PayModelName = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode.Name;
+      }
+
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+      $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+      FinanceCardBackBill(pars, refreshPage_membershipcardrefund, function() {
+        $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+      });
+    }
+
+    function checkInput() {
+      $scope.detailData.detailTipInfo = "";
+      $scope.detailData.detailTipInfoType = "";
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = false;
+      $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = false;
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney) {
+        $scope.detailData.detailTipInfo = "付款金额为空";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!_.isNumber($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney)) {
+        $scope.detailData.detailTipInfo = "付款金额格式错误";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney <= 0) {
+        $scope.detailData.detailTipInfo = "付款金额不能小于等于0";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.BillMoney != $scope.detailData.FncRecordMoney) {
+        $scope.detailData.detailTipInfo = "付款金额必须等于结算金额";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].moneyStatus = true;
+        return false;
+      }
+
+      if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+        $scope.detailData.detailTipInfo = "未选择支付方式";
+        $scope.detailData.detailTipInfoType = "error";
+        $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+        return false;
+      } else {
+        if (!$scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode._id) {
+          $scope.detailData.detailTipInfo = "未选择支付方式";
+          $scope.detailData.detailTipInfoType = "error";
+          $scope.detailData[$scope.detailData.CurrentTypeName + 'verification'].payModeStatus = true;
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  //刷新界面并关闭当前的Pop界面--会员卡退款
+  function refreshPage_membershipcardrefund(data) {
+    if ($scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode) {
+      $scope.detailData.PayMode = $scope.detailData[$scope.detailData.CurrentTypeName].edits.PayMode.Name;
+    }
+    $scope.detailData.PayStatus = 2;
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    initStatus();
+    reflashmembershipcardrefundList(null);
+  }
+
+  function reflashmembershipcardrefundList(callback) {
+    $rootScope[position[1]][$scope.detailData.CurrentTypeName].isLoading = true;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageIndex = 1;
+    $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].iPageSize = $rootScope.pageLimit;
+    if ($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue) {
+      $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditStatus = $rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName].AuditTypeValue;
+    }
+    GetCardBackInfo($rootScope[position[1]].filters.search[$scope.detailData.CurrentTypeName], function(response) {
+      $rootScope[position[1]].membershipcardrefund.isLoading = false;
+      $rootScope[position[1]].membershipcardrefund.list = response.list;
+      if (1 == response.pageCount) {
+        $rootScope[position[1]].membershipcardrefund.maxPage = true;
+      }
+      if (callback !== null) {
+        callback();
+      }
+    });
+  }
+
+  $scope.removeApply_membershipcardrefund = function() {
+    var pars = {
+      _id: $scope.detailData._id,
+      Notes: $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes
+    };
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = true;
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowCancelPop = false;
+    FinanceCardBackCancelBill(pars, removeRefreshPage_membershipcardrefund, function() {
+      $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    });
+  };
+
+  function removeRefreshPage_membershipcardrefund() {
+    $scope.detailData.PayStatus = 1;
+    $scope.detailData[$scope.detailData.CurrentTypeName].edits.CancelNotes = '';
+    $scope.detailData[$scope.detailData.CurrentTypeName].btnIsdisable = false;
+    reflashmembershipcardrefundList(callback_membershipcardrefund);
+  }
+
+  function callback_membershipcardrefund() {
+    //$scope.closeSubView();
+  }
+
+  //取消收款确认
+  $scope.cancelApply_membershipcardrefund = function() {
+    $scope.detailData[$scope.detailData.CurrentTypeName].popStatus.IsShowPop = false;
+    initStatus();
+  };
+
+  //初始化数据状态
+  function initStatus() {
+    $scope.detailData.detailTipInfo = "";
+    $scope.detailData.detailTipInfoType = "";
+  }
+
+  //取消收款确认
+  function cancelApply() {
+    var sFunName = 'cancelApply_' + $scope.detailData.CurrentTypeName + '()';
+    $scope.$eval(sFunName);
+  }
+
+  //删除收款确认
+  function removeApply() {
+    $rootScope[position[1]][$scope.detailData.CurrentTypeName].maxPage = false;
+    var sFunName = 'removeApply_' + $scope.detailData.CurrentTypeName + '()';
+    $scope.$eval(sFunName);
+  }
+
+  function deleteApply() {
+    showWarningBox("是否删除收款记录", function() {
+      delOrderFinanceRecord($scope.detailData.RecordID, deleteRefreshPage);
+    });
+  }
+
+  function deleteRefreshPage() {
+    initStatus();
+    $scope.closeSubView();
+  }
+});

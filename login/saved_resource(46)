@@ -1,0 +1,1111 @@
+/**
+ * 
+ */app.controller('selectConditionController', function($scope, $rootScope, componentsDepartment, getAllStartDestionation,
+  getDistributingByCondition, getBasicsViewspotTypeAll, getAllDestination, getPersonnel, getEnumeration) {
+
+  $scope.loadDepartment = function(param) {
+    var data = angular.toJson(param);
+    componentsDepartment(data, function(response) {
+      $rootScope[position[1]].Departments = response.data;
+      $rootScope[position[1]].Departments.unshift({
+        Name: "请选择部门",
+        DeptId: '',
+        _id: {
+          $id: ""
+        }
+      });
+    });
+  };
+
+  $scope.loadPersonnel = function(param) {
+    // var data = JSON.parse(param);
+    var data = angular.fromJson(param);
+    getPersonnel(data, function(response) {
+      $rootScope[position[1]].Personnels = response.list;
+    });
+  };
+  //
+  // $scope.getPersonDeptList = function() {
+  //
+  // 	param.labelGroup = '计调';
+  // 	getPersonnel(param, function(result) {
+  // 		$scope.personList = result.list;
+  // 	});
+  // };
+
+  $scope.loadStartAddr = function() {
+    getAllStartDestionation(function(response) {
+      $rootScope[position[1]].StartAddr = response;
+    });
+  };
+
+  $scope.loadProStatus = function() {
+    $rootScope[position[1]].allshowStatus = [{
+      title: '下架',
+      value: 0
+    }, {
+      title: '上架',
+      value: 1
+    }];
+  };
+
+  $scope.loadTimeOrderType = function() {
+    $rootScope[position[1]].orderTypes = [{
+      title: '添加时间降序',
+      value: 'desc'
+    }, {
+      title: '添加时间升序',
+      value: 'asc'
+    }];
+  };
+
+  $scope.loadTravelDay = function() {
+    $rootScope[position[1]].travelDay = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  };
+
+  $scope.loadTravelType = function() {
+    $rootScope[position[1]].travelType = [{
+      id: 1,
+      value: '周边旅游'
+    }, {
+      id: 2,
+      value: '国内旅游'
+    }, {
+      id: 3,
+      value: '出境旅游'
+    }, {
+      id: 4,
+      value: '地接旅游'
+    }, {
+      id: 5,
+      value: '逼格旅游'
+    }];
+  };
+
+  $scope.orderType = function() {
+    $rootScope.allOrderType = [{
+      id: '000000000000000000000001',
+      value: '组团游'
+    }, {
+      id: '000000000000000000000018',
+      value: '邮轮游'
+    }, {
+      id: '000000000000000000000012',
+      value: '自助游'
+    }, {
+      id: '000000000000000000000017',
+      value: '定制游'
+    }, {
+      id: '000000000000000000000013',
+      value: '自驾游'
+    }, {
+      id: '000000000000000000000003',
+      value: '景点门票'
+    }, {
+      id: '000000000000000000000002',
+      value: '签证'
+    }, {
+      id: '000000000000000000000024',
+      value: '机票'
+    }, {
+      id: '000000000000000000000023',
+      value: '一团一议'
+    }, {
+      id: '000000000000000000000009',
+      value: '地接'
+    }];
+  };
+
+  $scope.loadDomesticDistributing = function() {
+    getDistributingByCondition({
+      parentid: '000000000000000000000000',
+      AddrType: 0
+    }, function(response) {
+      $rootScope[position[1]].domesticDistributing = response;
+    });
+  };
+
+  $scope.loadAbroadDistributing = function() {
+    getDistributingByCondition({
+      parentid: '000000000000000000000000',
+      AddrType: 1
+    }, function(response) {
+      $rootScope[position[1]].abroadDistributing = response;
+    });
+  };
+
+  $scope.loadOrderTimeType = function() {
+    $rootScope[position[1]].TimeType = [{
+      id: 1,
+      value: '发团时间'
+    }, {
+      id: 2,
+      value: '下单时间'
+    }];
+  };
+  $scope.loadCensusStatus = function() {
+    $rootScope[position[1]].CensusStatus = [{
+      id: 1,
+      value: '未做账'
+    }, {
+      id: 2,
+      value: '做账中'
+    }, {
+      id: 3,
+      value: '已做账'
+    }];
+  };
+  $scope.loadInsureStatus = function() {
+    $rootScope[position[1]].InsureStatus = [{
+      id: 1,
+      value: '已投保'
+    }, {
+      id: 2,
+      value: '未投保'
+    }];
+  };
+
+
+  $scope.loadOrderPayStatus = function() {
+    $rootScope[position[1]].OrderPayStatus = [{
+      id: 1,
+      value: '未收款'
+    }, {
+      id: 2,
+      value: '已收款'
+    }];
+  };
+
+  $scope.loadOrderStatus = function() {
+    getEnumeration("EOrderStatus", function(OrderStatus) {
+      $rootScope[position[1]].OrderStatus = OrderStatus;
+    });
+  };
+
+  $scope.loadOrderSource = function() {
+    $rootScope[position[1]].SourceId = [{
+      id: 1,
+      value: '网络订单'
+    }, {
+      id: 2,
+      value: '销售订单'
+    }, {
+      id: 3,
+      value: '手机订单'
+    }, {
+      id: 4,
+      value: '同行订单'
+    }, {
+      id: 5,
+      value: '客服'
+    }, {
+      id: 6,
+      value: '同行'
+    }, {
+      id: 7,
+      value: '门市'
+    }, {
+      id: 8,
+      value: '业务员'
+    }, {
+      id: 9,
+      value: '代理'
+    }, {
+      id: 10,
+      value: '淘宝订单'
+    }, {
+      id: 11,
+      value: '分公司订单'
+    }, {
+      id: 11,
+      value: '微宾客订单'
+    }, {
+      id: 11,
+      value: '李家坑订单'
+    }];
+  };
+
+  //采购类型
+  $scope.loadPurchaseTypes = function() {
+    $rootScope[position[1]].PurchaseTypes = [{
+      id: 1,
+      value: '产品线路'
+    }];
+  };
+
+
+  $scope.loadTraffics = function() {
+    $rootScope[position[1]].Traffics = [{
+      id: 1,
+      value: '大巴'
+    }, {
+      id: 2,
+      value: '飞机'
+    }, {
+      id: 3,
+      value: '邮轮'
+    }];
+  };
+
+
+
+  //舱房类型
+  $scope.loadCabinTypes = function() {
+    $rootScope[position[1]].CabinTypes = [{
+      id: 1,
+      value: '普通舱房'
+    }];
+  };
+
+
+  //酒店类型
+  $scope.loadHotelsTypes = function() {
+    $rootScope[position[1]].HotelsTypes = [{
+      id: 1,
+      value: '快捷酒店'
+    }, {
+      id: 2,
+      value: '商务酒店'
+    }];
+  };
+
+  //酒店类型
+  $scope.loadRoomTypes = function() {
+    $rootScope[position[1]].RoomTypes = [{
+      id: 1,
+      value: '邮轮'
+    }];
+  };
+
+  $scope.loadCateringsTypes = function() {
+    $rootScope[position[1]].CateringsTypes = [{
+      id: 1,
+      value: '快餐'
+    }];
+  };
+
+  $scope.loadBasicsViewspotTypeAll = function() {
+    //var data = angular.toJson(param);
+    getBasicsViewspotTypeAll(function(response) {
+      $rootScope[position[1]].BasicsViewspotTypeAll = response;
+      console.log(response);
+      //callBack(data);
+    });
+
+  };
+
+  //目的地
+  $scope.loadAddr = function() {
+    getAllDestination(function(response) {
+      $rootScope[position[1]].Addr = response;
+    });
+  };
+
+  $scope.loadSupplyMode = function() {
+    $rootScope[position[1]].SupplyMode = [{
+      id: 1,
+      value: '资源打包'
+    }];
+  };
+
+  $scope.loadBusinesss = function() {
+    $rootScope[position[1]].Businesss = [{
+      id: 1,
+      value: 'test'
+    }];
+  };
+
+  //会员卡状态
+  $scope.loadCardStatus = function() {
+    getEnumeration("ECardStatus", function(ECardStatus) {
+      $rootScope[position[1]].ECardStatus = ECardStatus;
+    });
+  };
+
+  //会员类型
+  $scope.loadCustomerType = function() {
+    getEnumeration("ECustomerType", function(ECustomerType) {
+      $rootScope[position[1]].ECustomerType = ECustomerType;
+    });
+  };
+
+  $scope.formatDispatchers = function(data) {
+    return data.FullName;
+  };
+
+});
+/**
+ * 主屏控制器
+ */
+app.controller("MainViewController", function($scope, $rootScope, $templateCache) {
+
+  $scope.hideSubHeadInList = function() {
+    $templateCache.put($rootScope[switchType[2]].id, $rootScope[position[2]]);
+    $rootScope.showSubHeadTitle = false;
+    $rootScope.subClass = {};
+  };
+
+});
+app.controller('TicketController', function($rootScope, $scope, getScenicList, Pagination, getScenicTickets, findInnerObjIndex) {
+
+  $scope.selectScenic = function(page) {
+    if (!$scope.select.Scenic) {
+      $scope.select.Scenic = {};
+    }
+    $scope.select.Scenic.Page = page;
+    getScenicList({
+        Title: $scope.select.Scenic.Name,
+        page: $scope.select.Scenic.Page,
+        limit: 5
+      },
+      function(response) {
+        $scope.select.Scenic.List = response.data.list;
+        var page = new Pagination(
+          response.count,
+          response.page);
+        if (!$scope.Pagination) {
+          $scope.Pagination = {};
+        }
+        $scope.Pagination.Scenic = page;
+      });
+  };
+
+  $scope.getSenicTick = function(item) {
+    if (item.showTicketStatus) {
+      item.showTicketStatus = false;
+      return;
+    }
+    getScenicTickets(function(data) {
+      item.tickets = data;
+      item.showTicketStatus = true;
+    }, item._id.$id);
+  };
+
+  $scope.chooseTicket = function(item) {
+    if (!$scope.select.Ticket) {
+      $scope.select.Ticket = {};
+    }
+    if (!$scope.select.Ticket.selected) {
+      $scope.select.Ticket.selected = [];
+    }
+    var index = findInnerObjIndex($scope.select.Ticket.selected, ['_id', '$id'], item._id.$id);
+    if (index < 0) {
+      $scope.select.Ticket.selected.push(item);
+    }
+  };
+
+  $scope.unchooseTicket = function(item) {
+    var index = findInnerObjIndex($scope.select.Ticket.selected, ['_id', '$id'], item._id.$id);
+    if (index > -1) {
+      $scope.select.Ticket.selected = _.without($scope.select.Ticket.selected, $scope.select.Ticket.selected[index]);
+    }
+  };
+
+});
+app.controller("plugInTestController", function($scope, $rootScope) {
+  $scope.selectPersonData = [];
+  $scope.personStatus = {
+    "000000000000000000000598": {
+      "status": '本人已死'
+    },
+    "000000000000000000002296": {
+      "status": "哈哈哈哈"
+    },
+    "000000000000000000002192": {
+      "status": "我是鱼"
+    },
+    "000000000000000000000209": {
+      "status": "000000000"
+    }
+  };
+
+  $scope.list = [];
+
+  $scope.selectPerson = function(p) {
+    console.log(p);
+  };
+
+  $scope.open = function($event) {
+    $scope.status.opened = true;
+  };
+
+  $scope.status = {
+    opened: false
+  };
+
+	$scope.arrow = {
+		left:100,
+		useArrow:true
+	};
+
+	$scope.popconf = {
+		left:50,
+		position:'bottom'
+	};
+
+	$scope.personTmp = {};
+
+});
+/*
+ * 处理ajax请求
+ * */
+app.controller('AjaxController', function ($http, $rootScope, $element, $scope, _) {
+
+// 更新数据
+    $scope.updateData = function (url) {
+	$scope.method = 'GET';
+	switchVal = createID(url);
+	view = getUrlByHttpUrl(url, $rootScope.urlConfig);
+	$http({
+	    method: $scope.method,
+	    url: url
+	}).then(function (response) {
+	    if (view.type == 1) {
+		$rootScope.mainSwitchVal = switchVal;
+		$scope.mainData = response.data;
+	    } else {
+		$rootScope.detailSwitchVal = switchVal;
+		$scope.detailData = response.data;
+	    }
+	    $templateCache.put(switchVal, response.data);
+	}, function (response) {
+	    $scope.data = response.data || "Request failed";
+	});
+    }
+
+    // ajax
+    /*
+     * url 请求的地址 data 请求的数据 method 请求的方式，GET,POST viewModel 请求数据的模块 1表示主屏，2表示副屏
+     */
+    $scope.ajaxUpdate = function (opts) {
+	defaults = {
+	    url: '',
+	    data: {},
+	    method: 'GET',
+	    viewModel: 1,
+	}
+	ajaxConfig = $.extend(defaults, opts);
+	console.log(11);
+	console.log(ajaxConfig);
+
+	// $http({
+	// method : ajaxConfig.method,
+	// url : ajaxConfig.url,
+	// data :ajaxConfig.data
+	// }).then(function(response) {
+	//
+	// }, function(response) {
+	// });
+    }
+
+    $scope.ajaxAdd = function () {
+	var url = $($element).attr('url');
+	var method = $($element).attr('method') ? $($element).attr('method') : "GET";
+	var paramKey = $($element).attr('paramKey').split(",");
+	var resultKey = $($element).attr('resultKey').split(",");
+	var claer = $($element).attr('clear') ? $($element).attr('clear') : false;
+	var param;
+	var temp = [];
+	temp[0] = $scope;
+	for (var i = 0; i < paramKey.length; i++) {
+	    temp[i + 1] = temp[i][paramKey[i]];
+	}
+	param = temp[paramKey.length];
+	HYhttp( $http, {
+	    url: url,
+	    method: method,
+	    data: param
+	})
+		.then(function (response) {
+		    if (response.data.result == 'success') {
+			var resultTemp = [];
+			resultTemp[0] = $scope;
+			for (var i = 0; i < resultKey.length; i++) {
+			    resultTemp[i + 1] = [];
+			    resultTemp[i + 1] = resultTemp[i][resultKey[i]];
+			}
+			resultTemp[resultKey.length].push(response.data.data)
+			if (claer) {
+			    var clearParam = $($element).attr('clearParam');
+			    updateObj($scope,clearParam,"");
+			}
+		    }
+		    console.log(response.data)
+		}, function () {
+
+		})
+    }
+
+    $scope.ajaxRemove = function (item) {
+	var url = $($element).attr('url');
+	var resultKey = $($element).attr('resultKey');
+	HYhttp( $http, {
+	    url: url,
+	    method: "GET",
+	}).then(function (response) {
+	    if (response.data.result == 'success') {
+		var result = getObj($scope,resultKey);
+		result = _.without(result, (item));
+		updateObj($scope,resultKey,result);
+	    }
+	}, function () {
+
+	})
+    }
+})
+app.controller('HotelController', function($rootScope, $scope, getBasicsHotelByNameOrGADDRTitle, Pagination) {
+
+  $scope.selectHotel = function(page) {
+    if (!$scope.select.Hotel) {
+      $scope.select.Hotel = {};
+    }
+    $scope.select.Hotel.Page = page;
+    getBasicsHotelByNameOrGADDRTitle($scope.select.Hotel.Name, $scope.select.Hotel.Page,
+      function(response) {
+        $scope.select.Hotel.List = response.data;
+        var page = new Pagination(response.count, response.page, 5);
+        if (!$scope.Pagination) {
+          $scope.Pagination = {};
+        }
+        $scope.Pagination.Hotel = page;
+      });
+  };
+
+  $scope.chooseHotel = function(item) {
+    if (!$scope.select.Hotel) {
+      $scope.select.Hotel = {};
+    }
+    var index = _.findIndex($scope.data, {
+      HotelName: item.HotelName
+    });
+
+    var removeIndex = _.findIndex($scope.removeData, {
+      HotelName: item.HotelName
+    });
+    if (removeIndex > -1) {
+      $scope.data.push(($scope.removeData[removeIndex]));
+      $scope.removeData = _.without($scope.removeData, $scope.removeData[removeIndex]);
+    } else {
+      if (index < 0) {
+        $scope.data.push(item);
+        $scope.addData.push(item);
+      }
+    }
+  };
+
+  $scope.unChooseHotel = function(item) {
+    var index = _.findIndex($scope.data, {
+      HotelName: item.HotelName
+    });
+    $scope.data = _.without($scope.data, $scope.data[index]);
+    var addIndex = _.findIndex($scope.addData, {
+      ViewspotTitle: item.ViewspotTitle
+    });
+    if (addIndex > -1) {
+      $scope.addData = _.without($scope.addData, $scope.addData[addIndex]);
+    } else {
+      $scope.removeData.push(item);
+    }
+  };
+
+});
+app.controller("DirectiveController", function() {
+
+
+
+
+});
+/**
+ * 副屏控制器
+ */
+app.controller("SubViewController", function($http, $scope, $rootScope, _, $templateCache, closeSubView) {
+
+  $scope.isSelectAll = [];
+
+  $scope.closeSubView = function() {
+    $rootScope[activeStatus[2]] = [];
+    closeSubView();
+  };
+
+  $scope.openSubView = function() {
+    $rootScope.showSubView = true;
+  };
+
+  $scope.showSubHead = function(title, url) {
+    $rootScope.showSubHeadTitle = true;
+    $rootScope.subClass = {
+      height: ($(window).height() - 50) + "px"
+      // top: 50 + 'px'
+    };
+    $rootScope.subHead = {};
+    $rootScope.subHead.title = title;
+    $rootScope.subHead.url = url;
+    $templateCache.put($rootScope[switchType[2]].id, $rootScope[position[2]]);
+  };
+
+  $scope.hideSubHead = function() {
+    $templateCache.put($rootScope[switchType[2]].id, $rootScope[position[2]]);
+    $rootScope.showSubHeadTitle = false;
+    $rootScope.subClass = {};
+  };
+
+  $scope.replaceToP = function(str) {
+    if (null !== str && undefined !== str && "" !== str) {
+      str = str.toString();
+      // var target =  str.split("\n");
+      // var result = [];
+      // target.forEach(function(item){
+      //   if(null !== item && undefined !== item){
+      //     result.push(item);
+      //   }
+      // });
+      // return result;
+      return str.split("\n");
+    } else {
+      return [];
+    }
+  };
+
+  $scope.DestinationFormatter = function(data) {
+    return data.Title;
+  };
+
+  $scope.findIndex = function(obj, param) {
+    return _.findIndex(obj, param);
+  };
+
+  $scope.switchRoleTaskInfoText = function(url) {
+
+    if ($scope[position[2]].pageStatus.actionText == '编辑信息') {
+      $scope[position[2]].pageStatus.actionText = '保存修改';
+      $scope[position[2]].pageStatus.actionStatus = 'edit';
+      $scope[position[2]].groups.forEach(function(group) {
+        if (JSON.stringify(group._id) == JSON.stringify($scope[position[2]].groupID)) {
+          $scope[position[2]].currentGroup = group;
+        }
+      });
+      $scope[position[2]].DistributionArr = [{
+        isDistribution: true,
+        text: '可分配'
+      }, {
+        isDistribution: false,
+        text: '不可分配'
+      }];
+      if ($scope[position[2]].IsDistribution) {
+        $scope[position[2]].Distribution = $scope[position[2]].DistributionArr[0];
+      } else {
+        $scope[position[2]].Distribution = $scope[position[2]].DistributionArr[1];
+      }
+    } else {
+      $scope[position[2]].pageStatus.actionStatus = 'show';
+      $scope[position[2]].pageStatus.actionText = '编辑信息';
+      HYhttp($http, {
+        url: url,
+        data: $scope[position[2]]
+      }).then(function(response) {
+        if (response.data.result == 'success') {
+          if ($scope[position[2]].groupName != response.data.data.RoleGroup.name) {
+            $scope[position[2]].groupName = response.data.data.RoleGroup.name;
+            $scope[position[1]].roles.forEach(function(role) {
+              if (role.name == response.data.data.name) {
+                $scope[position[1]].roles = _.without($scope[position[1]].roles, role);
+              }
+            });
+            addRefreshPageByTypeNotMe($rootScope, 'permissionPage/showGroupRoles', $rootScope[switchType[1]]);
+          }
+          $scope[position[2]].roleName = response.data.data.name;
+          $scope[position[2]].IsDistributionVal = response.data.data.IsDistributionVal;
+          $scope[position[1]].roles.forEach(function(role) {
+            if (JSON.stringify(role.roleID) == JSON.stringify(response.data.data.roleID)) {
+              role.name = response.data.data.name;
+            }
+          });
+        } else {
+          console.log(response.data);
+        }
+      }, function() {
+
+      });
+    }
+  };
+
+  $scope.switchRoleTaskPermissionText = function(url) {
+    if ($scope[position[2]].pageStatus.actionPermissionText == '修改设置') {
+      $scope[position[2]].pageStatus.actionPermissionText = '保存修改';
+      $scope[position[2]].pageStatus.actionPermissionStatus = 'edit';
+      angular.element(".info_pad").addClass("edit_pad");
+    } else {
+      $scope[position[2]].pageStatus.actionPermissionText = '修改设置';
+      $scope[position[2]].pageStatus.actionPermissionStatus = 'show';
+      angular.element(".info_pad").removeClass("edit_pad");
+      $scope[position[2]].pageStatus.taskPage = '';
+      $scope['class'] = [];
+      HYhttp($http, {
+        url: url,
+        data: $scope[position[2]],
+        method: "POST"
+      }).then(function(response) {
+        if (response.data.result == 'success') {
+
+        } else {
+          console.log(response.data);
+        }
+
+      }, function() {
+
+      });
+    }
+  };
+
+  $scope.permissionAction = function(taskPage) {
+    $scope['class'] = [];
+    if ($scope[position[2]].pageStatus.taskPage == taskPage) {
+      $scope[position[2]].pageStatus.taskPage = '';
+    } else {
+      $scope[position[2]].pageStatus.taskPage = taskPage;
+      $scope['class'][taskPage] = 'active';
+    }
+  };
+
+  $scope.selectAllTask = function(tasks, name) {
+    var resultStatus = $scope.isSelectAll[name];
+    tasks.forEach(function(task) {
+      task.isSelect = resultStatus;
+    });
+  };
+
+});
+/**
+ *
+ */
+app.controller("ListController", function($http, $scope, $rootScope, _, nextPage) {
+
+  $scope.loadPermissionListData = function(url, viewID) {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    nextPage(viewID, url, $rootScope[position[1]].search, function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope[position[1]].search.skip += data.list.length;
+      return $rootScope[position[1]];
+    });
+  };
+
+});
+app.controller("RefreshController",function($element){
+
+
+
+});
+app.controller('crop', function($scope,uploadPic) {
+  $scope.size = 'big';
+  $scope.type = 'square';
+  $scope.imageDataURI = '';
+  $scope.resImageDataURI = '';
+  $scope.resImgFormat = 'image/png';
+  $scope.resImgQuality = 1.0;
+  $scope.selMinSize = 100;
+	$scope.resImgHight = $scope.ngDialogData.resImgHight;
+	$scope.resImgWidth = $scope.ngDialogData.resImgWidth;
+  $scope.resImgRatio = $scope.ngDialogData.imgRatio;
+	$scope.uploadPicCallBack = $scope.ngDialogData.uploadPicCallBack;
+  $scope.onChange = function($dataURI) {
+    console.log('onChange fired');
+  };
+  $scope.onLoadBegin = function() {
+    console.log('onLoadBegin fired');
+  };
+  $scope.onLoadDone = function() {
+    console.log('onLoadDone fired');
+  };
+  $scope.onLoadError = function() {
+    console.log('onLoadError fired');
+  };
+  $scope.handleFileSelect = function(evt) {
+    var file = evt.files[0];
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      $scope.$apply(function($scope) {
+        $scope.imageDataURI = evt.target.result;
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+  // angular.element(document.querySelector('#fileInput')).on('change',handleFileSelect);
+  $scope.$watch('resImageDataURI', function() {
+    // console.log('Res image', $scope.resImageDataURI);
+  });
+
+$scope.uploadPic = function(){
+	var imgType = $scope.resImgFormat.substring(6);
+	var imgName = $scope.name + "." + imgType;
+	uploadPic(imgName,$scope.resImageDataURI,$scope.resImgFormat,$scope.uploadPicCallBack);
+};
+
+});
+/**
+ * 边栏控制器
+ */
+app.controller('SidebarController', function($window, $http, $scope, getCrmRemindBusinessIdById, changeInformationStatus, $filter,
+  $rootScope, changeMenu, showLoading, $timeout, _, changeToOAMenu, addRefreshPageByID, openSubView,closeSubView,showFunctionMenu) {
+  $(window).resize(function() {
+    $scope.$apply(function() {
+      $rootScope.mainViewWidth = window.innerWidth - 220;
+      // do something to update current scope based on the new innerWidth
+      // and let angular update the view.
+    });
+  });
+
+  $scope.$watch(function() {
+    return $window.innerWidth;
+  }, function(value) {
+    $rootScope.mainViewWidth = value - 220;
+  });
+  // 更改名称
+  $scope.changeDepartmentName = function(index) {
+    if (this.newDepartmentName !== undefined) {
+      if (_.findIndex($rootScope.menus.list, {
+          name: this.newDepartmentName
+        }) < 0) {
+        $http({
+          url: $scope.menus.list[index].edit,
+          method: "GET",
+          params: {
+            groupName: this.newDepartmentName
+          },
+        }).then(function(response) {
+          if (response.data.result == 'success') {
+            var id = createID($scope.menus.list[index].url);
+            if (id == $rootScope[switchType[1]]) {
+              $scope[position[1]].showRoleGroupName = response.data.data;
+            } else {
+              addRefreshPageByID($rootScope, id);
+            }
+            $scope.menus.list[index].name = response.data.data;
+            addAllRefreshPageByType($rootScope, "ShowRoleTask/showRoleTask");
+          } else {
+            console.log(response.data);
+          }
+        }, function() {
+
+        });
+      }
+    }
+    $rootScope.departmentToBeRenamed = "";
+  };
+  // 取消显示更改名称
+  $scope.cancelShowChangingDepartmentName = function($event) {
+    switch ($event.keyCode) {
+      case 27:
+        $rootScope.departmentToBeRenamed = "";
+        break;
+      default:
+        break;
+    }
+  };
+  // 显示更改一个部门的名称
+  $scope.showChangingDepartmentName = function(item) {
+    $rootScope.departmentToBeRenamed = item;
+    $rootScope.currentDepartmentEdit = "";
+  };
+  // 删除一个部门
+  $scope.deleteDepartment = function(item) {
+    $http({
+        url: item.delete,
+        method: "GET"
+      })
+      .then(function(response) {
+        if (response.data.result == 'success') {
+          var id = createID(item.url);
+          if (id == $rootScope[switchType[1]]) {
+            angular.element('#' + id).remove();
+          } else {
+            addRefreshPageByID($rootScope, id);
+          }
+          addAllRefreshPageByType($rootScope, "ShowRoleTask/showRoleTask");
+          $rootScope.menus.list = _.without($rootScope.menus.list, (item));
+        }
+      }, function() {
+
+      });
+  };
+  // 隐藏确认提示
+  $scope.hideDeleteDepartment = function(itemname) {
+    $rootScope.departmentToBeDeleted = "";
+    $rootScope.currentDepartmentEdit = itemname;
+  };
+  // 即将删除部门
+  $scope.toDeleteDepartment = function(itemname) {
+    $rootScope.currentDepartmentEdit = "";
+    $rootScope.departmentToBeDeleted = itemname;
+  };
+  // 隐藏编辑框
+  $scope.hideDepartmentEdit = function(itemname) {
+    $rootScope.currentDepartmentEdit = "";
+    $rootScope.departmentToBeDeleted = false;
+  };
+  // 显示编辑框
+  $scope.toggleDepartmentEdit = function(itemname) {
+    $rootScope.currentDepartmentEdit = itemname;
+  };
+  // 切换菜单
+  $scope.changeToMenu = function(menu) {
+    console.log(menu);
+    changeMenu(menu);
+  };
+  // 增加部门
+  $scope.addDepartment = function() {
+    if (this.newDepartment !== undefined) {
+      if (_.findIndex($rootScope.menus.list, {
+          name: this.newDepartment
+        }) < 0) {
+        $http({
+            url: baseUrl + "RoleGroup/addRoleGroup",
+            method: "POST",
+            data: $.param({
+              groupName: this.newDepartment
+            }),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
+          })
+          .then(function(response) {
+            if (response.data.result == 'success') {
+              addAllRefreshPageByType($rootScope, "ShowRoleTask/showRoleTask");
+              $rootScope.menus.list.push(response.data.data);
+            }
+          }, function() {
+
+          });
+      }
+
+    } else {
+      $rootScope.showAddNewDepartmentInput = false;
+    }
+    $scope.newDepartment = '';
+  };
+  // 按Esc时，隐藏增加部门的输入框
+  $scope.addDepartmentInput = function($event, $element) {
+    switch ($event.keyCode) {
+      case 27: // ESC
+        $(".showAddNewDepartmentInput").blur();
+        $timeout(function() {
+          $rootScope.showAddNewDepartmentInput = false;
+          $scope.newDepartment = "";
+        }, 200);
+        break;
+      default:
+        break;
+    }
+  };
+  // 显示添加新的部门的输入框
+  $scope.addNewDepartment = function() {
+    $rootScope.showAddNewDepartmentInput = true;
+  };
+  // 显示全局导航
+  $scope.GlobalNaviShow = function() {
+    $rootScope.showGlobalNavi = true;
+    $rootScope.functionMenuStatus = false;
+    $window.onclick = function() {
+      $rootScope.showGlobalNavi = false;
+      $scope.$apply();
+    };
+  };
+  // 收缩最新的未读
+  $scope.toggleLatestUnread = function() {
+    $rootScope.showLatestUnread = !$rootScope.showLatestUnread;
+  };
+  // 显示提醒列表
+  $scope.NoticeList = function() {
+    $rootScope.showNoticeMark = false;
+    $rootScope.showNoticeList = true;
+  };
+
+  //收缩折叠的菜单
+  $scope.toggleFoldMenu = function(name) {
+    if (name == $rootScope.foldMensStatus) {
+      $rootScope.foldMensStatus = "";
+    } else {
+      $rootScope.foldMensStatus = name;
+    }
+  };
+
+  $scope.RefreshData = function(item) {
+    addRefreshPageByID($rootScope[switchType[1]].id);
+    addRefreshPageByID($rootScope[switchType[2]].id);
+     closeSubView();
+    $scope.fetch(item.url, item.menuID);
+  };
+
+  $scope.RefreshDataSecond = function(item) {
+    addRefreshPageByID($rootScope[switchType[1]].id);
+    // $scope.fetch(item.url,item.menuID);
+  };
+
+  //切换到OA菜单
+  $scope.switchToOAMenu = function() {
+    changeToOAMenu();
+  };
+
+  //打开个人中心
+  $scope.openPersonalCenter = function(){
+    $scope.fetch('erpIndex/erpIndexTemp/list','erpIndex');
+  };
+
+  $scope.showTargetNewContent = function(note){
+    if(!note.hasBusinessId){
+      var target = $filter('ICFetchUrlFilter')(note);
+      $rootScope.fetch(target.url);
+      if(target.needOpenSubView){
+        openSubView();
+      }
+    }else{
+      getCrmRemindBusinessIdById(note.targetId, function(response){
+        note.businessId = response.businessID;
+        var target = $filter('ICFetchUrlFilter')(note);
+        $rootScope.fetch(target.url);
+        if(target.needOpenSubView){
+          openSubView();
+        }
+      });
+    }
+    $rootScope.showNoticeList = false;
+    if(note.subType != 47){
+      changeInformationStatus({remindId: note._id, isRead: true, isDisplay: false}, function(response){
+        $rootScope.notice = _.without($rootScope.notice, note);
+      });
+    }
+  };
+
+  $scope.showFunctionMenu = function(type,$event) {
+    $event.stopPropagation();
+    $rootScope.showGlobalNavi = false;
+    $rootScope.functionMenuType = type;
+    if ($rootScope.currentFunctionStatusType == type && $rootScope.functionMenuStatus) {
+      $rootScope.functionMenuStatus = false;
+    } else {
+      switch (type) {
+        case 1:
+          showFunctionMenu(type);
+          break;
+        case 2:
+          break;
+        default:
+      }
+      $rootScope.functionMenuStatus = true;
+      $window.onclick = function() {
+        $rootScope.functionMenuStatus = false;
+        $scope.$apply();
+      };
+    }
+  };
+
+
+});
+app.controller("PermissionController",function($scope,$rootScope,_){
+	
+});
+app.controller("warningBoxController", function($rootScope, $scope) {
+  $scope.info = $scope.ngDialogData.info;
+  $scope.success = $scope.ngDialogData.success;
+});

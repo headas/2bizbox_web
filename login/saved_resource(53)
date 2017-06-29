@@ -1,0 +1,2332 @@
+app.controller('CallRecordController', function ($scope, $rootScope, _,getCallRecordListAll,claimRecord,callHandling,findOrderRecordByPHNO,$timeout) {
+    $scope.showLoadingStatus = 0;
+    $scope.showNoMoreStatus = 0;
+    $scope.param = {
+        page:1,
+        pagesize:25,
+        postdata:{}
+    };
+    $scope.searchCallRecord = function () {
+        $scope.search = {
+            KeyWords: $scope.mainData.searchContent,
+            ClaimStatusCode: $scope.mainData.ClaimStatusCode
+//            CallStatusCode:"",
+//            CallHandlingStatus:"",
+//            ClaimInfoID:""
+        };
+        $scope.param = {
+            page:1,
+            pagesize:25,
+            postdata:$scope.search
+        };
+       // $scope.param.postdata = $scope.search;
+        $scope.showLoadingStatus = 1;
+        $scope.showNoMoreStatus = 0;
+        $scope.mainData.list = {};
+        getCallRecordListAll($scope.param,function (response){
+            if(response.list.length){
+                $scope.mainData.list = response.list;
+                $scope.mainData.list.forEach(function(item) {
+                  item.showUrl = 'customerCenter/callRecord/detail?id=' + item.ThisID.$id + '&phone=' + item._id.TelPhone;
+                });
+            }else{
+                $scope.showNoMoreStatus = 1;
+            }
+            $scope.showLoadingStatus = 0;
+        });
+        //console.log($scope.mainData.list);
+    };
+    $scope.getClaimRecord = function(recordID){
+        claimRecord(recordID, function (response) {
+            $scope.detailData.ThisClaimStatus.ClaimStatusCode = 1;
+            $scope.detailData.ThisClaimStatus.ClaimStatusDesc = "已认领";
+            $scope.detailData.ThisClaimInfo.Name = response.data.Name;
+            for(var i = 0; i < $scope.mainData.list.length; i++){
+                if($scope.mainData.list[i].ThisID.$id === recordID){
+                    $scope.mainData.list[i].ThisClaimStatus.ClaimStatusCode = 1;
+                    $scope.mainData.list[i].ThisClaimStatus.ClaimStatusDesc = "已认领";
+                    $scope.mainData.list[i].ThisClaimInfo.Name = response.data.Name;
+                    //console.log($scope.mainData.list[i]);
+                }
+            }
+        });
+    };
+    $scope.getCallHandling = function(recordID){
+        callHandling(recordID, function (response) {
+            $scope.detailData.ThisCallHandlingStatus.CallHandlingStatusCode = 1;
+            $scope.detailData.ThisCallHandlingStatus.CallHandlingStatusDesc = "已处理";
+            for(var i = 0; i < $scope.mainData.list.length; i++){
+                if($scope.mainData.list[i].ThisID.$id === recordID){
+                    $scope.mainData.list[i].ThisCallHandlingStatus.CallHandlingStatusCode = 1;
+                    $scope.mainData.list[i].ThisCallHandlingStatus.CallHandlingStatusDesc = "已处理";
+                    $scope.mainData.list[i].ThisClaimInfo.Name = response.data.Name;
+                }
+            }
+        });
+    };
+    
+    $scope.loadNetPageListData = function(){
+        $scope.param.page += 1;
+        $scope.showLoadingStatus = 1;
+        $scope.showNoMoreStatus = 0;
+        console.log($scope.param);
+        var getData = {};
+        getCallRecordListAll($scope.param,function (response){
+            //console.log(response);
+            //console.log("i'm here");
+            if(response.list.length){
+                getData = response.list;
+                getData.forEach(function(item) {
+                  item.showUrl = 'customerCenter/callRecord/detail?id=' + item.ThisID.$id + '&phone=' + item._id.TelPhone;
+                });
+                $scope.mainData.list = _.union($scope.mainData.list, getData);
+                $scope.showNoMoreStatus = 0;
+            }else{
+                $scope.showNoMoreStatus = 1;
+            }
+            //console.log($scope.mainData.list);
+            $scope.showLoadingStatus = 0;
+            $rootScope.isloadList = false;
+            $rootScope.showProcessBar = false;
+        });
+    };
+    
+    
+//    function saveToScope() {
+//        var siteidx = _.findIndex($scope.detailData.site, function (e) {
+//            return e.StationID == stationID;
+//        });
+//        var departmentObj = {
+//            StationID: stationID,
+//            StationName: stationName
+//        };
+//        var cityObj = {
+//            DestinationID: cityID,
+//            DestinationName: cityName
+//        };
+//        if (siteidx > -1) {
+//            $scope.detailData.site[siteidx].DestinationList.push(cityObj);
+//        } else {
+//            departmentObj["DestinationList"] = [cityObj];
+//            $scope.detailData.site.push(departmentObj);
+//            var memberidx = _.findIndex($scope.mainData.list, function (e) {
+//                return e.memberID == memberID;
+//            })
+//            $scope.mainData.list[memberidx].city.push(departmentObj);
+//        }
+//        return workflow.response();
+//    }
+});/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+app.controller('ImComplaintController', function ($scope,$rootScope,confirmResponsibleMan,remindChangeStatus) {
+    $scope.detailData.panel = {};
+    $scope.thisUserID = $rootScope.userinfo._id.$id;
+    
+    $scope.handleConfirm = function(){
+        //发送确认操作 改变信息状态
+        console.log("开始处理本条信息状态①");
+        IHaveDealtWithThisItem($scope.detailData.postData.itemID);
+        console.log("准备发送信息告知发信人①");
+        $scope.detailData.panel = {
+            "type": "success",
+            "messages": "已经确认处理此条投诉"
+        };
+    };
+    
+    $scope.responseConfirm = function(recordId,name){
+        console.log("开始准备确认责任人操作①");
+        var param = {
+            id:recordId
+        };
+        confirmResponsibleMan(param,function(response){
+            console.log(response);
+            if(response.code >= 700 && response.code < 800){
+                console.log("开始处理本条信息状态①");
+                IHaveDealtWithThisItem($scope.detailData.postData.itemID);
+                console.log("准备发送信息告知发信人①");
+                console.log("通知处理人 [ 有责任人已经确认 ]");
+                var sendData = {
+                      recver: $scope.detailData.HandlingPersonnel._id.$id,
+                      title: "投诉["+$scope.detailData.ComplainantName+"]的责任人 "+ name +"  已经确认责任",
+                      content: "投诉["+$scope.detailData.ComplainantName+"]的责任人 "+ name +"  已经确认责任",
+                      subType: 40002
+                };
+                sendNotice(sendData);
+                
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": "确认成功!"
+                };
+            }else{
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请求失败"+response.messages
+                };
+            }
+        });
+    };
+    
+    /**
+     * 已处理 通知處理
+     */
+    function IHaveDealtWithThisItem(itemID) {
+        var data = {
+            isHandled: true,
+            remindId: itemID,
+            isDisplay: false
+        };
+        console.log("处理本条信息状态②");
+        remindChangeStatus(data, function(response) {
+            var itemIndex = _.findIndex($scope.mainData.list, function(i) {
+                return i._id.$id == itemID;
+            });
+            $scope.mainData.list[itemIndex].isHandled = true;
+        });
+        console.log("本条信息状态处理完成③");
+    }
+    
+    function sendNotice(postData) {
+           console.log("通知数据准备发送!");
+           var sendData = {
+             sender: $rootScope.userinfo._id.$id,
+             recver: postData.recver,
+             title: postData.title,
+             content: postData.content,
+             type: 40000,
+             subType: postData.subType,
+             messageType: 2
+           };
+           console.log("通知数据开始发送!");
+          var test = $rootScope.SocketConnectIO.sendMessage('sendRemind', sendData);
+           console.log(test);
+           console.log("通知数据发送完成!");
+     };
+    
+     function sendHandleNotice(postData) {
+          console.log("申请处理的数据准备发送!");
+           var sendData = {
+             recver: postData.recver,
+             title: postData.title,
+             content: postData.content,
+             targetId: postData.targetId,
+             type: 3,
+             subType: postData.subType,
+             messageType: 1,
+             data:JSON.stringify(postData.data)
+           };
+          console.log("申请处理的数据开始发送!");
+          $rootScope.SocketConnectIO.sendMessage('sendRemind', sendData);
+          console.log("申请处理的数据发送完成!");
+     };
+
+});
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+app.controller('ComplaintController', function ($scope, $filter, $rootScope,HyDate,Pagination, getComplaintList,addHandlingRecord, getHandlingRecordList, delHandlingRecord, getPersonnelByName, saveResponsibleMan, getResponsibleManList, delResponsibleManList, delReparationRecord, addReparationRecord, getReparationRecordList, delComplaint, searchOrderInfo,addComplaint,editComplaint,delComplaintByID,$timeout) {
+
+    /*
+     * 页面默认参数
+     */
+    $scope.showHandleRecordStatus = 0;
+    $scope.showResponseManStatus = 0;
+    $scope.showTheAutocompleter = 0;
+    $scope.isShowComplaintTimeStatus = 0;
+    $scope.isShowComplaintTimeEndStatus = 0;
+    $scope.showLoadingStatus = 0;
+    $scope.showNoMoreStatus = 0;
+    $scope.detailData.add = {};
+    $scope.detailData.panel = {};
+    $scope.detailData.search = {};
+    $scope.param = {
+        "Page": 1,
+        "PageSize": 25,
+        "PostData": {}
+    };
+    /*
+     * search list
+     * @returns {undefined}
+     */
+
+//    {
+//    "keyWords":"关键词",
+//    "HandlingStatusCode":1,
+//    "ComplaintTypeCode":1,
+//    "StartTime":"2016-01-26",
+//    "StartTime":"2016-01-29"
+//}
+
+    $scope.searchList = function(){
+        $scope.showLoadingStatus = 1;
+        updateList("search");
+    };
+    $scope.loadComplaintListData = function(){
+        $scope.showLoadingStatus = 1;
+        updateList("nextPage");
+    };
+
+    function updateList(type){
+        var postData = {};
+        if($scope.detailData.search){
+            if($scope.detailData.search.keyword !== undefined){
+                postData.keyWords = $scope.detailData.search.keyword;
+            }
+            if($scope.detailData.search.startTime !== undefined){
+                postData.StartTime = $scope.detailData.search.startTime;
+            }
+            if($scope.detailData.search.endTime !== undefined){
+                postData.EndTime = $scope.detailData.search.endTime;
+            }
+            if($scope.detailData.search.handleStatus !== undefined){
+                postData.HandlingStatusCode = $scope.detailData.search.handleStatus;
+            }
+        }
+        var param = {
+            "Page":1,
+            "PageSize":25,
+            "PostData" :postData
+        };
+        //$scope.param
+        if(type === "search"){
+            $scope.param = {
+                "Page": 1,
+                "PageSize": 25,
+                "PostData": postData
+            };
+        };
+        if(type === "nextPage"){
+            $scope.param = {
+                "Page": $scope.param.Page+1,
+                "PageSize": $scope.param.PageSize,
+                "PostData": postData
+            };
+        };
+        //console.log($scope.param);
+        getComplaintList($scope.param,function(backData){
+             $scope.showLoadingStatus = 0;
+             $scope.showNoMoreStatus = 0;
+            if(type === "search"){
+                 if(backData.list.length){
+                    backData.list.forEach(function(item) {
+                      item.showUrl = 'customerCenter/complaint/detail?id=' + item._id.$id;
+                    });
+                    $scope.mainData.list = backData.list;
+                }else{
+                    $scope.mainData.list = {};
+                    $scope.showNoMoreStatus = 1;
+                }
+            }
+            if (type === "nextPage") {
+                if(backData.list.length){
+                    backData.list.forEach(function(item) {
+                      item.showUrl = 'customerCenter/complaint/detail?id=' + item._id.$id;
+                    });
+                    $scope.mainData.list = _.union($scope.mainData.list, backData.list);
+                }else{
+                    $scope.showNoMoreStatus = 1;
+                }
+                $rootScope.isloadList = false;
+                $rootScope.showProcessBar = false;
+            }
+        });
+    }
+    /*
+     *新增投诉处理信息
+     */
+    $scope.isShowAddHandleRecord = function () {
+        if ($scope.showHandleRecordStatus) {
+            $scope.showHandleRecordStatus = 0;
+        } else {
+            $scope.showHandleRecordStatus = 1;
+        }
+    };
+
+    $scope.addHandleRecord = function () {
+        if ($scope.detailData.ADDHandlingStatusCode === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请选择回访状态"
+            };
+            return;
+        }
+        ;
+
+        if ($scope.detailData.ADDCustomerRequest === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请填写客人要求,没有请填写'无'"
+            };
+            return;
+        }
+        ;
+
+        if ($scope.detailData.ADDHandlingOpinion === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请填写处理意见,没有请填写'无'"
+            };
+            return;
+        }
+        ;
+
+        var param = {
+            "OrderID": $scope.detailData.OrderInfo._id.$id,
+            "ComplaintRecordID": $scope.detailData._id.$id,
+            "PostData": {
+                "HandlingStatusCode": $scope.detailData.ADDHandlingStatusCode,
+                "CustomerRequest": $scope.detailData.ADDCustomerRequest,
+                "HandlingOpinion": $scope.detailData.ADDHandlingOpinion
+            }
+        };
+        addHandlingRecord(param, function (respones) {
+            $scope.detailData.HandlingRecordList = {};
+            var postParam = {
+                "OrderID": $scope.detailData.OrderInfo._id.$id,
+                "ComplaintRecordID": $scope.detailData._id.$id
+            };
+            getHandlingRecordList(postParam, function (reback) {
+                $scope.detailData.HandlingRecordList = reback.data.list;
+                if (reback.code >= 700 && reback.code < 800) {
+                    $scope.detailData.panel = {
+                        "type": "success",
+                        "messages": reback.messages
+                    };
+                   //$scope.detailData.ADDHandlingStatusCode.reset();
+                   //$scope.detailData.ADDCustomerRequest.reset();
+                   //$scope.detailData.ADDHandlingOpinion.reset();
+                    editAndUpdateList(postParam.ComplaintRecordID,1);
+                } else {
+                    $scope.detailData.panel = {
+                        "type": "error",
+                        "messages": reback.messages
+                    };
+                }
+            });
+            $scope.showHandleRecordStatus = 0;
+        });
+    };
+
+    /*
+     *删除投诉处理信息
+     */
+    $scope.delHandleRecord = function (recordID, indexCode) {
+        var param = {
+            "HandlingRecordID": recordID
+        };
+        delHandlingRecord(param, function (reback) {
+            //console.log(reback);
+            var postParam = {
+                "OrderID": $scope.detailData.OrderInfo._id.$id,
+                "ComplaintRecordID": $scope.detailData._id.$id
+            };
+            getHandlingRecordList(postParam, function (rebackII) {
+                $scope.detailData.HandlingRecordList = rebackII.data.list;
+            });
+            if (reback.code >= 700 && reback.code < 800) {
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": reback.messages
+                };
+            } else {
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": reback.messages
+                };
+            }
+        });
+    };
+
+    /*
+     *新增责任人
+     */
+    $scope.isShowAddResponseMan = function () {
+        if ($scope.showResponseManStatus) {
+            $scope.showResponseManStatus = 0;
+            $scope.detailData.add = {};
+        } else {
+            $scope.showResponseManStatus = 1;
+            $scope.detailData.add = {};
+        }
+    };
+
+    $scope.AddResponseManName = function () {
+        var paramData = {
+            "inputName": $scope.detailData.add.ResponseManName
+        };
+        getPersonnelByName(paramData, function (callBack) {
+            $scope.detailData.add.ResponseManNameList = callBack.data.list;
+        });
+        $scope.showTheAutocompleter = 1;
+    };
+
+    $scope.chioceThisOne = function (thisOneID, thisOneName) {
+        $scope.detailData.add.ResponseManID = thisOneID;
+        $scope.detailData.add.ResponseManName = thisOneName;
+        $scope.showTheAutocompleter = 0;
+    };
+
+    $scope.saveAddResponseMan = function () {
+        if ($scope.detailData.add.ResponseManID === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请填入公司员工"
+            };
+            return;
+        };
+
+        if ($scope.detailData.add.ResponsibleLevel === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请选择过失等级'"
+            };
+            return;
+        };
+
+        if ($scope.detailData.add.Punishment === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请填处罚金额,不罚请输入'0'"
+            };
+            return;
+        };
+
+        if ($scope.detailData.add.Description === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请填责任描述"
+            };
+            return;
+        };
+
+        var param = {
+            "OrderID": $scope.detailData.OrderInfo._id.$id,
+            "ComplaintRecordID": $scope.detailData._id.$id,
+            "PostData": {
+                "ResponsibleManID": $scope.detailData.add.ResponseManID,
+                "ResponsibleLevelCode": $scope.detailData.add.ResponsibleLevel,
+                "Punishment": $scope.detailData.add.Punishment,
+                "Description": $scope.detailData.add.Description
+            }
+        };
+        //新增责任人
+        saveResponsibleMan(param, function(returnData) {
+            if (returnData.code >= 700 && returnData.code < 800) {
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": "添加成功"
+                };
+                $scope.showResponseManStatus = 0;
+                //获取新列表
+                getResponsibleManList(param, function (rebackData) {
+                    $scope.detailData.ResponsibleManList = rebackData.data.list;
+                });
+                //发送信息
+                //发送提示信息
+                var sendData = {
+                  recver: $scope.detailData.add.ResponseManID,
+                  title: "您已经被列为投诉责任人,["+ $scope.detailData.OrderInfo.OrderNo + $scope.detailData.OrderInfo.ProductTitle+"]["+ $scope.detailData.OrderInfo.CustomerEnlarge.CustomerName +"]请尽快处理!",
+                  content: "您已经被列为投诉责任人,["+$scope.detailData.OrderInfo.ProductTitle+"]["+ $scope.detailData.OrderInfo.CustomerEnlarge.CustomerName +"]请尽快处理!",
+                  targetId: $scope.detailData._id.$id,
+                  subType: 24,
+                  data:JSON.stringify(param.PostData)
+                };
+                console.log("通知相关处理人员");
+                sendHandleNotice(sendData);
+
+            } else {
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": returnData.messages
+                };
+            }
+        });
+    };
+
+    $scope.delResponsibleMan = function (id) {
+        var param = {
+            "ResponsibleRecordID": id
+        };
+        delResponsibleManList(param, function (returnData) {
+            if (returnData.code >= 700 && returnData.code < 800) {
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": "删除成功"
+                };
+                var param = {
+                    "OrderID": $scope.detailData.OrderInfo._id.$id,
+                    "ComplaintRecordID": $scope.detailData._id.$id
+                };
+                getResponsibleManList(param, function (rebackData) {
+                    //console.log(rebackData);
+                    $scope.detailData.ResponsibleManList = rebackData.data.list;
+                });
+            } else {
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": returnData.messages
+                };
+            }
+        });
+    };
+
+    /*
+     * 单独关闭isShowTheAutocompleter
+     */
+    $scope.isShowTheAutocompleter = function () {
+        $scope.showTheAutocompleter = 0;
+    };
+
+    //
+    $scope.isShowAddHandleResult = function () {
+        if ($scope.showHandleResultStatus) {
+            $scope.showHandleResultStatus = 0;
+        } else {
+            $scope.showHandleResultStatus = 1;
+        }
+    };
+
+    $scope.detailData.addresult = {};
+    $scope.saveAddHandleResult = function () {
+        if ($scope.detailData.addresult.cash === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请选择现金金额，无则输入‘0’"
+            };
+            return;
+        }
+
+        if ($scope.detailData.addresult.card === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请选择展卡金额，无则输入‘0’"
+            };
+            return;
+        }
+
+        if ($scope.detailData.addresult.tradType === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请选择现交易类型"
+            };
+            return;
+        }
+
+        if ($scope.detailData.addresult.request === undefined) {
+            $scope.detailData.panel = {
+                "type": "error",
+                "messages": "请输入其他要求哦"
+            };
+            return;
+        }
+
+        var param = {
+            "OrderID": $scope.detailData.OrderInfo._id.$id,
+            "ComplaintRecordID": $scope.detailData._id.$id,
+            "PostData": {
+                "TransactionTypeCode": $scope.detailData.addresult.tradType,
+                "Cash": $scope.detailData.addresult.cash,
+                "TravelCard": $scope.detailData.addresult.card,
+                "Remark": $scope.detailData.addresult.request
+            }
+        };
+        addReparationRecord(param, function (returnBack) {
+            //console.log(returnBack);
+            if (returnBack.code >= 700 && returnBack.code < 800) {
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": "添加成功"
+                };
+                getReparationRecordList(param,function(returnBackData){
+                    if(returnBackData.code >=700 && returnBackData.code <800){
+                         //console.log(returnBackData);
+                        $scope.detailData.ReparationRecordList = returnBackData.data.list;
+                    };
+                });
+                $scope.showHandleResultStatus = 0;
+            } else {
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "添加失败"
+                };
+            }
+        });
+    };
+    //delReparationRecord,addReparationRecord
+    $scope.delReparationRecord = function (id) {
+        var param = {
+            "ReparationRecordID": id
+        };
+        delReparationRecord(param, function (returnBack) {
+            if (returnBack.code >= 700 && returnBack.code < 800) {
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": "删除成功"
+                };
+                var param = {
+                    "OrderID": $scope.detailData.OrderInfo._id.$id,
+                    "ComplaintRecordID": $scope.detailData._id.$id
+                };
+                getReparationRecordList(param,function(returnBackData){
+                    //console.log(returnBackData);
+                    if(returnBackData.code >=700 && returnBackData.code <800){
+                         //console.log(returnBackData);
+                        $scope.detailData.ReparationRecordList = returnBackData.data.list;
+                    };
+                });
+                $scope.showHandleResultStatus = 0;
+            } else {
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "删除失败"
+                };
+            }
+        });
+    };
+
+    //////////////////////////////////////////////////////////
+    /// 删除投诉
+    /////////////////////////////////////////////////////////
+    $scope.delTheComplaint = function(){
+        var param = {
+            "ComplaintRecordID": $scope.detailData._id.$id
+        };
+        delComplaint(param,function(returnBack){
+            if(returnBack.code >=700 && returnBack.code <800){
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": "删除成功"
+                };
+            }else{
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "删除失败"
+                };
+            }
+        });
+    };
+
+    ///////////////////////////////////////////////////////////
+    ////// 指定处理人
+    /////////////////////////////////////////////////////////
+    $scope.showHandleManStatus = 0;
+    $scope.isShowAddHandleMan = function(){
+        if($scope.showHandleManStatus){
+            $scope.showHandleManStatus = 0;
+        }else{
+            $scope.showHandleManStatus = 1;
+        }
+    };
+
+    ////////// 确认添加处理人
+    ///////////////
+    $scope.addThisManToHandle = function(){
+        if($scope.detailData.handleName === undefined || $scope.detailData.handleName === null || $scope.detailData.handleName === ""){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请指定处理人"
+                };
+                $scope.showHandleManStatus = 1;
+        }else{
+            $scope.showHandleManStatus = 0;
+        }
+    };
+
+    ///////////////////////////////////////////////////
+    ////  关键字搜索订单
+    /////////////////////////////////////////////////////
+
+    ///////展示搜索结果searchTheOrderStatus
+    /////////////////////////////////
+    $scope.searchTheOrderStatus = 0;
+    $scope.showLoadingStatus = 0;
+    $scope.showNoMoreStatus = 0;
+
+    $scope.searchOrder = function(){
+        $scope.detailData.orderList = {};
+        $scope.searchTheOrderStatus = 1;
+        $scope.showLoadingStatus = 1;
+        var param = {
+            "searchKey":$scope.detailData.searchKeyWord,
+            "page": 1,
+            "pagesize":25
+        };
+        searchOrderInfo(param,function(returnBack){
+            $scope.detailData.orderList = returnBack.data.list;
+            $scope.detailData.pageSetting = {
+                "page":returnBack.data.page,
+                "count":returnBack.data.count
+            };
+            $scope.showLoadingStatus = 0;
+            //console.log(returnBack.data);
+            if(returnBack.data.count < 1){
+                $scope.showNoMoreStatus = 1;
+            }
+        });
+    };
+
+    $scope.detailData.formData = {};
+    //////选择订单
+    //////////////////////////////////////////////
+    $scope.choiceTheOrder = function(id,indexNO){
+        $scope.detailData.formData.orderID = id;
+        $scope.detailData.orderID = id;
+        $scope.searchTheOrderStatus = 0;
+        $scope.detailData.searchKeyWord = $scope.detailData.orderList[indexNO].OrderNo;
+    };
+
+    $scope.openDatePicker = function() {
+        $scope.isShowComplaintTimeStatus = 1;
+    };
+
+    $scope.openDatePickerEnd = function() {
+        $scope.isShowComplaintTimeEndStatus = 1;
+    };
+
+    $scope.saveThisInfo = function(){
+        ///////验证必填信息
+        ////////////////////////////////////////////
+        if($scope.detailData.formData.ComplainantName === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请输入投诉人"
+                };
+                return;
+        };
+
+         if($scope.detailData.formData.ComplainantTelphone === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请输入投诉联系电话"
+                };
+                return;
+        };
+
+         if($scope.detailData.handleName === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请指定处理人"
+                };
+                return;
+        };
+
+         if($scope.detailData.formData.orderID === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉相关订单"
+                };
+                return;
+        };
+
+         if($scope.detailData.formData.ComplaintTime === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉时间"
+                };
+                return;
+        };
+
+         if($scope.detailData.formData.ComplaintType === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉类型"
+                };
+                return;
+        };
+
+         if($scope.detailData.formData.ComplaintLevel === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉等级"
+                };
+                return;
+        };
+
+        if($scope.detailData.formData.ComplaintReason === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉原因"
+                };
+                return;
+        };
+
+        if($scope.detailData.formData.ComplainantRequests === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请输入客户要求,没有内容请输入'无'"
+                };
+                return;
+        };
+
+        if($scope.detailData.formData.ComplaintRemark === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请输入投诉备注,没有内容请输入'无'"
+                };
+                return;
+        };
+
+        var param = {
+            "OrderID":$scope.detailData.formData.orderID,
+            "HandlingPersonneID":$scope.detailData.handleName,
+            "PostData": {
+                "ComplainantName":$scope.detailData.formData.ComplainantName,
+                "ComplainantTelphone":$scope.detailData.formData.ComplainantTelphone,
+                "ComplaintTime":$scope.detailData.formData.ComplaintTime,
+                "ComplaintTypeCode":$scope.detailData.formData.ComplaintType,
+                "ComplaintLevelCode":$scope.detailData.formData.ComplaintLevel,
+                "ComplaintReasonCode":$scope.detailData.formData.ComplaintReason,
+                "ComplaintRemark":$scope.detailData.formData.ComplaintRemark,
+                "ComplainantRequests":$scope.detailData.formData.ComplainantRequests
+            }
+        };
+        //新增投诉
+        addComplaint(param,function(returnData){
+            if(returnData.code >=700 && returnData.code <800){
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": "添加成功"
+                };
+                $scope.detailData.formData = {};
+                $scope.detailData.searchKeyWord = {};
+                returnData.data.showUrl = "customerCenter/complaint/detail?id=" + returnData.data._id.$id;
+
+                //发送提示信息
+                var sendData = {
+                  recver: $scope.detailData.handleName,
+                  title: "新增投诉等待处理,["+$scope.detailData.formData.ComplainantName+"]请尽快处理!",
+                  content: "新增投诉等待处理,["+$scope.detailData.formData.ComplainantName+"]请尽快处理!",
+                  targetId: returnData.data._id.$id,
+                  subType: 23,
+                  data:JSON.stringify(param.PostData)
+                };
+                console.log("通知相关处理人员");
+                sendHandleNotice(sendData);
+
+                //更新当前列表数据
+                var newRecord = [returnData.data];
+                addAndUpdateList(newRecord);
+            }else{
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "添加失败"
+                };
+            }
+        });
+    };
+
+     $scope.saveThisEdit = function(){
+        ///////验证必填信息
+        ////////////////////////////////////////////
+        if($scope.detailData.ComplainantName === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请输入投诉人"
+                };
+                return;
+        };
+
+         if($scope.detailData.ComplainantTelphone === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请输入投诉联系电话"
+                };
+                return;
+        };
+
+         if($scope.detailData.handleName === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请指定处理人"
+                };
+                return;
+        };
+
+         if($scope.detailData.orderID === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉相关订单"
+                };
+                return;
+        };
+
+         if($scope.detailData.ComplaintTime.sec === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉时间"
+                };
+                return;
+        };
+
+         if($scope.detailData.ComplaintType.ComplaintTypeCode === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉类型"
+                };
+                return;
+        };
+
+         if($scope.detailData.ComplaintLevel.ComplaintLevelCode === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉等级"
+                };
+                return;
+        };
+
+        if($scope.detailData.ComplaintReason.ComplaintReasonCode === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请选择投诉原因"
+                };
+                return;
+        };
+
+        if($scope.detailData.ComplainantRequests === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请输入客户要求,没有内容请输入'无'"
+                };
+                return;
+        };
+
+        if($scope.detailData.ComplaintRemark === undefined){
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "请输入投诉备注,没有内容请输入'无'"
+                };
+                return;
+        };
+
+        var param = {
+            "OrderID":$scope.detailData.orderID,
+            "ComplaintRecordID":$scope.detailData._id.$id,
+            "PostData": {
+                "ComplainantName":$scope.detailData.ComplainantName,
+                "ComplainantTelphone":$scope.detailData.ComplainantTelphone,
+                "ComplaintTime":$scope.detailData.ComplaintTime.sec,
+                "ComplaintTypeCode":$scope.detailData.ComplaintType.ComplaintTypeCode,
+                "ComplaintLevelCode":$scope.detailData.ComplaintLevel.ComplaintLevelCode,
+                "ComplaintReasonCode":$scope.detailData.ComplaintReason.ComplaintReasonCode,
+                "ComplaintRemark":$scope.detailData.ComplaintRemark,
+                "ComplainantRequests":$scope.detailData.ComplainantRequests
+            }
+        };
+
+        editComplaint(param,function(returnData){
+            //console.log(returnData);
+            if(returnData.code >=700 && returnData.code <800){
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": "修改成功"
+                };
+                $scope.detailData.formData = {};
+
+                //发送提示信息
+                var sendData = {
+                  recver: $scope.detailData.handleName,
+                  title: "投诉["+$scope.detailData.ComplainantName+"]基础信息已经被更改,请关注!",
+                  content: "投诉["+$scope.detailData.ComplainantName+"]基础信息已经被更改,请关注!",
+                  targetId: $scope.detailData._id.$id,
+                  subType: 23,
+                  data:JSON.stringify(param.PostData)
+                };
+                console.log("通知相关处理人员");
+                sendHandleNotice(sendData);
+
+            }else{
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "修改失败"
+                };
+            }
+        });
+    };
+
+    $scope.delComplaint = function(id){
+        var param = {
+            "ComplaintRecordID":id
+        };
+        delComplaintByID(param,function(returnBack){
+            if(returnBack.code >=700 && returnBack.code <800){
+                $scope.detailData.panel = {
+                    "type": "success",
+                    "messages": "删除成功"
+                };
+                deleteAndUpdateList(id);
+            }else{
+                $scope.detailData.panel = {
+                    "type": "error",
+                    "messages": "删除失败"
+                };
+            }
+        });
+    };
+
+    ////////////////////////////////
+    //删除 已经删除的记录并更新本地列表数据
+    ///////////////////////////////
+    function deleteAndUpdateList(RecordID) {
+        $scope.mainData.list.forEach(function(r, i) {
+            if(RecordID === r._id.$id)
+                $scope.mainData.list.splice(i, 1);
+        });
+    };
+    ////////////////////////////////
+    //修改编辑 已经修改/编辑的记录并更新本地列表数据
+    ///////////////////////////////
+    function editAndUpdateList(RecordID,ChangStatus) {
+        $scope.mainData.list.forEach(function(r, i) {
+            if(RecordID === r._id.$id)
+                if(ChangStatus === 1){
+                   $scope.mainData.list[i].HandlingStatus = {
+                       "HandlingStatusCode" : 1,
+                       "HandlingStatusDesc" : "处理中"
+                   };
+                }
+                if(ChangStatus === 2){
+                   $scope.mainData.list[i].HandlingStatus = {
+                       "HandlingStatusCode" : 2,
+                       "HandlingStatusDesc" : "已处理"
+                   };
+                }
+        });
+    };
+
+    ////////////////////////////////
+    //添加 已经添加的记录并更新本地列表数据
+    ///////////////////////////////
+    function addAndUpdateList(newRecord) {
+        $scope.mainData.list = _.union(newRecord,$scope.mainData.list);
+    };
+
+    function sendNotice(postData) {
+          console.log("通知数据准备发送!");
+          var sendData = {
+            sender: $rootScope.userinfo._id.$id,
+            recver: postData.recver,
+            title: postData.title,
+            content: postData.content,
+            type: 40000,
+            subType: postData.subType,
+            messageType: 2
+          };
+          console.log("通知数据开始发送!");
+         var test = $rootScope.SocketConnectIO.sendMessage('sendRemind', sendData);
+          console.log(test);
+          console.log("通知数据发送完成!");
+    };
+
+    function sendHandleNotice(postData) {
+         console.log("申请处理的数据准备发送!");
+          var sendData = {
+            recver: postData.recver,
+            title: postData.title,
+            content: postData.content,
+            targetId: postData.targetId,
+            type: 3,
+            subType: postData.subType,
+            messageType: 1,
+            data:JSON.stringify(postData.data)
+          };
+         console.log("申请处理的数据开始发送!");
+         $rootScope.SocketConnectIO.sendMessage('sendRemind', sendData);
+         console.log("申请处理的数据发送完成!");
+    };
+
+});
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+app.controller('ReturnVisitController', function ($scope, $rootScope,remindChangeStatus, getReturnVisitList,cantAcceptgRecord,accept_ShiftVistingRecord,getCustomerServerList, applyShiftVistingRecord, getShiftVistingRecordList, addVistingRecord, getReturnVisitDetail, getTagDetail, searchTag, insertTag, inserttoreTag, editVisitRecord) {
+    $scope.detailData.panel = {};
+    $scope.searchname = "";
+    $scope.detailEvaluationStatus = 0;
+    $scope.detailData.satisfactionPercent = 0;
+    $scope.Addform = {
+        OverallSatisfactionScore : 0,
+        NationalGuide:{
+                "IsOpen" : 0
+        },
+        LocalGuide:{
+                "IsOpen" : 0
+        },
+        Product:{},
+        PersonalCare:{}
+    };
+    $scope.watchAssessDetailStatus = false;
+    $scope.showMorePanelStatus = 1;
+    $scope.parm = {
+        "page" : 1,
+        "pagesize" : 25,
+        "postdata" : {
+            "IsCustomerReturnVisitArrange":1
+        }
+    };
+    $scope.showLoadingStatus = 0;
+    $scope.showNoMoreStatus = 0;
+    $scope.showAddInfoMenuStatus = 0;
+    $scope.showEditInfoMenuStatus = 0;
+    $scope.watchAssessDetailStatus = 0;
+
+    CustomerServerList();
+    function CustomerServerList(){
+          getCustomerServerList(function (response) {
+              $scope.mainData.getCustomerServerList = response.data.list;
+          });
+      }
+
+    $scope.getServerList = function(){
+        getCustomerServerList(function (response) {
+            $scope.mainData.getCustomerServerList = response.data.list;
+            //console.log(response.data.list);
+         });
+    };
+
+    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    // 选择回访状态
+    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    $scope.selectedStatus = function(){
+        if($scope.Addform.StatusCode == 1|| $scope.Addform.StatusCode == 2 || $scope.Addform.StatusCode == 3 || $scope.Addform.StatusCode == 7){
+             $scope.showMorePanelStatus = 0;
+        }else{
+            $scope.showMorePanelStatus = 1;
+        }
+    };
+ //\\\\\\\\\\\\\\\\\\
+ // 查看评分详情
+ //\\\\\\\\\\\\\\\\\\\
+ $scope.watchAssessDetail = function(DetailData){
+     if($scope.watchAssessDetailStatus === 1){
+         $scope.watchAssessDetailStatus = 0;
+         $scope.watchAssessDetailData = {};
+     }else{
+         $scope.watchAssessDetailStatus = 1;
+         $scope.watchAssessDetailData = DetailData;
+     }
+ };
+//    //\\\\\\\\\\\\\\\\\\\\\\\\
+//    // 选中其中是否含全陪模块
+//    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+//    $scope.NationalGuideStatus = 0;
+//    $scope.checkNationalGuideStatus = function(){
+//        if($scope.NationalGuideStatus == 1){
+//            $scope.NationalGuideStatus =0;
+//        }else{
+//            $scope.NationalGuideStatus = 1;
+//        }
+//    }
+//
+//      //\\\\\\\\\\\\\\\\\\\\\\\\
+//    // 选中其中是否含地陪模块
+//    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+//    $scope.LocalGuideStatus = 0;
+//    $scope.checkLocalGuideStatus = function(){
+//        if($scope.LocalGuideStatus == 1){
+//            $scope.LocalGuideStatus =0;
+//        }else{
+//            $scope.LocalGuideStatus = 1;
+//        }
+//    }
+
+    $scope.searchcontent = function () {
+        $scope.PostData = {
+            keyWords: $scope.mainData.search.keyWords ? $scope.mainData.search.keyWords : '',
+            IsCustomerReturnVisit: $scope.mainData.search.IsCustomerReturnVisit,
+            //IsCustomerReturnVisitArrange: $scope.mainData.search.IsCustomerReturnVisitArrange,
+            IsCustomerReturnVisitArrange:1,
+            //ReturnVisterID: $scope.mainData.search.ReturnVisterID
+        };
+        if(!$scope.PostData.ReturnVisterID){
+            $scope.PostData.ReturnVisterID = global.userinfo._id.$id;
+        }
+        $scope.parm = {
+            page: 1,
+            pagesize: 25,
+            postdata: $scope.PostData
+        };
+        //console.log($scope.parm);
+        $scope.mainData.list = {};
+        $scope.showNoMoreStatus = 0;
+        $scope.showLoadingStatus = 1;
+
+        getReturnVisitList($scope.parm, function (response) {
+            $scope.mainData.list = response.list;
+            $scope.showLoadingStatus = 0;
+            if($scope.mainData.list.length ===0){
+                $scope.showNoMoreStatus = 1;
+            }
+            $scope.mainData.list.forEach(function (item) {
+                item.showUrl = 'customerCenter/returnVisit/detail?id=' + item._id.$id;
+            });
+        });
+    };
+
+    $scope.loadReturnVisitListData = function () {
+        $scope.showNoMoreStatus = 0;
+        $scope.showLoadingStatus = 1;
+        var getDate = {};
+        $scope.parm.page +=1;
+        if(!$scope.parm.postdata.ReturnVisterID){
+            $scope.parm.postdata.ReturnVisterID = global.userinfo._id.$id;
+        }
+
+        getReturnVisitList($scope.parm,function(response) {
+            getDate = response.list;
+            getDate.forEach(function(item) {
+              item.showUrl = 'customerCenter/returnVisit/detail?id=' + item._id.$id;
+            });
+            if(getDate.length){
+                $scope.mainData.list = _.union($scope.mainData.list, getDate);
+                $scope.showNoMoreStatus = 0;
+            }else{
+                $scope.showNoMoreStatus = 1;
+            }
+            $rootScope.isloadList = false;
+            $scope.showLoadingStatus = 0;
+            $rootScope.showProcessBar = false;
+        });
+    };
+    /////////////////////////////////
+    //////////回访转移
+    //////////////////////////////////
+    $scope.showChangeMenuStatus = 0;
+    $scope.showChangeLogStatus = 0;
+    $scope.changeshowChangeMenuStatus = function () {
+        if ($scope.showChangeMenuStatus) {
+            $scope.showChangeMenuStatus = 0;
+            $scope.showChangeLogStatus = 0;
+        } else {
+            $scope.showChangeMenuStatus = 1;
+            $scope.showChangeLogStatus = 0;
+        }
+
+        if (!$scope.mainData.getCustomerServerList) {
+            getCustomerServerList(function (response) {
+                $scope.mainData.getCustomerServerList = response.data.list;
+            });
+        }
+    };
+    //转移订单申请
+    $scope.saveApplyChange = function () {
+        var param = {
+            "id": $scope.detailData._id.$id,
+            "customerId": $scope.mainData.AcceptUserID
+        };
+        var recver ={
+            _id:$scope.mainData.AcceptUserID
+        } ;
+        // 获取目标客服名字
+
+        var acceptinfo;
+        for(var i = 0; i < $scope.mainData["getCustomerServerList"].length; i++){
+            if($scope.mainData.getCustomerServerList[i]._id.$id === $scope.mainData.AcceptUserID){
+                acceptinfo = $scope.mainData.getCustomerServerList[i];
+                break;
+            }
+        }
+       //console.log($scope.detailData);
+        var sendMeg = {
+            title:$rootScope.userinfo.FullName + '申请转移回访订单['+$scope.detailData.OrderNo+']给'+acceptinfo.FullName,
+            content:$scope.detailData.OrderNo+" / "+$scope.detailData.ProductTitle,
+            targetId:$scope.detailData._id.$id,
+            data:null
+        };
+        applyShiftVistingRecord(param, function (response) {
+            //var code = response.code?response.code:700;
+            if (response.length === 0 || response.code < 700) {
+                $scope.detailData.panel.messages = response.messages;
+                $scope.detailData.panel.type = "error";
+            }else{
+                $scope.detailData.ShiftVistingRecordList = {};
+                var param = {"id": $scope.detailData._id.$id};
+                getShiftVistingRecordList(param, function (response) {
+                    $scope.detailData.ShiftVistingRecordList = response;
+                });
+                $scope.showChangeMenuStatus = 0;
+
+                $scope.detailData.panel.messages = response.messages;
+                $scope.detailData.panel.type = "success";
+                sendHandleNotice(recver,sendMeg);
+            }
+
+        });
+    };
+    /////////////////////////////////
+    //////////转让记录
+    //////////////////////////////////
+    $scope.showChangeLogStatus = 0;
+    $scope.showChangeMenuStatus = 0;
+    $scope.chengeshowChangeLogStatus = function (status) {
+        if ($scope.showChangeLogStatus) {
+            $scope.showChangeLogStatus = 0;
+            $scope.showChangeMenuStatus = 0;
+        } else {
+            $scope.showChangeLogStatus = 1;
+            $scope.showChangeMenuStatus = 0;
+        }
+    };
+    ////////////////////////
+    //// 添加回访信息
+    ////////////////////////
+    $scope.showAddInfoMenuStatus = 0;
+    $scope.showChangeTagStatus = 0;
+    $scope.changeShowAddInfoMenuStatus = function () {
+        $scope.watchAssessDetailStatus = false;
+        if ($scope.showAddInfoMenuStatus) {
+            $scope.showAddInfoMenuStatus = 0;
+            $scope.showChangeTagStatus = 0;
+            $scope.Addform = {
+                OverallSatisfactionScore : 0,
+                NationalGuide:{
+                        "IsOpen" : 0
+                },
+                LocalGuide:{
+                        "IsOpen" : 0
+                },
+                Product:{},
+                PersonalCare:{}
+            };
+            $scope.TagList = {};
+            $scope.searchTageList = {};
+            $scope.thisselected = {};
+        } else {
+            $scope.showAddInfoMenuStatus = 1;
+            $scope.detailEvaluationStatus = 0;
+        }
+    };
+    //新增回访记录
+    $scope.addVisitRecord = function(){
+        $scope.Addform.TagList = {};
+        if ($scope.Addform.StatusCode === undefined) {
+            $scope.Addform.StatusCode = 4;
+        }
+        if ($scope.Addform.TrafficScore === undefined) {
+            $scope.Addform.TrafficScore = null;
+        }
+        if ($scope.Addform.HotelScore === undefined) {
+            $scope.Addform.HotelScore = null;
+        }
+        if ($scope.Addform.RouteScore === undefined) {
+            $scope.Addform.RouteScore = null;
+        }
+        if ($scope.Addform.ViewpointScore === undefined) {
+            $scope.Addform.ViewpointScore = null;
+        }
+        if ($scope.Addform.TouristGuideScore === undefined) {
+            $scope.Addform.TouristGuideScore = null;
+        }
+        if ($scope.Addform.CounsellorScore === undefined) {
+            $scope.Addform.CounsellorScore = null;
+        }
+        if ($scope.Addform.RecordContent === undefined) {
+            $scope.Addform.RecordContent = null;
+        }
+
+        if ($scope.Addform.InternalScore === undefined) {
+            $scope.Addform.InternalScore = null;
+        }
+
+        if ($scope.Addform.InternalScoreRemark === undefined) {
+            $scope.Addform.InternalScoreRemark = null;
+        }
+
+        if ($scope.Addform.Product.LineDesignScore === undefined) {
+            $scope.Addform.Product.LineDesignScore = null;
+        }
+        if ($scope.Addform.Product.HotelScore === undefined) {
+            $scope.Addform.Product.HotelScore = null;
+        }
+        if ($scope.Addform.Product.RestaurantScore === undefined) {
+            $scope.Addform.Product.RestaurantScore = null;
+        }
+        if ($scope.Addform.Product.TrafficScore === undefined) {
+            $scope.Addform.Product.TrafficScore = null;
+        }
+        if ($scope.Addform.Product.OwnExpenseScore === undefined) {
+            $scope.Addform.Product.OwnExpenseScore = null;
+        }
+        if ($scope.Addform.Product.ShoppingScore === undefined) {
+            $scope.Addform.Product.ShoppingScore = null;
+        }
+        if ($scope.Addform.Product.ScenicSpotScore === undefined) {
+            $scope.Addform.Product.ScenicSpotScore = null;
+        }
+        if ($scope.Addform.Product.DriverScore === undefined) {
+            $scope.Addform.Product.DriverScore = null;
+        }
+        if ($scope.Addform.PersonalCare.AttitudeScore === undefined) {
+            $scope.Addform.PersonalCare.AttitudeScore = null;
+        }
+        if ($scope.Addform.PersonalCare.FollowUpScore === undefined) {
+            $scope.Addform.PersonalCare.FollowUpScore = null;
+        }
+        if ($scope.Addform.PersonalCare.ProfessionalDegreeScore === undefined) {
+            $scope.Addform.PersonalCare.ProfessionalDegreeScore = null;
+        }
+
+
+        if($scope.Addform.NationalGuide.IsOpen === 0){
+            $scope.Addform.NationalGuide = {
+                        "IsOpen" : 0,
+                        "StrainCapacityScore" : null,
+                        "CommunicationScore" : null,
+                        "AttitudeScore" : null,
+                        "ExperienceScore" : null,
+                        "ProfessionalDegreeScore" : null,
+                        "ItineraryScore" :  null,
+                        "OwnExpenseScore" : null,
+                        "ShoppingScore" : null
+            };
+        };
+
+        if($scope.Addform.LocalGuide.IsOpen === 0){
+            $scope.Addform.LocalGuide = {
+                        "IsOpen" : 0,
+                        "StrainCapacityScore" : null,
+                        "CommunicationScore" : null,
+                        "AttitudeScore" : null,
+                        "ExperienceScore" : null,
+                        "ProfessionalDegreeScore" : null,
+                        "ItineraryScore" :  null,
+                        "OwnExpenseScore" : null,
+                        "ShoppingScore" : null
+            };
+        };
+
+        $scope.TagList ={};
+        for(i=0; i < $scope.thisselected.length;i++){
+            $scope.TagList[i] = $scope.thisselected[i].id;
+        }
+        var param = {
+            "OrderID": $scope.detailData._id.$id,
+            "PostData": {
+                "StatusCode": $scope.Addform.StatusCode,
+                "TrafficScore": $scope.Addform.TrafficScore,
+                "HotelScore": $scope.Addform.HotelScore,
+                "RouteScore": $scope.Addform.RouteScore,
+                "ViewpointScore": $scope.Addform.ViewpointScore,
+                "TouristGuideScore": $scope.Addform.TouristGuideScore,
+                "CounsellorScore": $scope.Addform.CounsellorScore,
+                "RecordContent": $scope.Addform.RecordContent,
+                "Tag": $scope.TagList,
+                "InternalScore" : $scope.Addform.InternalScore,
+                "InternalScoreRemark" : $scope.Addform.InternalScoreRemark,
+                "OverallSatisfactionScore" : $scope.Addform.OverallSatisfactionScore,
+
+                "p_LineDesignScore" : $scope.Addform.Product.LineDesignScore,
+                "p_HotelScore" : $scope.Addform.Product.HotelScore,
+                "p_RestaurantScore" :$scope.Addform.Product.RestaurantScore,
+                "p_TrafficScore":$scope.Addform.Product.TrafficScore,
+                "p_OwnExpenseScore":$scope.Addform.Product.OwnExpenseScore,
+                "p_ShoppingScore":$scope.Addform.Product.ShoppingScore,
+                "p_ScenicSpotScore":$scope.Addform.Product.ScenicSpotScore,
+                "p_DriverScore":$scope.Addform.Product.DriverScore,
+
+                "c_AttitudeScore" : $scope.Addform.PersonalCare.AttitudeScore,
+                "c_FollowUpScore" : $scope.Addform.PersonalCare.FollowUpScore,
+                "c_ProfessionalDegreeScore" : $scope.Addform.PersonalCare.ProfessionalDegreeScore,
+
+                "n_IsOpen": $scope.Addform.NationalGuide.IsOpen,
+                "n_StrainCapacityScore" : $scope.Addform.NationalGuide.StrainCapacityScore,
+                "n_CommunicationScore" : $scope.Addform.NationalGuide.CommunicationScore,
+                "n_AttitudeScore" : $scope.Addform.NationalGuide.AttitudeScore,
+                "n_ExperienceScore" : $scope.Addform.NationalGuide.ExperienceScore,
+                "n_ProfessionalDegreeScore" : $scope.Addform.NationalGuide.ProfessionalDegreeScore,
+                "n_ItineraryScore":$scope.Addform.NationalGuide.ItineraryScore,
+                "n_OwnExpenseScore":$scope.Addform.NationalGuide.OwnExpenseScore,
+                "n_ShoppingScore":$scope.Addform.NationalGuide.ShoppingScore,
+
+                "l_IsOpen": $scope.Addform.LocalGuide.IsOpen,
+                "l_StrainCapacityScore" : $scope.Addform.LocalGuide.StrainCapacityScore,
+                "l_CommunicationScore" : $scope.Addform.LocalGuide.CommunicationScore,
+                "l_AttitudeScore" : $scope.Addform.LocalGuide.AttitudeScore,
+                "l_ExperienceScore" : $scope.Addform.LocalGuide.ExperienceScore,
+                "l_ProfessionalDegreeScore" : $scope.Addform.LocalGuide.ProfessionalDegreeScore,
+                "l_ItineraryScore":$scope.Addform.LocalGuide.ItineraryScore,
+                "l_OwnExpenseScore":$scope.Addform.LocalGuide.OwnExpenseScore,
+                "l_ShoppingScore":$scope.Addform.LocalGuide.ShoppingScore
+
+            }
+        };
+        addVistingRecord(param, function (response) {
+            if (response.code >= 700 && response.code < 800) {
+                var paramTag = {
+                    "tag":$scope.TagList,
+                    "relationId":$scope.detailData.ProductID.$id
+                };
+                insertTag(paramTag,function(backTag){
+                    if(backTag.code >= 700 && backTag.code<800){
+                        var tagInsert = {
+                            "tag":backTag.data.list,
+                            "recordId":response.data._id.$id
+                        };
+                        inserttoreTag(tagInsert,function(getBack){
+                            var param = {
+                                "id": $scope.detailData._id.$id
+                            };
+                            getReturnVisitDetail(param, function (response) {
+                                $scope.detailData.VistingRecord = response.VistingRecord;
+                                $scope.detailData.CustomerEnlarge = response.CustomerEnlarge;
+                                $scope.detailData.IsCustomerReturnVisit = response.IsCustomerReturnVisit;
+                                $scope.detailData.ReturnVisitUser = response.ReturnVisitUser;
+                                if($scope.detailData.VistingRecord.length > 0){
+                                    if($scope.detailData.VistingRecord["0"].Tag.length > 0){
+                                        getTagDetail($scope.detailData.VistingRecord["0"].Tag,function(response){
+                                            $scope.detailData.VistingRecord["0"].Tag = response.data.list;
+                                        });
+                                    }
+                                };
+                                calSatisfactionPercent();
+                            });
+                            editAndUpdateList($scope.detailData._id.$id,true,true,$scope.Addform.StatusCode);
+                            $scope.detailData.panel.messages = "添加成功!";
+                            $scope.detailData.panel.type = "success";
+                            $scope.showAddInfoMenuStatus = 0;
+                            $scope.Addform = {
+                                OverallSatisfactionScore : 0,
+                                NationalGuide:{
+                                        "IsOpen" : 0
+                                },
+                                LocalGuide:{
+                                        "IsOpen" : 0
+                                },
+                                Product:{},
+                                PersonalCare:{}
+                            };
+                            $scope.TagList ={};
+                            $scope.thisselected = {};
+                            $scope.searchTageList ={};
+                        });
+                    }
+                });
+            };
+            if (response.code >= 600 && response.code < 700) {
+                $scope.detailData.panel.messages = response.messages;
+                $scope.detailData.panel.type = "error";
+            }
+        });
+    };
+
+     $scope.openDetailEvaluationEdit = function(){
+        $scope.watchAssessDetailStatus = 0;
+        if($scope.detailEvaluationStatus === 0){
+            $scope.detailEvaluationStatus = 1;
+        }else{
+            $scope.detailEvaluationStatus = 0;
+        }
+     };
+    //\\\\\\\\\\\\\\\\\\\\\\\\\
+    // 打开详细评分选项 $scope.detailEvaluationStatus = 0;
+    //\\\\\\\\\\\\\\\\\\\\\\\\\\
+    $scope.openDetailEvaluation = function(){
+        $scope.watchAssessDetailStatus = 0;
+        if($scope.detailEvaluationStatus === 0){
+            $scope.detailEvaluationStatus = 1;
+            $scope.Addform.Product = {
+                "LineDesignScore" : $scope.Addform.OverallSatisfactionScore,
+                "HotelScore" : $scope.Addform.OverallSatisfactionScore,
+                "RestaurantScore" : $scope.Addform.OverallSatisfactionScore,
+                "TrafficScore":$scope.Addform.OverallSatisfactionScore,
+                "OwnExpenseScore":$scope.Addform.OverallSatisfactionScore,
+                "ShoppingScore":$scope.Addform.OverallSatisfactionScore,
+                "ScenicSpotScore":$scope.Addform.OverallSatisfactionScore,
+                "DriverScore":$scope.Addform.OverallSatisfactionScore
+            };
+
+            $scope.Addform.PersonalCare = {
+                "AttitudeScore" : $scope.Addform.OverallSatisfactionScore,
+                 "FollowUpScore" : $scope.Addform.OverallSatisfactionScore,
+                 "ProfessionalDegreeScore" : $scope.Addform.OverallSatisfactionScore
+            };
+
+            $scope.Addform.NationalGuide = {
+                "IsOpen" : 0,
+                "StrainCapacityScore" : $scope.Addform.OverallSatisfactionScore,
+                "CommunicationScore" : $scope.Addform.OverallSatisfactionScore,
+                "AttitudeScore" : $scope.Addform.OverallSatisfactionScore,
+                "ExperienceScore" :$scope.Addform.OverallSatisfactionScore,
+                "ProfessionalDegreeScore" : $scope.Addform.OverallSatisfactionScore,
+                "ItineraryScore":$scope.Addform.OverallSatisfactionScore,
+                "OwnExpenseScore":$scope.Addform.OverallSatisfactionScore,
+                "ShoppingScore":$scope.Addform.OverallSatisfactionScore
+            };
+
+            $scope.Addform.LocalGuide = {
+                "IsOpen" : 0,
+                "StrainCapacityScore" : $scope.Addform.OverallSatisfactionScore,
+                "CommunicationScore" : $scope.Addform.OverallSatisfactionScore,
+                "AttitudeScore" : $scope.Addform.OverallSatisfactionScore,
+                "ExperienceScore" :$scope.Addform.OverallSatisfactionScore,
+                "ProfessionalDegreeScore" : $scope.Addform.OverallSatisfactionScore,
+                "ItineraryScore":$scope.Addform.OverallSatisfactionScore,
+                "OwnExpenseScore":$scope.Addform.OverallSatisfactionScore,
+                "ShoppingScore":$scope.Addform.OverallSatisfactionScore
+            };
+        }else{
+            $scope.detailEvaluationStatus = 0;
+        }
+    };
+
+    ////////////////////////
+    //// 修改回访信息
+    ////////////////////////
+    $scope.showEditInfoMenuStatus = 0;
+    $scope.showChangeTagStatus = 0;
+    $scope.changeShowEditInfoMenuStatus = function () {
+        $scope.watchAssessDetailStatus = false;
+        if ($scope.showEditInfoMenuStatus) {
+            $scope.showEditInfoMenuStatus = 0;
+            $scope.showChangeTagStatus = 0;
+            $scope.searchTageList ={};
+        } else {
+            $scope.showEditInfoMenuStatus = 1;
+            $scope.edit = $scope.detailData.VistingRecord['0'];
+            $scope.select_data = {
+                availableOptions: [
+                    {id: '1', name: '客人不接电话'},
+                    {id: '2', name: '客人直接挂断或者接起来挂断'},
+                    {id: '3', name: '客人表示不方便或者拒绝回访'},
+                    {id: '4', name: '其他'},
+                    {id: '5', name: '客人没有去成或者不是本人去'},
+                    {id: '6', name: '对方表示是旅行社'},
+                    {id: '7', name: '客人关机或者打不通'},
+                    {id: '8', name: '此团有投诉'}
+                ],
+                selectedOption: {id: $scope.edit.ReturningStatus.StatusCode, name: $scope.edit.ReturningStatus.StatusDesc}
+            };
+            $scope.thisselected = {};
+            for (i = 0; i < $scope.edit.Tag.length; i++) {
+                insertdata = [
+                    {
+                        "id": $scope.edit.Tag[i].montherId.$id,
+                        "name": $scope.edit.Tag[i].name
+                    }
+                ];
+                $scope.thisselected = _.union($scope.thisselected, insertdata);
+            }
+        }
+    };
+    //修改回访记录
+    $scope.edit = {};
+    $scope.editVisitRecord = function(recordId){
+        var PostData = {
+            "StatusCode": $scope.select_data.selectedOption.id,
+            "StatusDesc": $scope.select_data.selectedOption.name,
+            "TrafficScore": $scope.edit.Score.TrafficScore,
+            "HotelScore": $scope.edit.Score.HotelScore,
+            "RouteScore": $scope.edit.Score.RouteScore,
+            "ViewpointScore": $scope.edit.Score.ViewpointScore,
+            "TouristGuideScore": $scope.edit.Score.TouristGuideScore,
+            "CounsellorScore": $scope.edit.Score.CounsellorScore,
+            "RecordContent": $scope.edit.RecordContent,
+            "Tag": "",
+
+            "InternalScore" : $scope.edit.InternalScore,
+            "InternalScoreRemark" : $scope.edit.InternalScoreRemark,
+            "OverallSatisfactionScore" : parseInt($scope.edit.OverallSatisfactionScore),
+
+            "p_LineDesignScore" : parseInt($scope.edit.Product.LineDesignScore),
+            "p_HotelScore" : parseInt($scope.edit.Product.HotelScore),
+            "p_RestaurantScore" :parseInt($scope.edit.Product.RestaurantScore),
+            "p_TrafficScore":parseInt($scope.edit.Product.TrafficScore),
+            "p_OwnExpenseScore":parseInt($scope.edit.Product.OwnExpenseScore),
+            "p_ShoppingScore":parseInt($scope.edit.Product.ShoppingScore),
+            "p_ScenicSpotScore":parseInt($scope.edit.Product.ScenicSpotScore),
+            "p_DriverScore":parseInt($scope.edit.Product.DriverScore),
+
+            "c_AttitudeScore" : parseInt($scope.edit.PersonalCare.AttitudeScore),
+            "c_FollowUpScore" : parseInt($scope.edit.PersonalCare.FollowUpScore),
+            "c_ProfessionalDegreeScore" : parseInt($scope.edit.PersonalCare.ProfessionalDegreeScore),
+
+            "n_IsOpen": parseInt($scope.edit.NationalGuide.IsOpen),
+            "n_StrainCapacityScore" : parseInt($scope.edit.NationalGuide.StrainCapacityScore),
+            "n_CommunicationScore" : parseInt($scope.edit.NationalGuide.CommunicationScore),
+            "n_AttitudeScore" : parseInt($scope.edit.NationalGuide.AttitudeScore),
+            "n_ExperienceScore" : parseInt($scope.edit.NationalGuide.ExperienceScore),
+            "n_ProfessionalDegreeScore" : parseInt($scope.edit.NationalGuide.ProfessionalDegreeScore),
+            "n_ItineraryScore":parseInt($scope.edit.NationalGuide.ItineraryScore),
+            "n_OwnExpenseScore":parseInt($scope.edit.NationalGuide.OwnExpenseScore),
+            "n_ShoppingScore":parseInt($scope.edit.NationalGuide.ShoppingScore),
+
+            "l_IsOpen": parseInt($scope.edit.LocalGuide.IsOpen),
+            "l_StrainCapacityScore" : parseInt($scope.edit.LocalGuide.StrainCapacityScore),
+            "l_CommunicationScore" : parseInt($scope.edit.LocalGuide.CommunicationScore),
+            "l_AttitudeScore" : parseInt($scope.edit.LocalGuide.AttitudeScore),
+            "l_ExperienceScore" : parseInt($scope.edit.LocalGuide.ExperienceScore),
+            "l_ProfessionalDegreeScore" : parseInt($scope.edit.LocalGuide.ProfessionalDegreeScore),
+            "l_ItineraryScore":parseInt($scope.edit.LocalGuide.ItineraryScore),
+            "l_OwnExpenseScore":parseInt($scope.edit.LocalGuide.OwnExpenseScore),
+            "l_ShoppingScore":parseInt($scope.edit.LocalGuide.ShoppingScore)
+        };
+        editVisitRecord(recordId,PostData,function(response){
+            var TagList = {};
+            for(var i = 0; i < $scope.thisselected.length; i++){
+                TagList[i] = $scope.thisselected[i].id;
+            }
+            if (response.code >= 700 && response.code < 800) {
+                var paramTag = {
+                    "tag":TagList,
+                    "relationId":$scope.detailData.ProductID.$id
+                };
+                insertTag(paramTag,function(backTag){
+                    if(backTag.code >= 700 && backTag.code<800){
+
+                        var tagInsert = {
+                            "tag":backTag.data.list,
+                            "recordId":recordId
+                        };
+                        inserttoreTag(tagInsert,function(getBack){
+                            var param = {
+                                "id": $scope.detailData._id.$id
+                            };
+                            getReturnVisitDetail(param, function (response) {
+                                $scope.detailData.VistingRecord = response.VistingRecord;
+                                $scope.detailData.CustomerEnlarge = response.CustomerEnlarge;
+                                $scope.detailData.IsCustomerReturnVisit = response.IsCustomerReturnVisit;
+                                $scope.detailData.ReturnVisitUser = response.ReturnVisitUser;
+                                if($scope.detailData.VistingRecord.length > 0){
+                                    if($scope.detailData.VistingRecord["0"].Tag.length > 0){
+                                        getTagDetail($scope.detailData.VistingRecord["0"].Tag,function(response){
+                                            $scope.detailData.VistingRecord["0"].Tag = response.data.list;
+                                        });
+                                    }
+                                };
+                                calSatisfactionPercent();
+                            });
+                            editAndUpdateList($scope.detailData._id.$id,true,true);
+                            $scope.detailData.panel.messages = "修改成功!";
+                            $scope.detailData.panel.type = "success";
+                            $scope.showEditInfoMenuStatus = 0;
+                            $scope.Addform = {
+                                OverallSatisfactionScore : 0,
+                                NationalGuide:{
+                                        "IsOpen" : 0
+                                },
+                                LocalGuide:{
+                                        "IsOpen" : 0
+                                },
+                                Product:{},
+                                PersonalCare:{}
+                            };
+                            $scope.TagList ={};
+                            $scope.searchTageList ={};
+                        });
+                    }
+                });
+            };
+            if (response.code >= 600 && response.code < 700) {
+                $scope.detailData.panel.messages = response.messages;
+                $scope.detailData.panel.type = "error";
+
+            }
+        });
+    };
+
+    $scope.changeTagChooseStatus = function () {
+        if ($scope.showChangeTagStatus) {
+            $scope.showChangeTagStatus = 0;
+            $scope.searchTageList ={};
+            $scope.thisselected = {};
+        } else {
+            $scope.showChangeTagStatus = 1;
+        }
+    };
+
+    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    // 搜索标签 searchTag $scope.searchname
+    // \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    $scope.searchTageList ={};
+    $scope.getTagPool = function(){
+        var param = {
+            "name":$scope.Addform.searchname,
+            "relationId":$scope.detailData.ProductID.$id
+        };
+        searchTag(param,function(response){
+            //console.log(response);
+            if(response.data.list.length > 0){
+                $scope.searchTageList = response.data.list;
+            }else{
+                $scope.searchTageList = {};
+            }
+        });
+    };
+    $scope.thisselected = {};
+    $scope.selectThisItem = function(mdv,id,name){
+        insertdata = [
+            {
+                "id":id,
+                "name":name
+            }
+        ];
+        if(mdv === true){
+            var tot =0;
+            for (i = 0; i < $scope.thisselected.length; i++){
+                if($scope.thisselected[i].id === id){
+                    tot +=1;
+                }
+            }
+            if(tot <1){
+                $scope.thisselected = _.union($scope.thisselected , insertdata);
+            }
+        }
+        if(mdv === false){
+            for (i = 0; i < $scope.thisselected.length; i++){
+                if($scope.thisselected[i].id === id){
+                    $scope.thisselected.splice(i, 1);
+                }
+            }
+        }
+    };
+
+
+    $scope.deltag = function(id){
+            for (i = 0; i < $scope.thisselected.length; i++){
+                if($scope.thisselected[i].id === id){
+                    $scope.thisselected.splice(i, 1);
+                };
+            };
+    };
+
+    //\\\\\\\\\\\\\\\\\\\\
+    // accept the returnvisiterOrder
+    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    $scope.acceptReturnVisiterOrder = function(){
+        $scope.detailData.panel = {};
+        accept_ShiftVistingRecord($scope.detailData._id.$id,function(response){
+            if (response.code >= 600 && response.code < 700) {
+                $scope.detailData.panel.messages = response.messages;
+                $scope.detailData.panel.type = "error";
+            }else{
+                $scope.detailData.panel.messages = "接收成功";
+                $scope.detailData.panel.type = "success";
+                //更新当前状态
+                updateThisPageShiftLog($rootScope.userinfo._id.$id,true);
+                //更新客服信息
+                $scope.detailData.ReturnVisitUser.EmployeeName = $rootScope.userinfo.FullName;
+                //更新處理狀態
+                if($scope.detailData.param.itemID){
+                    console.log("更新信息狀態爲已處理step[accept 1]");
+                    IHaveDealtWithThisItem($scope.detailData.param.itemID);
+                    console.log("通知申请人处理状态[ 已经处理 ]");
+                    var sendData = {
+                          recver: $scope.detailData.ReturnVisitUser.ForeignKeyID.$id,
+                          title: "请求转移的["+$scope.detailData.OrderNo+"]回访,已经被  "+ $rootScope.userinfo.FullName +"  接收",
+                          content: "请求转移的["+$scope.detailData.OrderNo+"]["+$scope.detailData.ProductTitle+"]回访,已经被 "+ $rootScope.userinfo.FullName +" 接收",
+                          type: 40000,
+                          subType: 40001,
+                          messageType: 2
+                    };
+                    sendNotice(sendData);
+                }
+            }
+        });
+    };
+    $scope.cantAcceptReturnVisiterOrder = function(){
+        $scope.detailData.panel = {};
+        cantAcceptgRecord($scope.detailData._id.$id,function(response){
+            if (response.code >= 600 && response.code < 700) {
+                $scope.detailData.panel.messages = response.messages;
+                $scope.detailData.panel.type = "error";
+            }else{
+                $scope.detailData.panel.messages = "拒绝成功!";
+                $scope.detailData.panel.type = "success";
+                //更新当前状态
+                updateThisPageShiftLog($rootScope.userinfo._id.$id,false);
+                //更新處理狀態
+                if($scope.detailData.param.itemID){
+                    console.log("更新信息狀態爲已處理step[can't accept 1]");
+                    IHaveDealtWithThisItem($scope.detailData.param.itemID);
+                    console.log("通知申请人处理状态[ 已经处理 ]");
+                    var sendData = {
+                          recver: $scope.detailData.ReturnVisitUser.ForeignKeyID.$id,
+                          title: "请求转移的["+$scope.detailData.OrderNo+"]回访,已经被  "+ $rootScope.userinfo.FullName +"  拒绝",
+                          content: "请求转移的["+$scope.detailData.OrderNo+"]["+$scope.detailData.ProductTitle+"]回访,已经被 "+ $rootScope.userinfo.FullName +" 拒绝",
+                          type: 40000,
+                          subType: 40001,
+                          messageType: 2
+                    };
+                    sendNotice(sendData);
+                }
+            }
+        });
+    };
+
+    ///////////////////////
+    // 更新当前页面转移记录
+    // ///////////////////////////
+    function updateThisPageShiftLog(acceptID,status){
+        $scope.detailData.ShiftVistingRecordList.forEach(function(r, i) {
+            if(acceptID === r.AcceptUserInfo._id.$id && r.ApplyStatus === true && r.CheckStatus ===1 && r.AcceptStatus === false && r.ShiftStatus === false){
+                if(status){
+                    $scope.detailData.ShiftVistingRecordList[i].AcceptStatus = true;
+                    $scope.detailData.ShiftVistingRecordList[i].ShiftStatus = true;
+                }else{
+                    $scope.detailData.ShiftVistingRecordList[i].AcceptStatus = false;
+                    $scope.detailData.ShiftVistingRecordList[i].ShiftStatus = true;
+                }
+                $scope.detailData.isCanAcceptStatus = false;
+            }
+        });
+    };
+    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    // 計算當前頁面的額的1,2,7 類型數量
+    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    function totalTheSpecialType(){
+        var totalSpecialTypeNumber = 0;
+        $scope.detailData.VistingRecord.forEach(function(item, i) {
+            if(item.ReturningStatus.StatusCode === 1 || item.ReturningStatus.StatusCode === 2 || item.ReturningStatus.StatusCode === 7){
+                totalSpecialTypeNumber+=1;
+            }else{
+                totalSpecialTypeNumber=totalSpecialTypeNumber + 3;
+            }
+        });
+        return totalSpecialTypeNumber;
+    };
+    ////////////////////////////////
+    //修改编辑 已经修改/编辑的记录并更新本地列表数据
+    ///////////////////////////////
+    function editAndUpdateList(RecordID,statusViste,statusArrange,StatusCode) {
+        if(totalTheSpecialType() >= 2){
+            console.log("[1]插入,條件滿住");
+            $scope.mainData.list.forEach(function(r, i) {
+                if(RecordID === r._id.$id){
+                    if(statusViste){
+                       $scope.mainData.list[i].IsCustomerReturnVisit = true;
+                    };
+                    if(statusArrange){
+                       $scope.mainData.list[i].IsCustomerReturnVisitArrange = true;
+                    };
+                }
+            });
+        };
+
+        if(StatusCode == 1 || StatusCode == 2 || StatusCode == 7){
+            console.log("無法插入,條件不滿足");
+        }else{
+            console.log("[2]插入,條件滿足");
+            $scope.mainData.list.forEach(function(r, i) {
+                if(RecordID === r._id.$id){
+                    if(statusViste){
+                       $scope.mainData.list[i].IsCustomerReturnVisit = true;
+                    };
+                }
+            });
+        };
+        console.log("[最外層]無法插入,條件不滿足");
+    };
+
+    /**
+     * 已处理 通知處理
+     */
+
+    function IHaveDealtWithThisItem(itemID) {
+      var data = {
+        isHandled: true,
+        remindId: itemID,
+        isDisplay: false
+      };
+      remindChangeStatus(data, function(response) {
+        var itemIndex = _.findIndex($scope.mainData.list, function(i) {
+          return i._id.$id == itemID;
+        });
+        $scope.mainData.list[itemIndex].isHandled = true;
+      });
+    }
+
+
+    //\\\\\\\\\\\\\\\\\\\
+    // 满意度 计算
+    //\\\\\\\\\\\\\\\\\\\\\\
+
+    function calSatisfactionPercent(){
+        var allNumber=0;
+        $scope.detailData.VistingRecord.forEach(function(item, i) {
+            var score = $scope.detailData.VistingRecord[i].Score;
+            if(item.IsLatest){
+                   allNumber = score.TrafficScore + score.HotelScore + score.RouteScore  + score.ViewpointScore + score.TouristGuideScore + score.CounsellorScore;
+                   $scope.detailData.satisfactionPercent = allNumber/6;
+            }
+        });
+    }
+
+    function sendNotice(postData) {
+          //console.log('[发送通知]' + recver._id);
+          console.log("通知数据准备发送!");
+          var sendData = {
+            sender: $rootScope.userinfo._id.$id,
+            recver: postData.recver,
+            title: postData.title,
+            content: postData.content,
+            type: 40000,
+            subType: postData.subType,
+            messageType: 2
+          };
+          console.log("通知数据开始发送!");
+          $rootScope.SocketConnectIO.sendMessage('sendRemind', sendData);
+          console.log("通知数据发送完成!");
+    };
+
+    function sendHandleNotice(recver,postData) {
+         console.log("申请处理的数据准备发送!");
+          var sendData = {
+            recver: recver._id,
+            title: postData.title,
+            content: postData.content,
+            targetId: postData.targetId,
+            type: 3,
+            subType: 17,
+            messageType: 1,
+            data:JSON.stringify(postData.data)
+          };
+           console.log("申请处理的数据开始发送!");
+          $rootScope.SocketConnectIO.sendMessage('sendRemind', sendData);
+           console.log("申请处理的数据发送完成!");
+    };
+});
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+
+app.controller('ReturnVisitDistributionController', function ($scope, $filter, $rootScope,Pagination,$timeout,getNotAssignList,getTotalOrderByDate,getCustomerServerList,getThisDayAssignList,assignVisitingRecord,assign_Batch_VisitingRecord) {
+    $scope.mainData.search = {};
+    $scope.Page = 1;
+    $scope.PageSize = 15;
+    $scope.detailData.panel = {};
+    $scope.ListHeightStyle = {
+        "height" : 800
+    };
+    $scope.MainPaddingStyle = {
+        "padding-top":1
+    };
+    if($scope.detailData.date){
+        $scope.mainData.search.date = $scope.detailData.date;
+    }
+    $scope.isDateStatus = 0;
+    $scope.showLoadingStatus = 0;
+    $scope.showNoMoreStatus = 0;
+    $scope.isShowItem = 1;
+    $scope.AssignList = {};
+    $scope.getAssignListPage = 1;
+    $scope.getAssignListPageSize = 25;
+    
+    $scope.autoLoadServerList = getServer();
+    function getServer(){
+        getCustomerServerList(function (response) {
+            $scope.mainData.getCustomerServerList = response.data.list;
+         });
+    };
+    
+    $scope.getServerList = function(){
+        getCustomerServerList(function (response) {
+            $scope.mainData.getCustomerServerList = response.data.list;
+         });
+    };
+    
+    $scope.loadListData = function(){
+        var param = {
+            "Date":$scope.mainData.search.date,
+            "Page":parseInt($scope.Page) + 1,
+            "Pagesize":$scope.PageSize
+        };
+        getNotAssignList(param,function(returnBack){
+                addAndUpdateList(returnBack.list);
+                console.log(returnBack);
+                $scope.Page =parseInt(returnBack.page);                
+                $rootScope.isloadList = false;
+                $rootScope.showProcessBar = false;
+        });
+    };
+    
+    $scope.search = function(){
+        $scope.isShowItem = 0;
+        $scope.showLoadingStatus = 1;
+        $scope.showNoMoreStatus = 0;
+        $scope.mainData.list = {};
+        var data = {};
+        var param={
+            "Date":$scope.mainData.search.date
+        };
+        getTotalOrderByDate(param,function(response) {
+            data.list = response;
+            data.list.url = 'customerCenter/returnVisitDistribution/detail?date=' + response.Date;
+            $scope.mainData.list = data.list;
+            if(data.list){
+                $scope.showLoadingStatus = 0;
+                $scope.showNoMoreStatus = 0;
+                $scope.isShowItem = 1;
+            }else{
+                $scope.showLoadingStatus = 0;
+                $scope.showNoMoreStatus = 1;
+            }
+        });
+    };
+    
+    $scope.openDatePicker = function(){
+        $scope.isDateStatus = 1;
+    };
+    
+    
+    $scope.getAssignList = function(){
+        var param = {
+            "Date": $scope.mainData.search.date,
+            "Page":$scope.getAssignListPage,
+            "Pagesize":$scope.getAssignListPageSize
+        };
+        getThisDayAssignList(param,function(response) {
+            $scope.AssignList = response;
+        });
+    };
+    
+    $scope.distribution = function(orderID,serviceID){
+        //console.log(orderID);
+        //console.log(serviceID);
+        if(orderID === undefined){
+            $scope.detailData.panel.messages = "分配的订单不存在";
+            $scope.detailData.panel.type = "error";
+            return;
+        };
+        if(serviceID === undefined){
+            $scope.detailData.panel.messages = "请选择有效的订单接收客服";
+            $scope.detailData.panel.type = "error";
+            return;
+        };
+        var param = {
+            "OrderID": orderID,
+            "CustomerServiceID":serviceID
+        };        
+        assignVisitingRecord(param,function(returnBack){
+            //console.log(returnBack);
+            if(returnBack.code >= 700){
+                $scope.detailData.panel.messages = returnBack.messages;
+                $scope.detailData.panel.type = "success";
+                deleteAndUpdateList(orderID);
+                $scope.mainData.list.countHasAssign +=1;
+                $scope.mainData.list.countHasNotAssign -=1;
+            }
+        });
+    };
+    
+    function deleteAndUpdateList(orderID) {
+        $scope.detailData.list.forEach(function(r, i) {
+            if(orderID === r._id.$id)
+                $scope.detailData.list.splice(i, 1);
+        });
+    };
+    
+    function addAndUpdateList(newRecord) {
+        $scope.detailData.list = _.union($scope.detailData.list,newRecord);
+        //console.log($scope.mainData.list);
+        //console.log(newRecord);
+    };
+
+    $scope.showChioceProStatus = 0;
+    $scope.changeshowChioceProStatus = function () {
+        $scope.selectAllCancel();
+        //$scope.duty=false;
+        if ($scope.showChioceProStatus) {
+            $scope.showChioceProStatus = 0;
+        } else {
+            $scope.showChioceProStatus = 1;
+        }
+    }
+
+    $scope.showChiocePeoBatch=function () {
+        console.log('showChiocePeoBatch');
+
+        var personal_id= $scope.selected.join(',');
+        console.log(personal_id);
+        console.log($scope.mainData.search.date);
+        var param = {
+            "personal_id": personal_id,
+            "date":$scope.mainData.search.date
+        };
+        assign_Batch_VisitingRecord(param,function(returnBack){
+            //console.log(returnBack);
+            //console.log(returnBack);
+            //console.log($scope.showChioceProStatus);
+            if(returnBack.code >= 700){
+                $scope.selectAllCancel();
+                $scope.getAssignList();
+                var param = {
+                    "Date":$scope.mainData.search.date,
+                    "Page":1 ,
+                    "Pagesize":$scope.PageSize
+                };
+                getNotAssignList(param,function(returnBack){
+                    console.log(returnBack);
+                    $scope.detailData.list=returnBack.list;
+                    //addAndUpdateList(returnBack.list);
+                    //console.log(returnBack);
+                    //$scope.Page =parseInt(returnBack.page);
+                    //$rootScope.isloadList = false;
+                    //$rootScope.showProcessBar = false;
+                });
+                $scope.changeshowChioceProStatus();
+
+                //$scope.loadListData();
+                //$scope.detailData.panel.messages = returnBack.messages;
+                //$scope.detailData.panel.type = "success";
+                //deleteAndUpdateList(orderID);
+                //$scope.mainData.list.countHasAssign +=1;
+                //$scope.mainData.list.countHasNotAssign -=1;
+            }
+        });
+        //console.log($rootScope);
+        //console.log($scope);
+        //console.log($scope.mainData.getCustomerServerList);
+    }
+
+    $scope.selected = [];
+    $scope.selectedTags = [];
+    $scope.x=true;
+
+    $scope.selectAllCancel=function () {
+        $scope.selected = [];
+        /*if(c==true){
+            $scope.x=true;
+            $scope.choseArr=angular.copy(v);
+            flag='a';
+        }else{
+            $scope.x=false;
+            $scope.choseArr=[];
+            flag='b';
+        }*/
+    };
+
+
+    var updateSelected = function(action,id,name){
+        if(action == 'add' && $scope.selected.indexOf(id) == -1){
+            $scope.selected.push(id);
+            $scope.selectedTags.push(name);
+        }
+        if(action == 'remove' && $scope.selected.indexOf(id)!=-1){
+            var idx = $scope.selected.indexOf(id);
+            $scope.selected.splice(idx,1);
+            $scope.selectedTags.splice(idx,1);
+        }
+    }
+
+    $scope.updateSelection = function($event, id){
+        var checkbox = $event.target;
+        var action = (checkbox.checked?'add':'remove');
+        updateSelected(action,id,checkbox.name);
+    }
+
+    $scope.isSelected = function(id){
+        return $scope.selected.indexOf(id)>=0;
+    }
+    
+});

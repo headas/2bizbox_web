@@ -1,0 +1,16 @@
+app.controller('OACtrl', function($rootScope, $scope, $sce, $window){
+
+	$scope.$watch('mainData.pagePath', function(value){
+		if(value){
+			var pagePath = $rootScope[position[1]].pagePath;
+			$scope.path = $sce.trustAsResourceUrl(Base64.decode(pagePath));
+		}
+	});
+
+	$scope.frameHeight = document.body.clientHeight - 20;
+
+	window.addEventListener('resize', function(e){
+		$scope.frameHeight = document.body.clientHeight - 20;
+		$scope.$apply();
+	});
+});

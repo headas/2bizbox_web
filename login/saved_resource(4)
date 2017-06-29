@@ -1,0 +1,755 @@
++ function() {
+	tourGuideCenterService
+		.factory('scheduleDate', scheduleDate)
+		.factory('matchTourGuideSchedule', matchTourGuideSchedule)
+		.factory('matchSelfTrip', matchSelfTrip)
+		.factory('getScheduleTripDay', getScheduleTripDay)
+		.factory('getSchedulePlan', getSchedulePlan)
+		.factory('getTourGuideArrangeList', getTourGuideArrangeList)
+		.factory('getTourGuideArrangeDetail', getTourGuideArrangeDetail)
+		.factory('getTeamOrders', getTeamOrders)
+		.factory('getTeamPreMoney', getTeamPreMoney)
+		.factory('getTeamInsurance', getTeamInsurance)
+		.factory('getTeamTravelGoods', getTeamTravelGoods)
+		.factory('getTeamBill', getTeamBill)
+		.factory('getGuideInsurance', getGuideInsurance)
+		.factory('cancelInsurance', cancelInsurance)
+		.factory('insureForGuide', insureForGuide)
+		.factory('saveTeamNotes', saveTeamNotes)
+		.factory('deleteArrangeTeamGuide', deleteArrangeTeamGuide)
+		.factory('addArrangeTeamGuide', addArrangeTeamGuide)
+		.factory('delArrangeTeamGuide', delArrangeTeamGuide)
+		.factory('getTourGuideTravelsList', getTourGuideTravelsList)
+		.factory('getTourGuideTravelsDetail', getTourGuideTravelsDetail)
+		.factory('addTourGuideTravels', addTourGuideTravels)
+		.factory('deleteTourGuideTravels', deleteTourGuideTravels)
+		.factory('editTourGuideTravels', editTourGuideTravels)
+		.factory('getTourGuideManageList', getTourGuideManageList)
+		.factory('getTourGuideInfo', getTourGuideInfo)
+		.factory('addTourGuide', addTourGuide)
+		.factory('saveTourGuide', saveTourGuide)
+		.factory('deleteTourGuide', deleteTourGuide)
+		.factory('getTourGuideHonorList', getTourGuideHonorList)
+		.factory('getTourGuideHonorInfo', getTourGuideHonorInfo)
+		.factory('addTourGuideHonor', addTourGuideHonor)
+		.factory('editTourGuideHonor', editTourGuideHonor)
+		.factory('deleteTourGuideHonor', deleteTourGuideHonor)
+		.factory('guideFilter', guideFilter);
+
+	function scheduleDate($filter) {
+		function isLeapYear(y) {
+			if (y % 4 === 0 && y % 100 !== 0 || y % 400 === 0)
+				return true;
+			else return false;
+		}
+
+		function getDays(y, m) {
+			switch (+m) {
+				case 1:
+				case 3:
+				case 5:
+				case 7:
+				case 8:
+				case 10:
+				case 12:
+					return 31;
+				case 4:
+				case 6:
+				case 9:
+				case 11:
+					return 30;
+				case 2:
+					return isLeapYear(y) ? 29 : 28;
+			}
+		}
+
+		var DateFormat = function(time) {
+			if (!time) time = new Date();
+			this.start = {};
+			this.end = {};
+			this.year = time.getFullYear();
+			this.month = time.getMonth() + 1;
+			this._init();
+		};
+
+		DateFormat.prototype = {
+			constructor: DateFormat,
+			_init: function(time) {
+				this.start.date = this.year + '-' + this.month + '-1';
+				this.start.stamp = Date.parse(this.start.date);
+				this.end.date = this.year + '-' + this.month + '-' + getDays(this.year, this.month);
+				this.end.stamp = Date.parse(this.month == 12 ? (this.year + 1) + '-1-1' : this.year + '-' + (this.month + 1) + '-1');
+			},
+			totalDays: function() {
+				return getDays(this.year, this.month);
+			},
+			prevMonth: function() {
+				if (this.month === 1) {
+					this.month = 12;
+					this.year--;
+				} else this.month--;
+
+				this._init();
+			},
+			nextMonth: function() {
+				if (this.month === 12) {
+					this.month = 1;
+					this.year++;
+				} else this.month++;
+
+				this._init();
+			},
+			lastMonthDays: function() {
+				var y = this.year,
+					m = this.month;
+				if (this.month === 1) {
+					m = 12;
+					y--;
+				} else m--;
+
+				return getDays(y, m);
+			}
+		};
+
+		return function(time) {
+			return new DateFormat(time);
+		};
+	}
+
+	function matchTourGuideSchedule() {
+		return function(teams, guides) {
+			var matched = [];
+
+			angular.forEach(guides, function(guide, i) {
+				if (!matched[i]) matched.push({
+					TinyPhoto: guide.TinyPhoto,
+					FullName: guide.FullName,
+					schedule: []
+				});
+
+				angular.forEach(teams, function(team) {
+					if (!angular.isArray(team.TeamGuides)) return;
+					angular.forEach(team.TeamGuides, function(teamGuide) {
+						if (!teamGuide.GuideID) return;
+
+						if (guide._id.$id === teamGuide.GuideID.$id) {
+							matched[i].schedule.push({
+								StartTime: team.StartTime.sec * 1000, //毫秒级别的时间戳
+								EndTime: team.EndTime.sec * 1000,
+								ID: team._id.$id,
+								LineID: team.LineID.$id,
+								MomentID: team.MomentID.$id,
+								TeamName: team.TeamName,
+								Type: teamGuide.IsFull?'Full':'Send'
+							});
+						}
+					});
+				});
+			});
+
+			return matched;
+		};
+	}
+
+	function matchSelfTrip($http, showErrorInfo, getScheduleTripDay) {
+		var request = 0,
+			requestNum;
+
+		function requestOver(callback) {
+			request++;
+			if (request >= requestNum) {
+				request = 0;
+				callback();
+			}
+		}
+
+		return function(selfSchedule, callback) {
+			requestNum = selfSchedule.length;
+
+			if (requestNum === 0) requestOver(callback);
+			else
+				angular.forEach(selfSchedule, function(ele) {
+					getScheduleTripDay(function(response) {
+						ele.trips = _.uniq(response.data.list, false, function(value){
+							return value.Day;
+						});
+						requestOver(callback);
+					}, {
+						PlanID: ele.MomentID
+					});
+				});
+
+		};
+	}
+
+	function getScheduleTripDay($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/triponedays/findByPlanID',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getSchedulePlan($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'productplans/productplans/findProductPlanById',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTourGuideArrangeList($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/teams/findList',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					angular.forEach(response.data.data.list, function(ele) {
+						ele.detailUrl = 'tourGuideCenter/TourGuideArrange/detail?ID=' + ele._id.$id;
+					});
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTourGuideArrangeDetail($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/teams/findOneById',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTeamOrders($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: dreamFlyUrl + 'Team/Team/GetTeamOrderInfo',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTeamPreMoney($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: dreamFlyUrl + 'Team/Team/GetTeamPreMoneyInfo',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTeamTravelGoods($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: dreamFlyUrl + 'Team/Team/GetTeamTravelGoodEntryInfo',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTeamInsurance($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: dreamFlyUrl + 'Team/Team/GetTeamInsureInfo',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTeamBill($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: dreamFlyUrl + 'Team/Team/GetTeamGuideInfo',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getGuideInsurance($http, showErrorInfo){
+		return function(callback, param){
+			HYhttp($http, {
+				url: dreamFlyUrl + 'Insurance/DataView/SelectArrayInsureToGuide',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function cancelInsurance($http, showErrorInfo){
+		return function(callback, param){
+			HYhttp($http, {
+				url: dreamFlyUrl + 'Insurance/DataView/BatchRemoteCancelInsurances',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function insureForGuide($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: dreamFlyUrl + 'Insurance/DataView/BatchRemoteBuyInsure',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function saveTeamNotes($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: dreamFlyUrl + 'Team/Team/SaveTeamNotes',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function deleteArrangeTeamGuide($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/teams/delTeamGuides',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function addArrangeTeamGuide($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/teams/addTeamGuides',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function delArrangeTeamGuide($http, showErrorInfo){
+		return function(callback, param){
+			HYhttp($http, {
+				url: productUrl + 'guide/teams/delTeamGuides',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});			
+		};
+	}
+
+	function getTourGuideTravelsList($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidenotes/findList',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					angular.forEach(response.data.data.list, function(ele) {
+						ele.detailUrl = 'tourGuideCenter/TourGuideTravels/detail?ID=' + ele._id.$id;
+					});
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTourGuideTravelsDetail($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidenotes/findOneById',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function addTourGuideTravels($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidenotes/addBaseInfo',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function deleteTourGuideTravels($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidenotes/deleteById',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function editTourGuideTravels($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidenotes/saveBaseInfo',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTourGuideManageList($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/personnels/findList',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					angular.forEach(response.data.data.list, function(ele) {
+						ele.detailUrl = 'tourGuideCenter/TourGuideManagement/detail?ID=' + ele._id.$id;
+					});
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTourGuideInfo($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/personnels/findOneById',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function addTourGuide($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/personnels/addBaseInfo',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function saveTourGuide($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/personnels/saveBaseInfo',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function deleteTourGuide($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/personnels/deleteByIdTrue',
+				method: 'post',
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTourGuideHonorList($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidehonors/findList',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					angular.forEach(response.data.data.list, function(ele) {
+						ele.detailUrl = 'tourGuideCenter/TourGuideHonor/detail?ID=' + ele._id.$id;
+					});
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function getTourGuideHonorInfo($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidehonors/findOneById',
+				method: "POST",
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function addTourGuideHonor($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidehonors/addBaseInfo',
+				method: 'POST',
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function deleteTourGuideHonor($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidehonors/deleteById',
+				method: 'POST',
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	function editTourGuideHonor($http, showErrorInfo) {
+		return function(callback, param) {
+			HYhttp($http, {
+				url: productUrl + 'guide/guidehonors/saveBaseInfo',
+				method: 'POST',
+				data: param
+			}).then(function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callback(response.data);
+				} else {
+					showErrorInfo(response);
+				}
+			});
+		};
+	}
+
+	/**
+	 * [guideFilter description]
+	 * @param  {[Object]} team [团队信息]
+	 * @param  {[Number]} type [导游类型,1:带团导游,2:送机导游]
+	 * @return {[String]}      [description]
+	 */
+	function guideFilter(){
+		return function (team) {
+			var fullGuide = null,
+				sendGuide = null;
+
+			switch (team.GuideApplyInfo.IsFull) {
+				case 0:
+					fullGuide = {
+						type: 0,
+						value: '不需要'
+					};
+					break;
+				case 1:
+					fullGuide = {
+						type: 1,
+						value: '需要'
+					};
+					break;
+				case 2:
+					for (var i = 0; i < team.TeamGuides.length; i++) {
+						if (team.TeamGuides[i].IsFull)
+							fullGuide = {
+								value: team.TeamGuides[i].GuideName,
+								type: 2
+							};
+					}
+			}
+
+			switch (team.GuideApplyInfo.IsSend) {
+				case 0:
+					sendGuide = {
+						type: 0,
+						value: '不需要'
+					};
+					break;
+				case 1:
+					sendGuide = {
+						type: 1,
+						value: '需要'
+					};
+					break;
+				case 2:
+					for (var i = 0; i < team.TeamGuides.length; i++) {
+						if (team.TeamGuides[i].IsSend)
+							sendGuide = {
+								type: 2,
+								value: team.TeamGuides[i].GuideName
+							};
+					}
+			}
+
+			team.fullGuide = fullGuide;
+			team.sendGuide = sendGuide;
+		};
+	}
+
+}();

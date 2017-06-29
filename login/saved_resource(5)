@@ -1,0 +1,1319 @@
+/*
+ * 400客服中心
+ */
+
+var customerCenterUrlConfig = [{
+  // 来电列表
+  'httpUrl': 'customerCenter/callRecord/list',
+  'templateUrl': '/public/angularView/customerCenter/callRecordList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'400客服-来电记录-列表'
+}, {
+  // 来电详情
+  'httpUrl': 'customerCenter/callRecord/detail',
+  'templateUrl': '/public/angularView/customerCenter/callRecordDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'400客服-来电记录-详情'
+}, {
+  // 回访列表
+  'httpUrl': 'customerCenter/returnVisit/list',
+  'templateUrl': '/public/angularView/customerCenter/returnVisitList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'400客服-订单回访-列表'
+}, {
+  // 回访详情
+  'httpUrl': 'customerCenter/returnVisit/detail',
+  'templateUrl': '/public/angularView/customerCenter/returnVisitDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'400客服-订单回访-详情'
+}, {
+  // 客户投诉列表
+  'httpUrl': 'customerCenter/complaint/list',
+  'templateUrl': '/public/angularView/customerCenter/complaintList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'400客服-客户投诉-列表'
+}, {
+  // 客户投诉详情
+  'httpUrl': 'customerCenter/complaint/detail',
+  'templateUrl': '/public/angularView/customerCenter/complaintDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'400客服-客户投诉-详情'
+}, {
+  // 新增客户投诉
+  'httpUrl': 'customerCenter/complaint/add',
+  'templateUrl': '/public/angularView/customerCenter/complaintAdd.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'400客服-客户投诉-添加'
+}, {
+  // 编辑客户投诉
+  'httpUrl': 'customerCenter/complaint/edit',
+  'templateUrl': '/public/angularView/customerCenter/complaintEdit.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'400客服-客户投诉-编辑'
+},{
+  // 通知 客服投诉 处理
+  'httpUrl': 'customerCenter/imComplaint/detail',
+  'templateUrl': '/public/angularView/customerCenter/imComplaint.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'客服中心-通知-客户投诉处理'
+}, {
+  // 回访分配
+  'httpUrl': 'customerCenter/returnVisitDistribution/list',
+  'templateUrl': '/public/angularView/customerCenter/returnVisitDistributionList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'400客服-回访分配-列表'
+}, {
+  //回访分配详情
+  'httpUrl': 'customerCenter/returnVisitDistribution/detail',
+  'templateUrl': '/public/angularView/customerCenter/returnVisitDistributionDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'400客服-回访分配-详情'
+}, {
+  //意向客户认领
+  'httpUrl': 'customerCenter/intentionCustomers/list',
+  'templateUrl': '/public/angularView/intentionCustomer/ICOrderConfirmation/ICConfirmOrderList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'400客服-意向客户认领-列表'
+}, {
+  //意向客户详情
+  'httpUrl': 'customerCenter/intentionCustomers/detail',
+  'templateUrl': '/public/angularView/intentionCustomer/ICOrder/ICOrderDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'400客服-意向客户认领-详情'
+}, {
+  'httpUrl': 'informationCenter/customerCenter/returnVisit/detail',
+  'templateUrl': '/public/angularView/informationCenter/customerCenter/returnVisitDetail.html' + "?" + Math.random(),
+  'type': 2,
+	'title':'通知事项-客服中心-回访订单转让'
+}];
+urlConfig = _.union(urlConfig, customerCenterUrlConfig);
+urlConfig.push({
+  'httpUrl': 'erpIndex/erpIndexTemp/list',
+  'templateUrl': '/public/angularView/erp_index.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'待办事项'
+});
+urlConfig.push({
+  'httpUrl': 'OA/OAMain/mainPage',
+  'templateUrl': '/public/angularView/OA/OAMainPage.html' + "?" + Math.random(),
+  'type': 1 ,
+  'title':'OA办公中心'
+});
+/*
+ * 人事行政
+ */
+
+var administrationUrlConfig = [
+  {
+    'httpUrl': 'administration/goodsApply/detail',
+    'templateUrl': '/public/angularView/administration/goodsApplyDetail.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-物品申请-详情'
+  }, {
+    'httpUrl': 'administration/goodsApply/add',
+    'templateUrl': '/public/angularView/administration/addGoodsApply.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-物品申请-添加'
+  }, {
+    'httpUrl': 'administration/goodsApply/edit',
+    'templateUrl': '/public/angularView/administration/addGoodsApply.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-物品申请-编辑'
+  }, {
+    'httpUrl': 'administration/goodsApply/list',
+    'templateUrl': '/public/angularView/administration/goodsApplyList.html' + "?" + Math.random(),
+    'type': 1,
+    'title':'人事行政-物品申请-列表'
+  }, {
+    'httpUrl': 'administration/staff/detail',
+    'templateUrl': '/public/angularView/administration/staffDetail.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-部门职员-详情'
+  }, {
+    'httpUrl': 'administration/staff/add',
+    'templateUrl': '/public/angularView/administration/addStaff.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-部门职员-添加'
+  }, {
+    'httpUrl': 'administration/staff/edit',
+    'templateUrl': '/public/angularView/administration/addStaff.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-部门职员-编辑'
+  }, {
+    'httpUrl': 'administration/staff/editPermission',
+    'templateUrl': '/public/angularView/administration/editPermission.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-部门职员-权限编辑'
+  }, {
+    'httpUrl': 'administration/staff/list',
+    'templateUrl': '/public/angularView/administration/staffList.html' + "?" + Math.random(),
+    'type': 1,
+    'title':'人事行政-部门职员-列表'
+  }, {
+    'httpUrl': 'administration/goodsExport/add',
+    'templateUrl': '/public/angularView/administration/addGoodsExport.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-部门职员-列表'
+  }, {
+    'httpUrl': 'administration/goodsExport/edit',
+    'templateUrl': '/public/angularView/administration/addGoodsExport.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-物品出库-编辑'
+  }, {
+    'httpUrl': 'administration/goodsExport/list',
+    'templateUrl': '/public/angularView/administration/goodsExportList.html' + "?" + Math.random(),
+    'type': 1,
+    'title':'人事行政-物品出库-列表'
+  }, {
+    'httpUrl': 'administration/goodsExport/departmentList',
+    'templateUrl': '/public/angularView/administration/goodsExportList.html' + "?" + Math.random(),
+    'type': 1,
+    'title':'人事行政-物品出库-部门出库列表'
+  }, {
+    'httpUrl': 'administration/goodsExport/orderList',
+    'templateUrl': '/public/angularView/administration/goodsExportList.html' + "?" + Math.random(),
+    'type': 1,
+    'title':'人事行政-物品出库-订单出库列表'
+  }, {
+    'httpUrl': 'administration/goodsExport/departmentDetail',
+    'templateUrl': '/public/angularView/administration/departmentDetail.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-物品出库-部门出库详情'
+  }, {
+    'httpUrl': 'administration/goodsExport/orderDetail',
+    'templateUrl': '/public/angularView/administration/orderDetail.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-物品出库-订单出库详情'
+  }, {
+    'httpUrl': 'administration/adminDepartment/list',
+    'templateUrl': '/public/angularView/administration/departmentSetList.html' + "?" + Math.random(),
+    'type': 1,
+    'title':'人事行政-部门设置-列表'
+  }, {
+    'httpUrl': 'administration/adminDepartment/detail',
+    'templateUrl': '/public/angularView/administration/departmentSetDetail.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-部门设置-详情'
+  }, {
+    'httpUrl': 'administration/adminDepartment/add',
+    'templateUrl': '/public/angularView/administration/departmentSetAdd.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-部门设置-添加'
+  }, {
+    'httpUrl': 'administration/adminDepartment/edit',
+    'templateUrl': '/public/angularView/administration/departmentSetAdd.html' + "?" + Math.random(),
+    'type': 2,
+    'title':'人事行政-部门设置-编辑'
+  }
+];
+urlConfig = _.union(urlConfig, administrationUrlConfig);
+/**
+ * 订单管理url配置
+ * @type {Array}
+ */
+var orderManagementUrlConfig = [{
+  'httpUrl': 'orderManagement/OMPlaneTicket/list',
+  'templateUrl': '/public/angularView/orderManagement/planeTicketOrderList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-机票-列表'
+}, {
+  'httpUrl': 'orderManagement/OMPlaneTicket/detail',
+  'templateUrl': '/public/angularView/orderManagement/planeTicketOrderDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-机票-详情'
+}, {
+  'httpUrl': 'orderManagement/OMPlaneTicket/add',
+  'templateUrl': '/public/angularView/orderManagement/planeTicketOrderAdd.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-机票-添加'
+},{
+  'httpUrl': 'orderManagement/OMteamtour/list',
+  'templateUrl': '/public/angularView/orderManagement/teamtoursList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-组团游-列表'
+}, {
+  'httpUrl': 'orderManagement/OMteamtour/detail',
+  'templateUrl': '/public/angularView/orderManagement/teamtourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-组团游-详情'
+} ,{
+  'httpUrl': 'orderManagement/OMFreeTour/list',
+  'templateUrl': '/public/angularView/orderManagement/freeTourList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-自助游-列表'
+}, {
+  'httpUrl': 'orderManagement/OMFreeTour/detail',
+  'templateUrl': '/public/angularView/orderManagement/freeTourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-自助游-详情'
+} ,{
+  'httpUrl': 'orderManagement/OMCruise/list',
+  'templateUrl': '/public/angularView/orderManagement/cruiseList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-邮轮游-列表'
+}, {
+  'httpUrl': 'orderManagement/OMCruise/detail',
+  'templateUrl': '/public/angularView/orderManagement/cruiseDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-邮轮游-详情'
+} ,{
+  'httpUrl': 'orderManagement/OMOneTeam/list',
+  'templateUrl': '/public/angularView/orderManagement/oneTeamList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-一团一议-列表'
+}, {
+  'httpUrl': 'orderManagement/OMOneTeam/detail',
+  'templateUrl': '/public/angularView/orderManagement/oneTeamDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-一团一议-详情'
+} ,{
+  'httpUrl': 'orderManagement/OMDriveTour/list',
+  'templateUrl': '/public/angularView/orderManagement/driveTourList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-自驾游-列表'
+}, {
+  'httpUrl': 'orderManagement/OMDriveTour/detail',
+  'templateUrl': '/public/angularView/orderManagement/driveTourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-自驾游-详情'
+},{
+  'httpUrl': 'orderManagement/OMCustomTour/list',
+  'templateUrl': '/public/angularView/orderManagement/customTourList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-定制游-列表'
+}, {
+  'httpUrl': 'orderManagement/OMCustomTour/detail',
+  'templateUrl': '/public/angularView/orderManagement/customTourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-定制游-详情'
+},{
+  'httpUrl': 'orderManagement/OMVisa/list',
+  'templateUrl': '/public/angularView/orderManagement/visaList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-签证-列表'
+}, {
+  'httpUrl': 'orderManagement/OMVisa/detail',
+  'templateUrl': '/public/angularView/orderManagement/visaDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-签证-详情'
+},{
+  'httpUrl': 'orderManagement/OMPickUp/list',
+  'templateUrl': '/public/angularView/orderManagement/pickUpList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-地接-列表'
+}, {
+  'httpUrl': 'orderManagement/OMPickUp/detail',
+  'templateUrl': '/public/angularView/orderManagement/pickUpDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-地接-详情'
+}, {
+  'httpUrl': 'orderManagement/OMPickUp/add',
+  'templateUrl': '/public/angularView/orderManagement/pickUpAdd.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-地接-添加'
+},{
+  'httpUrl': 'orderManagement/OMAttractionTicket/list',
+  'templateUrl': '/public/angularView/orderManagement/attractionTicketList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-景点门票-列表'
+}, {
+  'httpUrl': 'orderManagement/OMAttractionTicket/detail',
+  'templateUrl': '/public/angularView/orderManagement/attractionTickeDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'订单管理-景点门票-详情'
+},{
+  'httpUrl': 'orderManagement/OMAllOrder/list',
+  'templateUrl': '/public/angularView/orderManagement/allOrderList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'订单管理-所有订单-列表'
+}];
+urlConfig = _.union(urlConfig, orderManagementUrlConfig);
+/**
+ * 预定中心
+ *
+ * @type {Array}
+ */
+var purchaseCenterUrlConfig = [
+		{
+			// 迪斯尼门票统计列表
+			'httpUrl' : 'purchaseCenter/PCDisneyTicketStatistics/list',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyTicketStatistics/PCDisneyTicketStatisticsList.html'
+					+ "?" + Math.random(),
+			'type' : 1,
+		},
+		{
+			// 迪斯尼门票统计详细
+			'httpUrl' : 'purchaseCenter/PCDisneyTicketStatistics/detail',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyTicketStatistics/PCDisneyTicketStatisticsDetail.html'
+					+ "?" + Math.random(),
+			'type' : 2,
+		},
+
+		{
+			// 迪斯尼门票库存管理列表
+			'httpUrl' : 'purchaseCenter/PCDisneyTicketWarehouse/list',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyTicketWarehouse/PCDisneyTicketWarehouseList.html'
+					+ "?" + Math.random(),
+			'type' : 1,
+		},
+		{
+			// 迪斯尼门票库存管理详细
+			'httpUrl' : 'purchaseCenter/PCDisneyTicketWarehouse/detail',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyTicketWarehouse/PCDisneyTicketWarehouseDetail.html'
+					+ "?" + Math.random(),
+			'type' : 2,
+		},
+		{
+			// 迪斯尼门票库存管理添加库存，采购门票
+			'httpUrl' : 'purchaseCenter/PCDisneyTicketWarehouse/add',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyTicketWarehouse/PCDisneyTicketWarehouseAdd.html'
+					+ "?" + Math.random(),
+			'type' : 2,
+		},
+		{
+			// 迪斯尼门票预定列表
+			'httpUrl' : 'purchaseCenter/PCDisneyTicketReservation/list',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyTicketReservation/PCDisneyTicketReservationList.html'
+					+ "?" + Math.random(),
+			'type' : 1,
+		},
+		{
+			// 迪斯尼门票预定详细
+			'httpUrl' : 'purchaseCenter/PCDisneyTicketReservation/detail',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyTicketReservation/PCDisneyTicketReservationDetail.html'
+					+ "?" + Math.random(),
+			'type' : 2,
+		},
+		{
+			// 迪斯尼门票预定，新增
+			'httpUrl' : 'purchaseCenter/PCDisneyTicketReservation/add',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyTicketReservation/PCDisneyTicketReservationAdd.html'
+					+ "?" + Math.random(),
+			'type' : 2,
+		},
+		{
+			// 迪斯尼酒店列表
+			'httpUrl' : 'purchaseCenter/PCDisneyHotel/list',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyHotel/PCDisneyHotelList.html'
+					+ "?" + Math.random(),
+			'type' : 1,
+		},
+		{
+			// 迪斯尼酒店详情
+			'httpUrl' : 'purchaseCenter/PCDisneyHotel/detail',
+			'templateUrl' : '/public/angularView/purchaseCenter/PCDisney/PCDisneyHotel/PCDisneyHotelDetail.html'
+					+ "?" + Math.random(),
+			'type' : 2,
+		},
+		{
+			// 成本列表
+			'httpUrl' : 'purchaseCenter/Cost/list',
+			'templateUrl' : '/public/angularView/purchaseCenter/Cost/CostList.html'
+			+ "?" + Math.random(),
+			'type' : 1,
+		},
+		{
+			// 成本详情
+			'httpUrl' : 'purchaseCenter/Cost/detail',
+			'templateUrl' : '/public/angularView/purchaseCenter/Cost/CostDetail.html'
+			+ "?" + Math.random(),
+			'type' : 2,
+		},
+		{
+			// 添加成本
+			'httpUrl' : 'purchaseCenter/Cost/add',
+			'templateUrl' : '/public/angularView/purchaseCenter/Cost/CostAdd.html'
+			+ "?" + Math.random(),
+			'type' : 2,
+		},
+		{
+			// 修改成本
+			'httpUrl' : 'purchaseCenter/Cost/edit',
+			'templateUrl' : '/public/angularView/purchaseCenter/Cost/CostEdit.html'
+			+ "?" + Math.random(),
+			'type' : 2,
+		} ];
+urlConfig = _.union(urlConfig, purchaseCenterUrlConfig);
+var productUrlConfig = [{
+  'httpUrl': 'product/teamtour/list',
+  'templateUrl': '/public/angularView/product/teamtoursList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-组团游-列表'
+}, {
+  'httpUrl': 'product/teamtour/detail',
+  'templateUrl': '/public/angularView/product/teamtourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-组团游-详情'
+}, {
+  'httpUrl': 'product/teamtour/add',
+  'templateUrl': '/public/angularView/product/addTeamtour.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-组团游-添加'
+}, {
+  'httpUrl': 'product/teamtour/edit',
+  'templateUrl': '/public/angularView/product/addTeamtour.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-组团游-编辑'
+}, {
+  'httpUrl': 'product/drivingtour/list',
+  'templateUrl': '/public/angularView/product/drivingtourList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-自驾游-列表'
+}, {
+  'httpUrl': 'product/drivingtour/detail',
+  'templateUrl': '/public/angularView/product/drivingtourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-自驾游-详情'
+}, {
+  'httpUrl': 'product/drivingtour/add',
+  'templateUrl': '/public/angularView/product/addDrivingtour.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-自驾游-添加'
+}, {
+  'httpUrl': 'product/drivingtour/edit',
+  'templateUrl': '/public/angularView/product/addDrivingtour.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-自驾游-编辑'
+}, {
+  'httpUrl': 'product/freetour/list',
+  'templateUrl': '/public/angularView/product/freetourList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-自助游-列表'
+}, {
+  'httpUrl': 'product/freetour/detail',
+  'templateUrl': '/public/angularView/product/freetourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-自助游-详情'
+}, {
+  'httpUrl': 'product/freetour/add',
+  'templateUrl': '/public/angularView/product/addFreetour.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-自助游-添加'
+}, {
+  'httpUrl': 'product/freetour/edit',
+  'templateUrl': '/public/angularView/product/addFreetour.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-自助游-编辑'
+}, {}, {
+  'httpUrl': 'product/customizedtour/list',
+  'templateUrl': '/public/angularView/product/customizedtourList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-定制游-列表'
+}, {
+  'httpUrl': 'product/customizedtour/detail',
+  'templateUrl': '/public/angularView/product/customizedtourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-定制游-详情'
+}, {
+  'httpUrl': 'product/customizedtour/add',
+  'templateUrl': '/public/angularView/product/addCustomizedtour.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-定制游-添加'
+}, {
+  'httpUrl': 'product/customizedtour/edit',
+  'templateUrl': '/public/angularView/product/addCustomizedtour.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-定制游-编辑'
+}, {
+  'httpUrl': 'product/teamtourPlan/list',
+  'templateUrl': '/public/angularView/product/teamtourPlanList.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-组团游计划-批量添加'
+}, {
+  'httpUrl': 'product/cruisePlan/list',
+  'templateUrl': '/public/angularView/product/cruisePlanList.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-邮轮游计划-批量添加'
+}, {
+  'httpUrl': 'product/freetourPlan/list',
+  'templateUrl': '/public/angularView/product/freetourPlanList.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-自助游计划-批量添加'
+}, {
+  'httpUrl': 'product/ticket/list',
+  'templateUrl': '/public/angularView/product/ticketList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-景点门票-列表'
+}, {
+  'httpUrl': 'product/ticket/detail',
+  'templateUrl': '/public/angularView/product/ticketDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-景点门票-详情'
+}, {
+  'httpUrl': 'product/ticket/add',
+  'templateUrl': '/public/angularView/product/addTicket.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-景点门票-添加'
+}, {
+  'httpUrl': 'product/ticket/edit',
+  'templateUrl': '/public/angularView/product/addTicket.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-景点门票-编辑'
+}, {
+  'httpUrl': 'product/visa/detail',
+  'templateUrl': '/public/angularView/product/visaDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-签证-详情'
+}, {
+  'httpUrl': 'product/visa/add',
+  'templateUrl': '/public/angularView/product/addVisa.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-签证-添加'
+}, {
+  'httpUrl': 'product/visa/edit',
+  'templateUrl': '/public/angularView/product/addVisa.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-签证-编辑'
+}, {
+  'httpUrl': 'product/visa/list',
+  'templateUrl': '/public/angularView/product/visaList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-签证-列表'
+}, {
+  'httpUrl': 'product/cruise/detail',
+  'templateUrl': '/public/angularView/product/cruiseDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-邮轮游-详情'
+}, {
+  'httpUrl': 'product/cruise/add',
+  'templateUrl': '/public/angularView/product/addCruise.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-邮轮游-添加'
+}, {
+  'httpUrl': 'product/cruise/edit',
+  'templateUrl': '/public/angularView/product/addCruise.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-邮轮游-编辑'
+}, {
+  'httpUrl': 'product/cruise/list',
+  'templateUrl': '/public/angularView/product/cruiseList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-邮轮游-列表'
+}, {
+  'httpUrl': 'product/team/list',
+  'templateUrl': '/public/angularView/product/teamList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-团队列表-列表'
+}, {
+  'httpUrl': 'product/team/detail',
+  'templateUrl': '/public/angularView/product/teamDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-团队列表-详情'
+}, {
+  'httpUrl': 'product/teamtourPlanFore/list',
+  'templateUrl': '/public/angularView/product/teamtourPlanListNew.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-组团游计划-列表'
+}, {
+  'httpUrl': 'product/teamtourPlanFore/detail',
+  'templateUrl': '/public/angularView/product/teamtourPlanDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-组团游计划-详情'
+}, {
+  'httpUrl': 'product/cruisePlanFore/list',
+  'templateUrl': '/public/angularView/product/cruisePlanListNew.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-邮轮游计划-列表'
+}, {
+  'httpUrl': 'product/cruisePlanFore/detail',
+  'templateUrl': '/public/angularView/product/cruisePlanDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-邮轮游计划-详情'
+}, {
+  'httpUrl': 'product/freetourPlanFore/list',
+  'templateUrl': '/public/angularView/product/freetourPlanListNew.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品管理-自助游游计划-列表'
+}, {
+  'httpUrl': 'product/freetourPlanFore/detail',
+  'templateUrl': '/public/angularView/product/freetourPlanDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品管理-自助游计划-详情'
+}];
+urlConfig = _.union(urlConfig, productUrlConfig);
+/**
+ * 财务管理中心
+ *
+ * @type {Array}
+ */
+var financeCenterUrlConfig = [
+    {
+        // 暂借款管理列表
+        'httpUrl': 'financeCenter/temporaryLoan/list',
+        'templateUrl': '/public/angularView/finances/temporaryLoan/list.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-暂借款-列表'
+    }, {
+        // 业务员提成管理列表
+        'httpUrl': 'financeCenter/salesmanCommission/list',
+        'templateUrl': '/public/angularView/finances/salesmanCommission/list.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-业务员提成-列表'
+    }, {
+        // 业务员提成明细
+        'httpUrl': 'financeCenter/salesmanCommission/detail',
+        'templateUrl': '/public/angularView/finances/salesmanCommission/detail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-业务员提成-详情'
+    }, {
+        /* 三清单生成列表 */
+        'httpUrl': 'financeCenter/Census/Generatelist',
+        'templateUrl': '/public/angularView/finances/Census/GenerateList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-三清单生成-列表'
+    }, {
+        /* 三清单生成计划信息 */
+        'httpUrl': 'financeCenter/Census/GeneratePlanInfo',
+        'templateUrl': '/public/angularView/finances/Census/GeneratePlanInfo.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-三清单生成-计划信息'
+    }, {
+        /* 三清单生成订单信息 */
+        'httpUrl': 'financeCenter/Census/GenerateOrderInfo',
+        'templateUrl': '/public/angularView/finances/Census/GenerateOrderInfo.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-三清单生成-订单信息'
+    }, {
+        /* 三清单列表*/
+        'httpUrl': 'financeCenter/Census/List',
+        'templateUrl': '/public/angularView/finances/Census/List.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-三清单做账-列表'
+    }, {
+        /* 三清单详情*/
+        'httpUrl': 'financeCenter/Census/Detail',
+        'templateUrl': '/public/angularView/finances/Census/Detail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-三清单做账-详情'
+    }, {
+        /*账务 业务处理 订单预付款撤回列表*/
+        'httpUrl': 'financeCenter/OAdvanceRevoke/list',
+        'templateUrl': '/public/angularView/finances/business/OAdvanceRevokeList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-订单预付款撤回-列表'
+    }, {
+        /* 账务 业务处理 订单预付款撤回、订单暂借款撤回详细*/
+        'httpUrl': 'financeCenter/OAdvanceRevoke/detail',
+        'templateUrl': '/public/angularView/finances/business/OAdvanceRevokeDetail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-订单预付款撤回、订单暂借款撤回-详细'
+    }, {
+        /* 账务 业务处理 导游预领撤回详细*/
+        'httpUrl': 'financeCenter/OAdvanceRevoke/preCollarDetail',
+        'templateUrl': '/public/angularView/finances/business/OFPreCollarRevokeDetail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-导游预领撤回-详细'
+    }, {
+        /*账务 财务结算 支出结算列表*/
+        'httpUrl': 'financeCenter/IncomeSettlement/list',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/IncomeSettlementList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-支出结算-列表'
+    }, {
+        //账务 业务处理 订单预付款列表 by chen & ya
+        'httpUrl': 'financeCenter/financeOrderAdvance/financeOrderAdvanceList',
+        'templateUrl': '/public/angularView/finances/FinanceOrderAdvance/FinanceOrderAdvanceList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-订单预付款-列表'
+    }, {
+        //账务 业务处理 暂借款列表 by chen & ya
+        'httpUrl': 'financeCenter/financeOrderAdvance/financeOrderBorrowList',
+        'templateUrl': '/public/angularView/finances/FinanceOrderAdvance/FinanceOrderAdvanceList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-订单暂借款-列表'
+    }, {
+        //订单预付款，暂借款详情 by chen & ya
+        'httpUrl': 'financeCenter/financeOrderAdvance/financeOrderAdvanceInfo',
+        'templateUrl': '/public/angularView/finances/FinanceOrderAdvance/FinanceOrderAdvanceInfo.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-订单预付款、暂借款-详情'
+    }, {
+        //订单预付款添加 by chen
+        'httpUrl': 'financeCenter/financeOrderAdvance/financeOrderAdvanceAdd',
+        'templateUrl': '/public/angularView/finances/FinanceOrderAdvance/FinanceOrderAdvanceAdd.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-订单预付款-添加'
+    }, {
+        //订单暂借款添加 by chen & ya
+        'httpUrl': 'financeCenter/financeOrderAdvance/financeOrderBorrowAdd',
+        'templateUrl': '/public/angularView/finances/FinanceOrderAdvance/FinanceOrderBorrowAdd.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-订单暂借款-添加'
+    }, {
+        //订单预付款，暂借款详情
+        'httpUrl': 'financeCenter/IncomeSettlement/list',
+        'templateUrl': '/public/angularView/finances/FinanceOrderAdvance/FinanceOrderAdvanceInfo.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-订单预付款，暂借款-详情'
+    }, {
+        //订单收款，收款列表清单
+        'httpUrl': 'financeCenter/orderReceivables/list',
+        'templateUrl': '/public/angularView/finances/orderReceivables/list.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-订单收款-列表'
+    }, {
+        //订单收款，收款明细
+        'httpUrl': 'financeCenter/orderReceivables/detail',
+        'templateUrl': '/public/angularView/finances/orderReceivables/detail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-订单收款-详情'
+    }, {
+        //订单退款，退款列表清单
+        'httpUrl': 'financeCenter/orderRefund/list',
+        'templateUrl': '/public/angularView/finances/orderRefund/list.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-订单退款-列表'
+    }, {
+        //订单退款，退款明细
+        'httpUrl': 'financeCenter/orderRefund/detail',
+        'templateUrl': '/public/angularView/finances/orderRefund/detail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-订单退款-详情'
+    }, {
+        //导游预领列表 by chen
+        'httpUrl': 'financeCenter/financeGuidePreCollar/List',
+        'templateUrl': '/public/angularView/finances/guidePreCollar/guidePreCollarList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-导游预领-列表'
+    }, {
+        //导游预领详情 by chen
+        'httpUrl': 'financeCenter/financeGuidePreCollar/Info',
+        'templateUrl': '/public/angularView/finances/guidePreCollar/guidePreCollarInfo.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-导游预领-详情'
+    }, {
+        /*财务结算 收入结算 订单预付款撤回列表*/
+        'httpUrl': 'financeCenter/IncomeSettlementOAdvanceRevoke/list',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/OAdvanceRevokeList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-订单预付款撤回-列表'
+    }, {
+        /*财务结算 收入结算 订单暂借款撤回列表*/
+        'httpUrl': 'financeCenter/IncomeSettlementOAdvanceRevoke/TemporaryList',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/OAdvanceRevokeList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-订单暂借款撤回-列表'
+    }, {
+        /*财务结算 收入结算 导游预领撤回列表*/
+        'httpUrl': 'financeCenter/IncomeSettlementOAdvanceRevoke/preCollarList',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/OAdvanceRevokeList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-导游预领撤回-列表'
+    }, {
+        /*财务结算 收入结算 订单预付款撤回详情*/
+        'httpUrl': 'financeCenter/IncomeSettlementOAdvanceRevoke/detail',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/OAdvanceRevokeDetail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-订单预付款撤回-详情'
+    }, {
+        /* 财务结算 收入结算 导游预领撤回详细*/
+        'httpUrl': 'financeCenter/IncomeSettlementOAdvanceRevoke/preCollarDetail',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/OFPreCollarRevokeDetail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-导游预领撤回-详情'
+    }, {
+        /*财务结算 收入结算 其他收入列表*/
+        'httpUrl': 'financeCenter/otherSR/list',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/OtherSRlist.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-其他收入-列表'
+    }, {
+        /*财务结算 收入结算 其他收入详情*/
+        'httpUrl': 'financeCenter/otherSR/detail',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/OtherSRDetail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-其他收入-详情'
+    }, {
+        /*财务结算 收入结算 会员卡退款列表*/
+        'httpUrl': 'financeCenter/CardRefund/list',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/CardRefundList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-会员卡退款-列表'
+    }, {
+        /*财务结算 收入结算 会员卡退款详情*/
+        'httpUrl': 'financeCenter/CardRefund/detail',
+        'templateUrl': '/public/angularView/finances/business/IncomeSettlement/OtherSRDetail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-会员卡退款-详情'
+    },
+    {
+        //导游预领详情 by chen
+        'httpUrl': 'financeCenter/financeGuidePreCollar/Add',
+        'templateUrl': '/public/angularView/finances/guidePreCollar/guidePreCollarAdd.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-导游预领-详情'
+    }, {
+        //导游报账列表 by chen
+        'httpUrl': 'financeCenter/financeGuideReim/List',
+        'templateUrl': '/public/angularView/finances/financeGuideReim/FinanceGuideReimList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-导游报账-列表'
+    }, {
+        //导游报账添加 by chen
+        'httpUrl': 'financeCenter/financeGuideReim/Add',
+        'templateUrl': '/public/angularView/finances/financeGuideReim/FinanceGuideReimAdd.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-导游报账-添加'
+    },{
+        //导游报账添加 by chen
+        'httpUrl': 'financeCenter/financeGuideReim/Edit',
+        'templateUrl': '/public/angularView/finances/financeGuideReim/FinanceGuideReimAdd.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-导游报账-编辑'
+    },{
+        //导游报账信息 by chen
+        'httpUrl': 'financeCenter/financeGuideReim/Info',
+        'templateUrl': '/public/angularView/finances/financeGuideReim/FinanceGuideReimInfo.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-导游报账-详情'
+    },{
+        //三清单成本结算列表 by chen
+        'httpUrl': 'financeCenter/PurchaseBill/List',
+        'templateUrl': '/public/angularView/finances/PurchaseBill/PurchaseBillList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-三清单成本结算-列表'
+    },{
+        //三清单成本结算列表 by chen
+        'httpUrl': 'financeCenter/PurchaseBill/Info',
+        'templateUrl': '/public/angularView/finances/PurchaseBill/PurchaseBillInfo.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-三清单成本结算-详情'
+    },{
+        //三清单成本结算添加 添加 by chen
+        'httpUrl': 'financeCenter/PurchaseBill/Add',
+        'templateUrl': '/public/angularView/finances/PurchaseBill/PurchaseList.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-三清单成本结算-添加'
+    },{
+        //财务汇款认领列表
+        'httpUrl': 'financeCenter/Remittance/List',
+        'templateUrl': '/public/angularView/finances/Remittance/List.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-汇款认领-列表'
+    }, {
+        //财务汇款认领  汇款详情
+        'httpUrl': 'financeCenter/Remittance/Detail',
+        'templateUrl': '/public/angularView/finances/Remittance/Detail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-汇款认领-详情'
+    }, {
+        //财务汇款认领  订单列表
+        'httpUrl': 'financeCenter/RemittanceOrder/List',
+        'templateUrl': '/public/angularView/finances/Remittance/RemittanceClaimChangeOrder.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-汇款认领-订单列表'
+    }, {
+        //财务汇款认领  订单详情
+        'httpUrl': 'financeCenter/RemittanceOrder/Detail',
+        'templateUrl': '/public/angularView/finances/Remittance/Detail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-汇款认领-订单详情'
+    }, {
+        //财务--导服津贴列表
+        'httpUrl': 'financeCenter/GuideSubsidy/List',
+        'templateUrl': '/public/angularView/finances/GuideSubsidy/List.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-导服津贴-列表'
+    }, {
+        //财务--导服津贴详情
+        'httpUrl': 'financeCenter/GuideSubsidy/Detail',
+        'templateUrl': '/public/angularView/finances/GuideSubsidy/Detail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-导服津贴-详情'
+    }, {
+        //支出结算  结算框架列表
+        'httpUrl': 'financeCenter/expenditureSettlement/list',
+        'templateUrl': '/public/angularView/finances/expenditureSettlement/list.html' + "?" + Math.random(),
+        'type': 1
+    }, {
+        //支出结算  结算明细框架列表(三清单成本结算)
+        'httpUrl': 'financeCenter/expenditureSettlement/detail_censuscostsettlement',
+        'templateUrl': '/public/angularView/finances/expenditureSettlement/detail_extend/detail_censuscostsettlement.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-支出结算-三清单成本结算-详情'
+    }, {
+        //支出结算  结算明细框架列表(导游津贴)
+        'httpUrl': 'financeCenter/expenditureSettlement/detail_guideallowance',
+        'templateUrl': '/public/angularView/finances/expenditureSettlement/detail_extend/detail_guideallowance.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-支出结算-导游津贴-详情'
+    }, {
+        //支出结算  结算明细框架列表(导游预领)
+        'httpUrl': 'financeCenter/expenditureSettlement/detail_guideprecollar',
+        'templateUrl': '/public/angularView/finances/expenditureSettlement/detail_extend/detail_guideprecollar.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-支出结算-导游预领-详情'
+    }, {
+        //支出结算  结算明细框架列表(导游报帐)
+        'httpUrl': 'financeCenter/expenditureSettlement/detail_guidereimbursement',
+        'templateUrl': '/public/angularView/finances/expenditureSettlement/detail_extend/detail_guidereimbursement.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-支出结算-导游报帐-详情'
+    }, {
+        //支出结算  结算明细框架列表(订单预付款)
+        'httpUrl': 'financeCenter/expenditureSettlement/detail_orderadvancepayment',
+        'templateUrl': '/public/angularView/finances/expenditureSettlement/detail_extend/detail_orderadvancepayment.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-支出结算-订单预付款-详情'
+    }, {
+        //支出结算  结算明细框架列表(订单暂借款)
+        'httpUrl': 'financeCenter/expenditureSettlement/detail_ordertemporaryloan',
+        'templateUrl': '/public/angularView/finances/expenditureSettlement/detail_extend/detail_ordertemporaryloan.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-支出结算-订单暂借款-详情'
+    }, {
+        //支出结算  结算明细框架列表(其它支出)
+        'httpUrl': 'financeCenter/expenditureSettlement/detail_otherexpenses',
+        'templateUrl': '/public/angularView/finances/expenditureSettlement/detail_extend/detail_otherexpenses.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-支出结算-其它支出-详情'
+    }, {
+        //支出结算  结算明细框架列表(会员卡退款)
+        'httpUrl': 'financeCenter/expenditureSettlement/detail_membershipcardrefund',
+        'templateUrl': '/public/angularView/finances/expenditureSettlement/detail_extend/detail_membershipcardrefund.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-支出结算-会员卡退款-详情'
+    }, {
+        //账务处理  非业务框架列表标签
+        'httpUrl': 'financeCenter/notBussiness/tab',
+        'templateUrl': '/public/angularView/finances/notBussiness/tab.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-账务处理-列表'
+    }, {
+        //账务处理  非业务框架列表(其它支出)详情
+        'httpUrl': 'financeCenter/notBussiness/otherOutDetail',
+        'templateUrl': '/public/angularView/finances/notBussiness/Detail/OtherOutDetail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-非业务账务-其它支出-详情'
+    }, {
+        //账务处理  非业务框架列表(其它收入)详情
+        'httpUrl': 'financeCenter/notBussiness/otherInDetail',
+        'templateUrl': '/public/angularView/finances/notBussiness/Detail/OtherInDetail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-非业务账务-其它收入-详情'
+    }, {
+        //账务处理  非业务框架列表(其它支出)保存
+        'httpUrl': 'financeCenter/notBussiness/saveOtherOut',
+        'templateUrl': '/public/angularView/finances/notBussiness/SaveBussiness/SaveOtherOut.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-非业务账务-其它支出-添加'
+    }, {
+        //账务处理  非业务框架列表(其它收入)保存
+        'httpUrl': 'financeCenter/notBussiness/saveOtherIn',
+        'templateUrl': '/public/angularView/finances/notBussiness/SaveBussiness/SaveOtherIn.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-非业务账务-其它收入-添加'
+    }, {
+        //订单开票列表
+        'httpUrl': 'financeCenter/FinanceOrderBillingBussiness/list',
+        'templateUrl': '/public/angularView/finances/OrderBilling/OrderBillingList.html' + "?" + Math.random(),
+        'type': 1,
+        'title':'财务中心-订单开票-列表'
+    }, {
+        //订单开票详情
+        'httpUrl': 'financeCenter/FinanceOrderBillingBussiness/detail',
+        'templateUrl': '/public/angularView/finances/OrderBilling/OrderBillingDetail.html' + "?" + Math.random(),
+        'type': 2,
+        'title':'财务中心-订单开票-详情'
+    }];
+
+urlConfig = _.union(urlConfig, financeCenterUrlConfig);
+var memberUrlConfig = [{
+  'httpUrl': 'customer/customers/detail',
+  'templateUrl': '/public/angularView/customer/customerDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'会员管理-会员列表-详情'
+}, {
+  'httpUrl': 'customer/customers/add',
+  'templateUrl': '/public/angularView/customer/addCustomer.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'会员管理-会员列表-添加'
+}, {
+  'httpUrl': 'customer/customers/edit',
+  'templateUrl': '/public/angularView/customer/addCustomer.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'会员管理-会员列表-编辑'
+}, {
+  'httpUrl': 'customer/customers/list',
+  'templateUrl': '/public/angularView/customer/customerList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'会员管理-会员列表-列表'
+}, {
+  'httpUrl': 'customer/membershipCard/list',
+  'templateUrl': '/public/angularView/customer/membershipCardList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'会员管理-会员卡管理-列表'
+}, {
+  'httpUrl': 'customer/membershipCard/detail',
+  'templateUrl': '/public/angularView/customer/membershipCardDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'会员管理-会员卡管理-详情'
+}, {
+  'httpUrl': 'customer/membershipCard/add',
+  'templateUrl': '/public/angularView/customer/membershipCardAdd.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'会员管理-会员卡管理-添加'
+}, {
+  'httpUrl': 'customer/customerCardCharge/list',
+  'templateUrl': '/public/angularView/customer/cardChargeList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'会员管理-会员卡管理-列表'
+}, {
+  'httpUrl': 'customer/customerCardCharge/detail',
+  'templateUrl': '/public/angularView/customer/cardChargeDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'会员管理-会员卡管理-列表'
+}, {
+  'httpUrl': 'customer/customerCardCharge/add',
+  'templateUrl': '/public/angularView/customer/cardChargeAdd.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'会员管理-会员卡充值-添加'
+}, {
+  'httpUrl': 'customer/customerCardCharge/edit',
+  'templateUrl': '/public/angularView/customer/cardChargeAdd.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'会员管理-会员卡充值-编辑'
+}, {
+  'httpUrl': 'customer/rechargeRecievables/list',
+  'templateUrl': '/public/angularView/customer/rechargeRecievablesList.html' + '?' + Math.random(),
+  'type': 1,
+  'title':'会员管理-充值收款-列表'
+}, {
+  'httpUrl': 'customer/rechargeRecievables/detail',
+  'templateUrl': '/public/angularView/customer/rechargeRecievablesDetail.html' + '?' + Math.random(),
+  'type': 2,
+  'title':'会员管理-充值收款-详情'
+},{
+  'httpUrl': 'customer/rechargeRefund/list',
+  'templateUrl': '/public/angularView/customer/rechargeRefundList.html' + '?' + Math.random(),
+  'type': 1,
+  'title':'会员管理-充值退款-列表'
+}, {
+  'httpUrl': 'customer/rechargeRefund/detail',
+  'templateUrl': '/public/angularView/customer/rechargeRefundDetail.html' + '?' + Math.random(),
+  'type': 2,
+  'title':'会员管理-充值退款-详情'
+}];
+
+urlConfig = _.union(urlConfig, memberUrlConfig);
+/**
+ * 产品下单url配置
+ * @type {Array}
+ */
+var productOrderUrlConfig = [{
+  'httpUrl': 'productOrder/POteamtour/list',
+  'templateUrl': '/public/angularView/productOrder/teamtourList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品下单-组团游-列表'
+}, {
+  'httpUrl': 'productOrder/POteamtour/detail',
+  'templateUrl': '/public/angularView/productOrder/teamtourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-组团游-详情'
+}, {
+  'httpUrl': 'productOrder/POteamtour/teamtourOrder',
+  'templateUrl': '/public/angularView/productOrder/teamtourOrder.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-组团游-下单'
+}, {
+  'httpUrl': 'productOrder/POcruise/list',
+  'templateUrl': '/public/angularView/productOrder/cruiseList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品下单-邮轮游-列表'
+}, {
+  'httpUrl': 'productOrder/POcruise/detail',
+  'templateUrl': '/public/angularView/productOrder/cruiseDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-邮轮游-详情'
+}, {
+  'httpUrl': 'productOrder/POcruise/cruiseOrder',
+  'templateUrl': '/public/angularView/productOrder/cruiseOrder.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-邮轮游-下单'
+}, {
+  'httpUrl': 'productOrder/PODrivetour/list',
+  'templateUrl': '/public/angularView/productOrder/drivetourList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品下单-自驾游-列表'
+}, {
+  'httpUrl': 'productOrder/PODrivetour/detail',
+  'templateUrl': '/public/angularView/productOrder/drivetourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-自驾游-详情'
+}, {
+  'httpUrl': 'productOrder/PODrivetour/drivetourOrder',
+  'templateUrl': '/public/angularView/productOrder/drivetourOrder.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-自驾游-下单'
+}, {
+  'httpUrl': 'productOrder/POVisa/list',
+  'templateUrl': '/public/angularView/productOrder/visaList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品下单-签证-列表'
+}, {
+  'httpUrl': 'productOrder/POVisa/detail',
+  'templateUrl': '/public/angularView/productOrder/visaDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-签证-详情'
+}, {
+  'httpUrl': 'productOrder/POVisa/visaOrder',
+  'templateUrl': '/public/angularView/productOrder/visaOrder.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-签证-下单'
+}, {
+  'httpUrl': 'productOrder/POFreetour/list',
+  'templateUrl': '/public/angularView/productOrder/freetourList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品下单-自助游-列表'
+}, {
+  'httpUrl': 'productOrder/POFreetour/detail',
+  'templateUrl': '/public/angularView/productOrder/freetourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-自助游-详情'
+}, {
+  'httpUrl': 'productOrder/POFreetour/freetourOrder',
+  'templateUrl': '/public/angularView/productOrder/freetourOrder.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-自助游-下单'
+}, {
+  'httpUrl': 'productOrder/PODiscussion/list',
+  'templateUrl': '/public/angularView/productOrder/discussionList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品下单-一团一议-列表'
+}, {
+  'httpUrl': 'productOrder/PODiscussion/discussionTeamTourDetail',
+  'templateUrl': '/public/angularView/productOrder/discussionTeamTourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-一团一议-详情'
+}, {
+  'httpUrl': 'productOrder/PODiscussion/discussionFreetourDetail',
+  'templateUrl': '/public/angularView/productOrder/discussionFreetourDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-一团一议-详情'
+}, {
+  'httpUrl': 'productOrder/PODiscussion/discussionOrder',
+  'templateUrl': '/public/angularView/productOrder/discussionOrder.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-一团一议-下单'
+}, {
+  'httpUrl': 'productOrder/PODiscussion/discussionOrderFreetour',
+  'templateUrl': '/public/angularView/productOrder/discussionOrderFreetour.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-一团一议-下单'
+}, {
+  'httpUrl': 'productOrder/POTicket/list',
+  'templateUrl': '/public/angularView/productOrder/ticketList.html' + "?" + Math.random(),
+  'type': 1,
+  'title':'产品下单-景点门票-列表'
+}, {
+  'httpUrl': 'productOrder/POTicket/detail',
+  'templateUrl': '/public/angularView/productOrder/ticketDetail.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-景点门票-详情'
+}, {
+  'httpUrl': 'productOrder/POTicket/ticketOrder',
+  'templateUrl': '/public/angularView/productOrder/ticketOrder.html' + "?" + Math.random(),
+  'type': 2,
+  'title':'产品下单-景点门票-下单'
+}];
+urlConfig = _.union(urlConfig, productOrderUrlConfig);
+/**
+ * 意向客户URL配置
+ */
+var intentionCustomerUrlConfig = [ {
+	/* 意向客户>考核分组>列表 */
+	'httpUrl' : 'intentionCustomer/ICPerformanceManagement/list',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICPerformanceManagement/ICPerformanceManagementList.html' + "?" + Math.random(),
+	'type' : 1,
+	'title':'意向客户-考核分组-列表'
+}, {
+	/* 意向客户>考核分组>编辑分组信息 */
+	'httpUrl' : 'intentionCustomer/ICPerformanceManagement/detail',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICPerformanceManagement/ICPerformanceManagementDetail.html' + "?" + Math.random(),
+	'type' : 2,
+	'title':'意向客户-考核分组-编辑'
+}, {
+	/* 意向客户>考核分组>添加分组 */
+	'httpUrl' : 'intentionCustomer/ICPerformanceManagement/add',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICPerformanceManagement/ICAddPerformanceGroup.html' + "?" + Math.random(),
+	'type' : 2,
+	'title':'意向客户-考核分组-添加'
+}, {
+	/* 意向客户>目的地分配>列表 */
+	'httpUrl' : 'intentionCustomer/ICCityAssignment/list',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICCityAssignment/ICCityAssignmentList.html' + "?" + Math.random(),
+	'type' : 1,
+	'title':'意向客户-目的地分配-列表'
+}, {
+	/* 意向客户>目的地分配>详情 */
+	'httpUrl' : 'intentionCustomer/ICCityAssignment/detail',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICCityAssignment/ICCityAssignmentDetail.html' + "?" + Math.random(),
+	'type' : 2,
+	'title':'意向客户-目的地分配-详情'
+}, {
+	/* 意向客户>意向订单>列表 */
+	'httpUrl' : 'intentionCustomer/ICOrder/list',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrder/ICOrderList.html' + "?" + Math.random(),
+	'type' : 1,
+	'title':'意向客户-意向订单-列表'
+}, {
+	/* 意向客户>意向订单>详细 */
+	'httpUrl' : 'intentionCustomer/ICOrder/detail',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrder/ICOrderDetail.html' + "?" + Math.random(),
+	'type' : 2,
+	'title':'意向客户-意向订单-详情'
+},
+{
+	/* 意向客户>意向订详细 */
+	'httpUrl' : 'intentionCustomer/ICOrder/add',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrder/ICOrderAdd.html' + "?" + Math.random(),
+	'type' : 2,
+	'title':'意向客户-意向订单-添加'
+},
+{
+	/* 意向客户>意向订详细 */
+	'httpUrl' : 'intentionCustomer/ICOrder/edit',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrder/ICOrderEdit.html' + "?" + Math.random(),
+	'type' : 2,
+	'title':'意向客户-意向订单-编辑'
+},
+{
+	/* 意向客户>意向订详细 */
+	'httpUrl' : 'intentionCustomer/ICOrder/log',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrder/ICOrderLog.html' + "?" + Math.random(),
+	'type' : 2,
+	'title':'意向客户-意向订单-日志'
+},
+{
+	/* 意向客户>意向订详细 */
+	'httpUrl' : 'intentionCustomer/ICOrder/autoAdd',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrder/ICOrderAdd.html' + "?" + Math.random(),
+	'type' : 2,
+	'title':'意向客户-意向订单-自动添加'
+},{
+
+	/* 意向客户>意向订详细 */
+	'httpUrl' : 'intentionCustomer/ICOrder/lineDetail',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrder/ICOrderLineDetail.html' + "?" + Math.random(),
+	'type' : 2,
+	'title':'意向客户-意向订单-线路详情'
+}, {
+	/* 意向客户>已添加意向客户>列表 */
+	'httpUrl' : 'intentionCustomer/ICOrderAdded/list',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrderAdded/ICOrderAddedList.html' + "?" + Math.random(),
+	'type' : 1,
+	'title':'意向客户-已添加意向客户-列表'
+}, {
+	/* 意向客户>认领订单>列表 */
+	'httpUrl' : 'intentionCustomer/ICConfirmOrder/list',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrderConfirmation/ICConfirmOrderList.html' + "?" + Math.random(),
+	'type' : 1,
+	'title':'意向客户-认领订单-列表'
+}, {
+	/* 意向客户>意向回追>列表 */
+	'httpUrl' : 'intentionCustomer/ICOrderFollow/list',
+	'templateUrl' : '/public/angularView/intentionCustomer/ICOrderFollow/ICOrderFollowList.html' + "?" + Math.random(),
+	'type' : 1,
+	'title':'意向客户-意向回追-列表'
+} ];
+urlConfig = _.union(urlConfig, intentionCustomerUrlConfig);// 将意向客户的配置与urlConfig拼接到一起

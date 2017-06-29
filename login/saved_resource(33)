@@ -1,0 +1,16 @@
+angular.module('OARoute')
+.factory('OAMain', function($timeout){
+	var OAMain = {};
+
+	OAMain.mainPage = function(callback, param){
+		var data = {
+			pagePath: param.path
+		};
+
+		$timeout(function(){
+			callback(data);
+		});
+	};
+
+	return OAMain;
+});

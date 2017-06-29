@@ -1,0 +1,5032 @@
+productService.factory("getProductTeamList", function($http, $rootScope, _, showErrorInfo) {
+  return function(param1, callBack) {
+    var param = withoutFlaseKey(_.extend({
+      SearchInfo: '',
+      StartTime: '',
+      EndTime: '',
+      TeamType: '',
+      TeamStatus: 1,
+      DeployID: '',
+      DeptID: '',
+      iPageIndex: 1,
+      iPageSize: pageLimit
+    }, param1));
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Team/Team/GetTeamList",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getProductTeamDetail", function($http, $rootScope, _, showErrorInfo) {
+  return function(TeamID, callBack) {
+    var param = {
+      TeamID: TeamID
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Team/Team/GetTeamInfo",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("productTeamGuideArrange", function($http, $rootScope, _, showErrorInfo) {
+  return function(param1, callBack) {
+    var param = withoutFlaseKey(_.extend({
+      TeamID: '',
+      IsFull: 0,
+      IsSend: 0,
+      Notes: '',
+      ResortAddress: ''
+    }, param1));
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Team/Team/TeamApplyGuide",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("productTeamChangeTeamDeploy", function($http, $rootScope, _, showErrorInfo) {
+  return function(param1, callBack) {
+    var param = withoutFlaseKey(_.extend({
+      Deploy: '',
+      OrderNo: '',
+      TeamID: ''
+    }, param1));
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Team/Team/ChangeTeamDeploy",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("productTeamSaveTeamNotes", function($http, $rootScope, _, showErrorInfo) {
+  return function(param1, callBack) {
+    var param = withoutFlaseKey(_.extend({
+      TeamID: '',
+      Notes: ''
+    }, param1));
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Team/Team/SaveTeamNotes",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("productTeamCancelTeam", function($http, $rootScope, _, showErrorInfo) {
+  return function(TeamID, callBack) {
+    var param = {
+      TeamID: TeamID
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Team/Team/CancelTeam",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+/*
+ * 产品相关服务
+ */
+
+/**
+ * [获取组团游列表页]
+ * @param  {[type]} "teamtourList" [description]
+ * @param  {[type]} function($http [description]
+ * @return {[type]}                [description]
+ */
+productService.factory("getTeamtourList", function($http, $rootScope, _, showErrorInfo) {
+  var teamtourList = function(param1, callBack) {
+    var param = _.extend({
+      Title: '',
+      EmployeeDepartmentID: '',
+      StartGADDRId: '',
+      ShowStatus: '',
+      AddTime: '',
+      page: 1,
+      limit: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: productUrl + "products/teamtours/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return teamtourList;
+});
+
+/**
+ * [根据id查询整组团游条详细信息]
+ * @param  {[type]} "getTeamtourList"           [description]
+ * @param  {[type]} function($http,$rootScope,_ [description]
+ * @return {[type]}                             [description]
+ */
+productService.factory("getTeamtourDetail", function($http, $rootScope, _, showErrorInfo) {
+  var teamtourList = function(id, callBack) {
+    var param = {
+      id: id,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/teamtours/findOneById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return teamtourList;
+});
+
+/*
+ * 获取集散地
+ */
+productService.factory("getDistributing", function($http, showErrorInfo) {
+  var getDistributingFactory = function(id, callBack) {
+    var param = {
+      productID: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "distributing/distributing_center/get_distributing",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getDistributingFactory;
+});
+
+/*
+ * 获取行程计划
+ */
+productService.factory("getScheduleClass", function($http, showErrorInfo) {
+  var getScheduleClassFactory = function(id, callBack) {
+    var param = {
+      productID: id,
+      limit:99999999
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/Schedule_class/get_Schedule_Class",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getScheduleClassFactory;
+});
+
+/*
+ * 获取日程计划
+ */
+productService.factory("getSchedule", function($http, showErrorInfo) {
+  var getScheduleFactory = function(id, callBack) {
+    var param = {
+      scheduleClassID: id
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/schedule/get_Schedule",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getScheduleFactory;
+});
+/*
+ * 获取一天的日程详情
+ */
+productService.factory("getScheduleDetail", function($http, showErrorInfo) {
+  var getScheduleFactory = function(id, callBack) {
+    var param = {
+      scheduleID: id
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/Schedule_detail/get_Schedule_Detail",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getScheduleFactory;
+});
+
+/*
+ * 获取产品扩展信息(组团游)
+ */
+productService.factory("getProductExpand", function($http, showErrorInfo) {
+  var getProductExpandFactory = function(id, callBack) {
+    var param = {
+      productID: id
+    };
+    HYhttp($http, {
+      url: productUrl + "products/Expand/get_expand",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getProductExpandFactory;
+});
+
+/*
+ * 获取交通
+ */
+productService.factory("getScheduleDetailTraffic", function($http, showErrorInfo) {
+  var getScheduleDetailTrafficFactory = function(id, callBack) {
+    var param = {
+      scheduleID: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/get_Schedule_Detail_Traffic",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getScheduleDetailTrafficFactory;
+});
+
+/*
+ * 获取组合完成的日程
+ */
+productService.factory("getCompleteSchedule", function(getSchedule, getScheduleDetailTraffic) {
+  var getCompleteScheduleFactory = function(id, callBack) {
+    getSchedule(id, function(response) {
+      callBack(response);
+    });
+  };
+  return getCompleteScheduleFactory;
+});
+
+/*
+ * 获取所有交通方式
+ */
+productService.factory("getBasicsTrafficTypeAll", function($http, showErrorInfo) {
+  var getBasicsTrafficTypeAllFactory = function(callBack) {
+    HYhttp($http, {
+      url: productUrl + "general/general/getBasicsTrafficTypeAll",
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getBasicsTrafficTypeAllFactory;
+});
+
+/*
+ * 获取团队游线路归属
+ */
+productService.factory("getTeamtoursProductLineOwnership", function($http, showErrorInfo) {
+  var getTeamtoursProductLineOwnershipFactory = function(
+    callBack) {
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general/getTeamtoursProductLineOwnership",
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTeamtoursProductLineOwnershipFactory;
+});
+
+/*
+ * 获取所有赠品
+ */
+productService.factory("getTravelGoodsAll", function($http, showErrorInfo) {
+  var getTravelGoodsAllFactory = function(callBack) {
+    var param = {
+    	"GoodsTypeID": "000000000000000000000005",
+    	"TravelGoodStatus": 1,
+    	"iPageIndex": 1,
+    	"iPageSize": 100
+    };
+    HYhttp($http, {
+      // url: productUrl + "general/general/getTravelGoodsAll",
+      url: dreamFlyUrl + "BasicData/TravelGoods/LYGoodsData",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data.list);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getTravelGoodsAllFactory;
+});
+
+/*
+ * 获取所有产品标签
+ */
+productService.factory("getProductLineAttribute", function($http, showErrorInfo) {
+  var getProductLineAttributeFactory = function(callBack) {
+    HYhttp($http, {
+      url: productUrl + "general/general/getProductLineAttribute",
+      method: "POST",
+      data:{limit:9999,page:1}
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getProductLineAttributeFactory;
+});
+
+/*
+ * 获取所有线路类型
+ */
+productService.factory("getLineTypeAll", function($http, showErrorInfo) {
+  var getLineTypeAllFactory = function(callBack) {
+    HYhttp($http, {
+      url: productUrl + "general/general/getLineTypeAll",
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getLineTypeAllFactory;
+});
+
+/*
+ * 获取全部产品类型
+ */
+productService.factory("getProductFormAll", function($http, showErrorInfo) {
+  var getProductFormAllFactory = function(callBack) {
+    HYhttp($http, {
+      url: productUrl + "general/general/getProductFormAll",
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getProductFormAllFactory;
+});
+
+/*
+ * 获取所有目的地
+ */
+productService.factory("getAllDestination", function($http, showErrorInfo) {
+  var getAllDestinationFactory = function(callBack) {
+    HYhttp($http, {
+      url: baseUrl + "common/Address/getAllDestination",
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getAllDestinationFactory;
+});
+
+/*
+ * 获取所有出发地
+ */
+productService.factory("getAllStartDestionation", function($http, showErrorInfo) {
+  var getAllStartDestionation = function(callBack) {
+    HYhttp($http, {
+      url: baseUrl + "common/Address/getAllStartDestionation",
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getAllStartDestionation;
+});
+
+/**
+ * 获取所有站点
+ */
+productService.factory("getStationAll", function($http, showErrorInfo) {
+  var getStationAll = function(callBack) {
+    var param = {
+      json: JSON.stringify({
+        "page": 1,
+        "limit": 99999999
+      })
+    };
+    HYhttp($http, {
+      url: productUrl + "general/general/getSysStationAll",
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getStationAll;
+});
+
+/*
+ * 获取所有添加产品基础信息类型
+ */
+productService.factory("getAddProductBasicInfo",
+  function(getBasicsTrafficTypeAll,
+    getTeamtoursProductLineOwnership, getTravelGoodsAll,
+    getProductLineAttribute, getLineTypeAll,
+    getProductFormAll, getAllDestination,
+    getAllStartDestionation, getStationAll) {
+    var getAddProductBasicInfoFactory = function(callBack) {
+      var data = {};
+      getBasicsTrafficTypeAll(function(response1) {
+        data.BasicsTraffic = response1.list;
+        getTeamtoursProductLineOwnership(function(response2) {
+          data.LineOwnership = response2;
+          getTravelGoodsAll(function(response3) {
+            data.TravelGoods = response3;
+            getProductLineAttribute(function(response4) {
+              data.ProductLineAttribute = response4;
+              getLineTypeAll(function(response5) {
+                data.LineTypeAll = response5;
+                getProductFormAll(function(
+                  response6) {
+                  data.ProductFormAll = response6;
+                  getAllStartDestionation(function(
+                    response8) {
+                    data.AllStartDestination = response8;
+                    callBack(data);
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    };
+    return getAddProductBasicInfoFactory;
+  });
+
+/*
+ * 景区列表
+ */
+productService.factory("getScenics", function(_, showErrorInfo, $http, $rootScope) {
+  var getBasicsViewspotByNameFactory = function(param1, callBack) {
+    var param = _.extend({
+      Title: '',
+      ProductGADDRId: '',
+      page: 1,
+      limit: $rootScope.pageLimit
+    }, param1);
+    HYhttp($http, {
+      url: productUrl + "products/scenics/findList",
+      data: {
+        json: JSON.stringify(withoutFlaseKey(param))
+      },
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getBasicsViewspotByNameFactory;
+});
+
+/**
+ * [添加景点]
+ * @param  {[type]} "getScenics" [description]
+ * @param  {[type]} function(_,  $http,        $rootScope [description]
+ * @return {[type]}              [description]
+ */
+productService.factory("addViewspots", function($http, $rootScope, showErrorInfo) {
+  var addViewspots = function(scheduleID, param1, callBack) {
+    var param = {
+      scheduleID: scheduleID,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/Schedule_detail/add_Schedule_Detail_Viewspots",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addViewspots;
+});
+
+productService.factory("addViewspotsList", function($http, $rootScope, showErrorInfo) {
+  var addViewspots = function(scheduleID, param1, callBack) {
+    var param = {
+      scheduleID: scheduleID,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/Schedule_detail/save_Schedule_Detail_Viewspots_List",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addViewspots;
+});
+
+/**
+ * [软删除景点]
+ * @param  {[type]} "addViewspots" [description]
+ * @param  {[type]} function(_,    $http,        $rootScope [description]
+ * @return {[type]}                [description]
+ */
+productService.factory("delViewspots", function(_, $http, $rootScope, showErrorInfo) {
+  var addViewspots = function(scheduleID, viewspotID, callBack) {
+    var param = {
+      scheduleID: scheduleID,
+      viewspotID: viewspotID
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/Schedule_detail/del_Schedule_Detail_Viewspots",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addViewspots;
+});
+
+/*
+ * 模糊查询基础签证国家
+ */
+productService.factory("getBasicsVisaByName", function($http, $rootScope, showErrorInfo) {
+  var getBasicsVisaByNameFactory = function(name, page, callBack) {
+    var param = {
+      json: JSON.stringify({
+        "key": name,
+        "page": page,
+        "limit": $rootScope.embeddedPageLimt
+      })
+    };
+    HYhttp($http, {
+      url: productUrl + "general/general/getBasicsVisaByName",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getBasicsVisaByNameFactory;
+});
+
+/*
+ * 模糊查询购物地点
+ */
+productService.factory("getBasicsShopingByTitleOrGADDRName", function($http, $rootScope, showErrorInfo) {
+  var getBasicsShopingByTitleOrGADDRNameFactory = function(
+    name, page, callBack) {
+    var param = {
+      json: JSON.stringify({
+        "key": name,
+        "page": page,
+        "limit": $rootScope.embeddedPageLimt
+      })
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general/getBasicsShopingByTitleOrGADDRName",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getBasicsShopingByTitleOrGADDRNameFactory;
+});
+
+/*
+ * 模糊查询酒店
+ */
+productService.factory("getBasicsHotelByNameOrGADDRTitle", function($http, $rootScope, showErrorInfo) {
+  var getBasicsHotelByNameOrGADDRTitleFactory = function(
+    name, page, callBack) {
+    var param = {
+      json: JSON.stringify({
+        "key": name?name:"",
+        "page": page?page:1,
+        "limit": $rootScope.embeddedPageLimt
+      })
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general/getBasicsHotelByNameOrGADDRTitle",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getBasicsHotelByNameOrGADDRTitleFactory;
+});
+
+/*
+ * 添加组团游基本信息
+ */
+productService.factory("addBaseTeamtour", function($http, $rootScope, showErrorInfo) {
+  var addBaseTeamtour = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp($http, {
+      url: productUrl + "products/teamtours/addbase_teamtour",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addBaseTeamtour;
+});
+
+/**
+ * [保存组团游基本信息]
+ * @param  {[type]} "saveBaseTeamtour" [description]
+ * @param  {[type]} function($http,    $rootScope    [description]
+ * @return {[type]}                    [description]
+ */
+productService.factory("saveBaseTeamtour", function($http, $rootScope, showErrorInfo) {
+  var saveBaseTeamtour = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp($http, {
+      url: productUrl + "products/teamtours/savebase_teamtour",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return saveBaseTeamtour;
+});
+
+/**
+ * 新增行程
+ */
+productService.factory("addScheduleClass", function($http, $rootScope, showErrorInfo) {
+  var addScheduleClass = function(id, param1, callBack) {
+    var param = {
+      productID: id,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/Schedule_class/add_Schedule_Class",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addScheduleClass;
+});
+
+productService.factory("delScheduleClass", function($http, $rootScope, showErrorInfo) {
+  var addScheduleClass = function(id, callBack) {
+    var param = {
+      scheduleClassID: id,
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/Schedule_class/del_Schedule_Class",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addScheduleClass;
+});
+
+/*
+ * 修改文字
+ */
+productService.factory("editScheduleDetailStrokeContent", function($http, $rootScope, showErrorInfo) {
+  var editScheduleDetailStrokeContent = function(id, param1,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/edit_Schedule_Detail_StrokeContent",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editScheduleDetailStrokeContent;
+});
+
+/*
+ * 修改标题
+ */
+productService.factory("editScheduleDetailTitle", function($http, $rootScope, showErrorInfo) {
+  var editScheduleDetailTitle = function(id, param1, callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "schedule/Schedule_detail/edit_Schedule_Detail_Title",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editScheduleDetailTitle;
+});
+
+/**
+ * 获取美食
+ */
+productService.factory("getScheduleDetailFood", function($http, $rootScope, showErrorInfo) {
+  var editScheduleDetailStrokeContent = function(id, callBack) {
+    var param = {
+      scheduleID: id,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "schedule/Schedule_detail/get_Schedule_Detail_Food",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editScheduleDetailStrokeContent;
+});
+
+/**
+ * 修改美食
+ */
+productService.factory("editScheduleDetailFood", function($http, $rootScope, showErrorInfo) {
+  var editScheduleDetailFood = function(id, param1, callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(param1)
+    };
+    console.log(param);
+    HYhttp(
+      $http, {
+        url: productUrl + "schedule/Schedule_detail/edit_Schedule_Detail_Food",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editScheduleDetailFood;
+});
+
+/**
+ * 修改一日三餐
+ */
+productService.factory("editScheduleDetailCaterings", function($http, $rootScope, showErrorInfo) {
+  var editScheduleDetailCaterings = function(id, param1,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/edit_Schedule_Detail_Caterings",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editScheduleDetailCaterings;
+});
+
+/**
+ * 新增购物点
+ */
+productService.factory("addScheduleDetailShopping", function($http, $rootScope, showErrorInfo) {
+  var addScheduleDetailShopping = function(id, param1,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/add_Schedule_Detail_Shopping",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addScheduleDetailShopping;
+});
+
+/**
+ * 添加酒店
+ */
+productService.factory("addScheduleDetailHotel", function($http, $rootScope, showErrorInfo) {
+  var addScheduleDetailHotel = function(id, param1, callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "schedule/Schedule_detail/add_Schedule_Detail_Hotel",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addScheduleDetailHotel;
+});
+productService.factory("addScheduleDetailHotelList", function($http, $rootScope, showErrorInfo) {
+  var addScheduleDetailHotel = function(id, param1, callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "schedule/Schedule_detail/save_Schedule_Detail_Hotel_List",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addScheduleDetailHotel;
+});
+
+/**
+ * 物理删除酒店
+ */
+productService.factory("removeScheduleDetailHotel", function($http, $rootScope, showErrorInfo) {
+  var removeScheduleDetailHotel = function(id, hotelID,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      HotelID: hotelID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/remove_Schedule_Detail_Hotel",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return removeScheduleDetailHotel;
+});
+
+/**
+ * 软删除酒店
+ */
+productService.factory("delScheduleDetailHotel", function($http, $rootScope, showErrorInfo) {
+  var delScheduleDetailHotel = function(id, hotelID, callBack) {
+    var param = {
+      scheduleID: id,
+      HotelID: hotelID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "schedule/Schedule_detail/del_Schedule_Detail_Hotel",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return delScheduleDetailHotel;
+});
+
+/**
+ * 新增购物点
+ */
+productService.factory("addScheduleDetailShopping", function($http, $rootScope, showErrorInfo) {
+  var addScheduleDetailShopping = function(id, prarm1,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(prarm1)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/add_Schedule_Detail_Shopping",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addScheduleDetailShopping;
+});
+
+/**
+ * 物理删除购物点
+ */
+productService.factory("removeScheduleDetailShopping", function($http, $rootScope, showErrorInfo) {
+  var removeScheduleDetailShopping = function(id, shoppingID,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      shoppingID: shoppingID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/remove_Schedule_Detail_Shopping",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return removeScheduleDetailShopping;
+});
+
+/**
+ * 软删除购物点
+ */
+productService.factory("delScheduleDetailShopping", function($http, $rootScope, showErrorInfo) {
+  var delScheduleDetailShopping = function(id, shoppingID,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      shoppingID: shoppingID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "schedule/Schedule_detail/del_Schedule_Detail_Shopping",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return delScheduleDetailShopping;
+});
+
+/**
+ * 新增自费点
+ */
+productService.factory("addScheduleDetailOwnExpenses", function($http, $rootScope, showErrorInfo) {
+  var addScheduleDetailOwnExpenses = function(id, prarm1,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(prarm1)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/add_Schedule_Detail_OwnExpenses",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addScheduleDetailOwnExpenses;
+});
+productService.factory("addScheduleDetailOwnExpensesMulti", function($http, $rootScope, showErrorInfo) {
+  var addScheduleDetailOwnExpenses = function(id, prarm1,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      postData: JSON.stringify(prarm1)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/add_Schedule_Detail_More_OwnExpenses",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addScheduleDetailOwnExpenses;
+});
+//删除自费点
+productService.factory("delScheduleDetailOwnExpenses", function($http, $rootScope, showErrorInfo) {
+  var delScheduleDetailOwnExpenses = function(id, OwnExpensesID,
+    callBack) {
+    var param = {
+      scheduleID: id,
+      OwnExpensesID: OwnExpensesID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/del_Schedule_Detail_OwnExpenses",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return delScheduleDetailOwnExpenses;
+});
+
+/**
+ * 物理删除自费点
+ */
+productService.factory("removeScheduleDetailOwnExpenses", function($http, $rootScope, showErrorInfo) {
+  var removeScheduleDetailOwnExpenses = function(id,
+    OwnExpensesID, callBack) {
+    var param = {
+      scheduleID: id,
+      OwnExpensesID: OwnExpensesID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl +
+          "schedule/Schedule_detail/remove_Schedule_Detail_OwnExpenses",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return removeScheduleDetailOwnExpenses;
+});
+
+
+/**
+ *修改集散地
+ */
+productService.factory("editDistributing", function($http, $rootScope, showErrorInfo) {
+  var editDistributing = function(id,
+    postData, callBack) {
+    var param = {
+      productID: id,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "distributing/distributing_center/edit_Distributing",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editDistributing;
+});
+
+productService.factory("addDistributing", function($http, $rootScope, showErrorInfo) {
+  var editDistributing = function(id,
+    postData, callBack) {
+    var param = {
+      productID: id,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "distributing/distributing_center/add_Distributing",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editDistributing;
+});
+
+/**
+ *修改扩展信息
+ */
+productService.factory("editTeamtourExpand", function($http, $rootScope, showErrorInfo) {
+  var editTeamtourExpand = function(id,
+    postData, callBack) {
+    var param = {
+      productID: id,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/Expand/edit_expand",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editTeamtourExpand;
+});
+
+/**
+ *条件查找交通(废弃)
+ */
+productService.factory("findTraffic", function($http, $rootScope, showErrorInfo) {
+  var findTraffic = function(TrafficTypeID, Title, AddressID, ArriveAddressID, page, callBack) {
+    var param = {
+      TrafficTypeID: TrafficTypeID,
+      Title: Title,
+      AddressID: AddressID,
+      ArriveAddressID: ArriveAddressID,
+      page: page,
+      limit: $rootScope.embeddedPageLimt
+    };
+    HYhttp($http, {
+      url: productUrl + "general/general/findTraffic",
+      data: withoutFlaseKey(param),
+      method: "POST"
+    }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return findTraffic;
+});
+
+productService.factory("findTraffic", function($http, $rootScope, showErrorInfo) {
+  var findTraffic = function(TrafficTypeID, Title, AddressID, ArriveAddressID, page, callBack) {
+    var param = {
+      TrafficTypeID: TrafficTypeID,
+      Title: Title,
+      AddressID: AddressID,
+      ArriveAddressID: ArriveAddressID,
+      page: page,
+      limit: $rootScope.embeddedPageLimt
+    };
+    HYhttp($http, {
+      url: productUrl + "general/general/findTraffic",
+      data: withoutFlaseKey(param),
+      method: "POST"
+    }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return findTraffic;
+});
+
+/**
+ *根据 中文名称/英文名称/城市编码/城市简拼/区号/ 查找城市信息
+ */
+productService.factory("findAddressByKey", function($http, $rootScope) {
+  var findAddressByKey = function(key, callBack) {
+    var param = {
+      key: key,
+      page: 1,
+      limit: $rootScope.embeddedPageLimt,
+    };
+    return HYhttp(
+      $http, {
+        url: productUrl + "general/general/findAddressByKey",
+        data: param,
+        method: "POST"
+      });
+  };
+  return findAddressByKey;
+});
+
+/**
+ * [获取所有保险]
+ * @param  {[type]} 'getInsureClass' [description]
+ * @param  {[type]} function($http,  $rootScope    [description]
+ * @return {[type]}                  [description]
+ */
+productService.factory('getInsureClass', function($http, $rootScope, showErrorInfo) {
+  var GetInsureClass = function(callback) {
+    HYhttp($http, {
+      url: dreamFlyUrl + 'Insurance/DataView/GetInsurances',
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return GetInsureClass;
+});
+
+/**
+ * [添加保险(组团游)]
+ * @param  {[type]} 'getInsureClass' [description]
+ * @param  {[type]} function($http,  $rootScope    [description]
+ * @return {[type]}                  [description]
+ */
+productService.factory('addTeamtourInsurance', function($http, $rootScope, showErrorInfo) {
+  var addTeamtourInsurance = function(productID, insrance, callback) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(insrance)
+    };
+    HYhttp($http, {
+      url: productUrl + 'insurance/Insurance_detail/add_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addTeamtourInsurance;
+});
+
+/**
+ * [获取保险(组团游)]
+ * @param  {[type]} 'getInsureClass' [description]
+ * @param  {[type]} function($http,  $rootScope    [description]
+ * @return {[type]}                  [description]
+ */
+productService.factory('getTeamtourInsurance', function($http, $rootScope, showErrorInfo) {
+  var getTeamtourInsurance = function(productID, callback) {
+    var param = {
+      productID: productID,
+    };
+    HYhttp($http, {
+      url: productUrl + 'insurance/Insurance_detail/get_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getTeamtourInsurance;
+});
+
+/**
+ * 软删除保险(组团游)
+ * @param  {[type]} 'addTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('delTeamtourInsurance', function($http, $rootScope, showErrorInfo) {
+  var delTeamtourInsurance = function(productID, insuranceID, callback) {
+    var param = {
+      "productID": productID,
+      "insuranceID": insuranceID,
+    };
+    HYhttp($http, {
+      url: productUrl + 'insurance/Insurance_detail/del_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return delTeamtourInsurance;
+});
+
+/**
+ * [添加日程]
+ * @param  {[type]} 'delTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('addSchedule', function($http, $rootScope, showErrorInfo) {
+  var addSchedule = function(scheduleClassID, ProductID, AddInfo, CompanyInfo, ProductType, callback) {
+    var param = {
+      scheduleClassID: scheduleClassID,
+      postData: JSON.stringify({
+        "productID": ProductID,
+        "AddInfo": AddInfo,
+        'CompanyInfo': CompanyInfo,
+        'ProductType': ProductType
+      })
+    };
+    HYhttp($http, {
+      url: productUrl + 'schedule/schedule/add_Schedule',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addSchedule;
+});
+
+productService.factory('delSchedule', function($http, $rootScope, showErrorInfo) {
+  var addSchedule = function(scheduleID, callback) {
+    var param = {
+      scheduleID: scheduleID
+    };
+    HYhttp($http, {
+      url: productUrl + 'schedule/schedule/del_Schedule',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addSchedule;
+});
+
+/**
+ * [添加交通]
+ * @param  {[type]} 'addSchedule'   [description]
+ * @param  {[type]} function($http, $rootScope    [description]
+ * @return {[type]}                 [description]
+ */
+productService.factory('addScheduleDetailTraffic', function($http, $rootScope, showErrorInfo) {
+  var addScheduleDetailTraffic = function(scheduleID, postData, callback) {
+    var param = {
+      scheduleID: scheduleID,
+      postData: JSON.stringify({
+        "ForeignKeyID": postData.ForeignKeyID,
+        "Traffic": postData.Traffic,
+        "Note": postData.Note
+      })
+    };
+    HYhttp($http, {
+      url: productUrl + 'schedule/Schedule_detail/add_Schedule_Detail_Traffic',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addScheduleDetailTraffic;
+});
+
+/**
+ * [软删除交通]
+ * @param  {[type]} 'delTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('delScheduleDetailTraffic', function($http, $rootScope, showErrorInfo) {
+  var delScheduleDetailTraffic = function(scheduleID, trafficID, callback) {
+    var param = {
+      "scheduleID": scheduleID,
+      "trafficID": trafficID,
+    };
+    HYhttp($http, {
+      url: productUrl + 'schedule/Schedule_detail/del_Schedule_Detail_Traffic',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return delScheduleDetailTraffic;
+});
+
+/**
+ * [更新步骤状态]
+ * @param  {[type]} 'delTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ * 1(组团游) 2(自助游) 3(自驾游) 4(邮轮) 5(景区) 6(签证) 7(定制游)
+ */
+productService.factory('saveStepStatus', function($http, $rootScope, showErrorInfo) {
+  var saveStepStatus = function(id, step, flag, callback) {
+    var param = {
+      id: id,
+      step: step,
+      flag: flag
+    };
+    HYhttp($http, {
+      url: productUrl + 'products/enlarges/saveStepStatus',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return saveStepStatus;
+});
+
+/**
+ * [修改停/离靠港口信息(邮轮)]
+ * @param  {[type]} 'delTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('editPort', function($http, $rootScope, showErrorInfo) {
+  var editPort = function(scheduleID, postData, callback) {
+    var param = {
+      scheduleID: scheduleID,
+      postData: JSON.stringify(postData),
+    };
+    HYhttp($http, {
+      url: productUrl + 'schedule/schedule_portofcallx/edit_Portofcall',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return editPort;
+});
+
+/**
+ * [获取停/离靠港口信息(邮轮)]
+ * @param  {[type]} 'delTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('getPort', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(scheduleID, callback) {
+    var param = {
+      scheduleID: scheduleID,
+    };
+    HYhttp($http, {
+      url: productUrl + 'schedule/schedule_portofcallx/get_Portofcall',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+
+productService.factory('getHotelsByScehduleId', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(scheduleID, callback) {
+    var param = {
+      scheduleID: scheduleID,
+    };
+    HYhttp($http, {
+      url: productUrl + 'schedule/Schedule_detail/get_Schedule_Detail_Hotel',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+
+productService.factory('delTeamtourProduct', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(productID, callback) {
+    var param = {
+      id: productID,
+    };
+    HYhttp($http, {
+      url: productUrl + 'products/teamtours/deleteById',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+
+//1(组团游) 2(自助游) 3(自驾游) 4(邮轮) 5(景区) 6(签证) 7(定制游)
+productService.factory('updateProductShowStatus', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(data, callback) {
+    var param = {
+      type: data.type,
+      id: data.id,
+      status: data.status,
+    };
+    HYhttp($http, {
+      url: productUrl + 'products/enlarges/updateStatus',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+
+/**
+ * {Model: 表名, ID: 主键id}
+ */
+productService.factory('addProductSyncInfo', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(data, callback) {
+    HYhttp($http, {
+      url: dreamFlyUrl + 'WebService/Sync/addSyncInfo',
+      method: "POST",
+      data: data
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+
+//1(组团游) 2(自助游) 3(自驾游) 4(邮轮) 5(景区) 6(签证) 7(定制游)
+productService.factory('updateProductBelong', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(data, callback) {
+    var param = {
+      type: data.type,
+      product_id: data.id,
+      person_id: data.belong,
+    };
+    HYhttp($http, {
+      url: productUrl + 'products/enlarges/updateBelong',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+
+productService.factory('cloneScheduleClass', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(productID, scheduleID, postData, callback) {
+    var param = {
+      productID : productID,
+      scheduleID : scheduleID,
+      postData : JSON.stringify(postData),
+    };
+    HYhttp($http, {
+      url: productUrl + 'schedule/schedule_class/clone_Schedule_Class',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+
+productService.factory('editScheduleClass', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(scheduleClassID, postData, callback) {
+    var param = {
+      scheduleClassID : scheduleClassID,
+      postData : JSON.stringify(postData),
+    };
+    HYhttp($http, {
+      url: productUrl + 'schedule/Schedule_class/edit_Schedule_Class',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+productService.factory("getCruiseList", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(param1, callBack) {
+    //数据
+    var param = withoutFlaseKey(_.extend({
+      Title: '',
+      ProductGADDRId: '',
+      page: 1,
+      limit: pageLimit
+    }, param1));
+    HYhttp(
+      $http, {
+        url: productUrl + "products/cruises/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getCruiseDetail", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(id, callBack) {
+    var param = {
+      id: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/cruises/findOneById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+/*
+ * 获取产品扩展信息(组团游)
+ */
+productService.factory("getCruiseExpand", function($http, showErrorInfo) {
+  var getCruiseExpand = function(id, callBack) {
+    var param = {
+      productID: id
+    };
+    HYhttp($http, {
+      url: productUrl + "general/general_expand_cruisex/get_expand",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getCruiseExpand;
+});
+
+/**
+ *修改扩展信息
+ */
+productService.factory("editCruiseExpand", function($http, $rootScope, showErrorInfo) {
+  var editCruiseExpand = function(id,
+    postData, callBack) {
+    var param = {
+      productID: id,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general_expand_cruisex/edit_expand",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editCruiseExpand;
+});
+
+ /**
+ * [更新步骤状态]
+ * @param  {[type]} 'delTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ * 1(组团游) 2(自助游) 3(自驾游) 4(邮轮) 5(景区) 6(签证) 7(定制游)
+ */
+productService.factory('saveStepStatus', function($http, $rootScope, showErrorInfo) {
+  var saveStepStatus = function(id, step, flag, callback) {
+    var param = {
+      id: id,
+      step: step,
+      flag: flag
+    };
+    HYhttp($http, {
+      url: productUrl + 'products/enlarges/saveStepStatus',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return saveStepStatus;
+});
+
+/**
+ * [保存邮轮游基本信息]
+ * @param  {[type]} "saveBaseCruise" [description]
+ * @param  {[type]} function($http,    $rootScope    [description]
+ * @return {[type]}                    [description]
+ */
+productService.factory("saveBaseCruise", function($http, $rootScope, showErrorInfo) {
+  var saveBaseCruise = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp($http, {
+      url: productUrl + "products/cruises/editCruiseBaseInfo",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return saveBaseCruise;
+});
+
+/*
+ * 添加邮轮游基本信息
+ */
+productService.factory("addBaseCruise", function($http, $rootScope, showErrorInfo) {
+  var addBaseCruise = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp($http, {
+      url: productUrl + "products/cruises/addCruiseBaseInfo",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addBaseCruise;
+});
+
+/**
+ *添加邮轮套餐信息
+ */
+productService.factory("AddSightseeing", function($http, $rootScope, showErrorInfo) {
+  var AddSightseeing = function(id,
+    postData, callBack) {
+    var param = {
+      productID: id,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "package/package_cruises/add_Packages",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return AddSightseeing;
+});
+
+productService.factory("editCruiseSightseeing", function($http, $rootScope, showErrorInfo) {
+  var AddSightseeing = function(id, packageId,
+    postData, callBack) {
+    var param = {
+      productID: id,
+      PackagesID: packageId,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "package/package_cruises/edit_Packages",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return AddSightseeing;
+});
+
+/*
+ * 获取行程计划
+ */
+productService.factory("getScheduleClass", function($http, showErrorInfo) {
+  var getScheduleClassFactory = function(id, callBack) {
+    var param = {
+      productID: id,
+      limit:999999
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/Schedule_class/get_Schedule_Class",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getScheduleClassFactory;
+});
+
+/*
+ * 获取日程计划
+ */
+productService.factory("getSchedule", function($http, showErrorInfo) {
+  var getScheduleFactory = function(id, callBack) {
+    var param = {
+      scheduleClassID: id
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/schedule/get_Schedule",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getScheduleFactory;
+});
+/*
+ * 获取一天的日程详情
+ */
+productService.factory("getScheduleDetail", function($http, showErrorInfo) {
+  var getScheduleFactory = function(id, callBack) {
+    var param = {
+      scheduleID: id
+    };
+    HYhttp($http, {
+      url: productUrl + "schedule/Schedule_detail/get_Schedule_Detail",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getScheduleFactory;
+});
+
+
+productService.factory("delCruisePackage", function(_, $http, $rootScope, showErrorInfo) {
+  var delCruisePackage = function(productID, PackagesID, callBack) {
+    var param = {
+      productID: productID,
+      PackagesID: PackagesID
+    };
+    HYhttp($http, {
+      url: productUrl + "package/package_cruises/remove_Packages",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return delCruisePackage;
+});
+
+
+
+productService.factory("getCruiseAll", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(callBack) {
+    var param = {
+      page: 1,
+      limit: 9999
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general_cruises/getBasicsCruiseAll",
+        data: {
+					json: JSON.stringify(withoutFlaseKey(param))
+				},
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getCruiseRouteAll", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(callBack) {
+    var param = {
+      page: 1,
+      limit: 9999
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general_cruises/getBasicsCruiseRouteAll",
+        data: {
+					json: JSON.stringify(withoutFlaseKey(param))
+				},
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getCruiseRouteTypeAll", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(callBack) {
+    var param = {
+      page: 1,
+      limit: 9999
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general_cruises/getRouteTypeAll",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("delCruiseInsurance", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(productID, insuranceID, callBack) {
+    var param = {
+      productID: productID,
+      insuranceID: insuranceID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "insurance/insurance_cruise_detail/del_Insurance",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("addCruiseInsurance", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(productID, postData, callBack) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "insurance/insurance_cruise_detail/add_Insurance",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+
+productService.factory('delCruiseProduct', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(productID, callback) {
+    var param = {
+      id: productID,
+    };
+    HYhttp($http, {
+      url: productUrl + 'products/cruises/deleteById',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+//1(组团游) 2(自助游) 3(自驾游) 4(邮轮) 5(景区) 6(签证) 7(定制游)
+productService.factory('updateProductShowStatus', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(data, callback) {
+    var param = {
+      type: data.type,
+      id: data.id,
+      status: data.status,
+    };
+    HYhttp($http, {
+      url: productUrl + 'products/enlarges/updateStatus',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+
+productService.factory('getAllCruisePort', function($http, $rootScope, showErrorInfo) {
+  var getPort = function(page, limit, callback) {
+    var param = {
+      page: page,
+      limit: limit
+    };
+    HYhttp($http, {
+      url: baseUrl + 'common/cruise/getAllCruisePortList',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPort;
+});
+
+
+
+productService.factory("getCruiseBasicData", function($http, $rootScope, _, getCruiseAll, getCruiseRouteAll, getCruiseRouteTypeAll, getAllStartDestionation, getAllDestination,
+	getTeamtoursProductLineOwnership, getProductFormAll, getTravelGoodsAll, getProductLineAttribute, getLineTypeAll) {
+  return function(callBack) {
+    var data = {};
+    /*
+    var request = 0, requestNum = 10;
+
+    function requestOver(){
+      request++;
+      if(request >= requestNum)
+        callBack(data);
+    }
+
+    getCruiseAll(function(response){
+      data.allCruises = response;
+      requestOver();
+    });
+
+    getCruiseRouteAll(function(response){
+      data.allCruiseRoutes = response;
+      requestOver();
+    });
+
+    getCruiseRouteTypeAll(function(response){
+      data.allCruiseRouteTypes = response;
+      requestOver();
+    });
+
+    getAllDestination(function(response){
+      data.allDestinations = response;
+      requestOver();
+    });
+
+    getAllStartDestionation(function(response){
+      data.allStartDestinations = response;
+      requestOver();
+    });
+
+    getTeamtoursProductLineOwnership(function(response){
+      data.productLineOwnership = response;
+      requestOver();
+    });
+
+    getProductFormAll(function(response){
+      data.productFormAll = response;
+      requestOver();
+    });
+
+    getTravelGoodsAll(function(response){
+      data.travelGoodsAll = response;
+      requestOver();
+    });
+
+    getProductLineAttribute(function(response){
+      data.productLineAttribute = response;
+      requestOver();
+    });
+
+    getLineTypeAll(function(response){
+      data.lineTypeAll = response;
+      requestOver();
+    });
+    */
+
+    getCruiseAll(function(response) {
+      data.allCruises = response;
+      getCruiseRouteAll(function(nResponse) {
+        data.allCruiseRoutes = nResponse;
+        getCruiseRouteTypeAll(function(nnResponse) {
+          data.allCruiseRouteTypes = nnResponse;
+          getAllStartDestionation(function(nnnnResponse) {
+            data.allStartDestinations = nnnnResponse;
+						getTeamtoursProductLineOwnership(function(response1){
+							data.productLineOwnership = response1;
+							getProductFormAll(function(response2){
+								data.productFormAll = response2;
+								getTravelGoodsAll(function(response3){
+									data.travelGoodsAll = response3;
+									getProductLineAttribute(function(response4){
+										data.productLineAttribute = response4;
+										getLineTypeAll(function(response5){
+											data.lineTypeAll = response5;
+											callBack(data);
+										});
+									});
+								});
+							});
+						});
+          });
+        });
+      });
+    });
+  };
+});
+productService.factory("getScenicList", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(param1, callBack) {
+    //数据
+    var param = withoutFlaseKey(_.extend({
+      Title: '',
+      ProductGADDRId: '',
+      page: 1,
+      limit: pageLimit
+    }, param1));
+    HYhttp(
+      $http, {
+        url: productUrl + "products/scenics/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getScenicDetail", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(id, callBack) {
+    //数据
+    var param = {
+      id: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/scenics/findOneById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getAllScenicTypes", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack) {
+    var param = {
+      page: 1,
+      limit: 9999
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general_scenics/getBasicsViewspotTypeAll",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getAddrList", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack, parentid) {
+    var param = {
+      page: 1,
+      limit: 9999
+    };
+    if (parentid) {
+      param.parentid = parentid;
+    }
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general/getBasicsGADDRByLayer",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("delTicket", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack, ticketId) {
+    var param = {
+      ticketID: ticketId
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "scenicticket/scenicticketx/del_Ticket",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getTicketInsurance", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack, scenicID) {
+    var param = {
+      productID: scenicID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "insurance/insurance_scenicticket_detail/get_Insurance",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("delTicketInsurance", function($http, $rootScope, _, showErrorInfo) {
+  return function(scenicID, insuranceID, callBack) {
+    var param = {
+      productID: scenicID,
+      insuranceID: insuranceID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "insurance/insurance_scenicticket_detail/del_Insurance",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getScenicTickets", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack, scenicID) {
+    var param = {
+      scenicID: scenicID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "scenicticket/scenicticketx/get_Ticket",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("addTicketInsurance", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(productID, postData, callBack) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "insurance/insurance_scenicticket_detail/add_Insurance",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getScenicBasicData", function($http, $rootScope, _, getAllScenicTypes, getAddrList) {
+  return function(callBack, scenicID) {
+    var data = {};
+    data.countries = global.BasicGADDRInfo;
+    getAllScenicTypes(function(nResponse) {
+      data.scenicTypes = nResponse.list;
+      callBack(data);
+    });
+  };
+});
+
+productService.factory("delScenicById", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack, scenicID) {
+    var param = {
+      id: scenicID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/scenics/deleteById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("addScenicTicket", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack, scenicID, data) {
+    var param = {
+      scenicID: scenicID,
+      postData: JSON.stringify(data)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "scenicticket/scenicticketx/add_Ticket",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("saveDetailDescription", function($http, $rootScope, _, showErrorInfo) {
+  return function(scenicID, data, callBack) {
+    var param = {
+      id: scenicID,
+      DetailDescription: data
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/scenics/saveDetailDescription",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+//EProductTypes
+productService.factory("getProductLineOwnershipData", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack, LineTypeid) {
+    var param = {
+      LineTypeid: LineTypeid
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/CommonData/ProductLineOwnershipData",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("saveScinecBasicData", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack, param) {
+    HYhttp(
+      $http, {
+        url: productUrl + "products/scenics/saveBaseInfo",
+        data: {json: JSON.stringify(param)},
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("addScinecBasicData", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack, param) {
+    HYhttp(
+      $http, {
+        url: productUrl + "products/scenics/addBaseInfo",
+        data: {json: JSON.stringify(param)},
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+/*
+ * 计划相关服务
+ */
+productService.factory("getTeamtourPlanList", function($http, $rootScope, _, showErrorInfo) {
+  var teamtourPlanList = function(param1, callBack) {
+    var param = withoutFlaseKey(_.extend({
+      ProductID: '',
+      StartTime: ''
+    }, param1));
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/findProductPlanByProductIDAndMonthListAll",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+					result.ProductID = param1.ProductID;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return teamtourPlanList;
+});
+
+//json={"type":1,"keyword":"香港","Station":"000000000000000000000001","order":1,"StartTime":"1295193600,1305293600"}
+//type:1组团 2自由 3邮轮
+//keyword:搜索的关键词
+//Station:站点id
+//order:0无订单 1有订单
+//StartTime:发团时间
+productService.factory("getProductPlanList", function($http, $rootScope, _, showErrorInfo) {
+  var teamtourPlanList = function(param1, callBack) {
+    var param = withoutFlaseKey(_.extend({
+      type: 1,
+      IsDel: 0,
+      //page: 1,
+      limit: 25,
+      expire: 0,
+      keyword: '',
+      Station: '',
+      order: '',
+      StartTime: '',
+    }, param1));
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data;
+          callBack(result);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return teamtourPlanList;
+});
+
+
+
+//计划里面获得邮轮的基础信息
+productService.factory("getShipPlanDetail", function($http, $rootScope, _, showErrorInfo) {
+  var shipPlanDetail = function(id, callBack) {
+    var param = {
+      ID: id,
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/BasicsLiner/BasicsCruiseDataByID",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return shipPlanDetail;
+});
+
+productService.factory("getTeamtourPlanDetail", function($http, $rootScope, _, showErrorInfo) {
+  var teamtourPlanList = function(id, callBack) {
+    var param = {
+      id: id,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/findProductPlanById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return teamtourPlanList;
+});
+
+productService.factory("getTeamtourPlanPrice", function($http, $rootScope, _, showErrorInfo) {
+  var teamtourPlanPrice = function(id, callBack) {
+    var param = {
+      id: id,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/findProductPlanPrice",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return teamtourPlanPrice;
+});
+
+//批量添加组团游计划与计划价格
+productService.factory("addTeamtourProductPlanBatch", function($http, $rootScope, _, showErrorInfo) {
+  var addTeamtourProductPlanBatch = function(json, callBack) {
+    var param = {
+      json: JSON.stringify(json),
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/addTeamtourProductPlanBatch",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addTeamtourProductPlanBatch;
+});
+
+//批量修改组团游计划与计划价格
+productService.factory("editTeamtourProductPlanBatch", function($http, $rootScope, _, showErrorInfo) {
+  var editTeamtourProductPlanBatch = function(json, callBack) {
+    var param = {
+      json: JSON.stringify(json),
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/editTeamtourProductPlanBatch",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editTeamtourProductPlanBatch;
+});
+
+//根据id删除计划价格
+productService.factory("delProductPlanPriceById", function($http, $rootScope, _, showErrorInfo) {
+  var delProductPlanPriceById = function(id, callBack) {
+    var param = {
+      id: id,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/delProductPlanPriceById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return delProductPlanPriceById;
+});
+
+//根据id软删除计划
+productService.factory("delProductPlanById", function($http, $rootScope, _, showErrorInfo) {
+  var delProductPlanById = function(id, callBack) {
+    var param = {
+      id: id,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/delProductPlanById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        console.log(response.data);
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return delProductPlanById;
+});
+
+
+//根据id软删除计划
+productService.factory("deleteIndependenttravelProductPlanProject", function($http, $rootScope, _, showErrorInfo) {
+  var deleteIndependenttravelProductPlanProject = function(id,baseid, callBack) {
+    var param = {
+      id: id,
+      baseid:baseid
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/deleteIndependenttravelProductPlanProject",
+         data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        console.log(response.data);
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return deleteIndependenttravelProductPlanProject;
+});
+
+productService.factory("getTeamListByPlanId", function($http, $rootScope, _, showErrorInfo) {
+  var getTeamListByPlanId = function(id, callBack) {
+    var param = {
+      PlanId: id,
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Team/Team/GetTeamListByPlanId",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTeamListByPlanId;
+});
+
+productService.factory("orderTransferTeam", function($http, $rootScope, _, showErrorInfo) {
+  var getTeamListByPlanId = function(data, callBack) {
+    var param = {
+      RequestData: JSON.stringify(data),
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Team/Team/OrderTransferTeam",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTeamListByPlanId;
+});
+
+productService.factory("addTeamByPlan", function($http, $rootScope, _, showErrorInfo) {
+  var getTeamListByPlanId = function(PlanId, ProductType, callBack) {
+    var param = {
+      PlanId: PlanId,
+      ProductType: ProductType,
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Team/Team/AddTeamByProductOrPlan",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTeamListByPlanId;
+});
+
+productService.factory("addPlanCars", function($http, $rootScope, _, showErrorInfo) {
+  var getTeamListByPlanId = function(PlanId, data, callBack) {
+    var param = {
+      id: PlanId,
+      json: JSON.stringify(data)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/saveCars",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTeamListByPlanId;
+});
+
+productService.factory("delPlanCars", function($http, $rootScope, _, showErrorInfo) {
+  var getTeamListByPlanId = function(PlanId, carId, callBack) {
+    var param = {
+      id: PlanId,
+      car_id: carId
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/delCars",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getTeamListByPlanId;
+});
+
+//批量添加邮轮计划与计划价格
+productService.factory("addCruiseProductPlanBatch", function($http, $rootScope, _, showErrorInfo) {
+  var addCruiseProductPlanBatch = function(json, callBack) {
+    var param = {
+      json: JSON.stringify(json),
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/addCruiseProductPlanBatch",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addCruiseProductPlanBatch;
+});
+
+//批量修改邮轮计划与计划价格
+productService.factory("editCruiseProductPlanBatch", function($http, $rootScope, _, showErrorInfo) {
+  var editCruiseProductPlanBatch = function(json, callBack) {
+    var param = {
+      json: JSON.stringify(json),
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/editCruiseProductPlanBatch",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editCruiseProductPlanBatch;
+});
+
+
+//批量添加自助游计划与计划价格
+productService.factory("addIndependenttravelProductPlanBatch", function($http, $rootScope, _, showErrorInfo) {
+  var addIndependenttravelProductPlanBatch = function(json, callBack) {
+    var param = {
+      json: angular.toJson(json),
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/addIndependenttravelProductPlanBatch",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addIndependenttravelProductPlanBatch;
+});
+
+
+
+
+
+
+//批量修改自助游计划与计划价格
+productService.factory("editIndependenttravelProductPlanBatch", function($http, $rootScope, _, showErrorInfo) {
+  var editIndependenttravelProductPlanBatch = function(json, callBack) {
+    var param = {
+      json: JSON.stringify(json),
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/editIndependenttravelProductPlanBatch",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editIndependenttravelProductPlanBatch;
+});
+
+
+//单独添加自助游方案
+productService.factory("addIndependenttravelProductPlanProject", function($http, $rootScope, _, showErrorInfo) {
+  var addIndependenttravelProductPlanProject = function(json, callBack) {
+    var param = {
+      json: JSON.stringify(json),
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/addIndependenttravelProductPlanProject",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addIndependenttravelProductPlanProject;
+});
+
+//单独修改自助游方案
+productService.factory("editIndependenttravelProductPlanProject", function($http, $rootScope, _, showErrorInfo) {
+  var editIndependenttravelProductPlanProject = function(json, callBack) {
+    var param = {
+      json: JSON.stringify(json),
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/editIndependenttravelProductPlanProject",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editIndependenttravelProductPlanProject;
+});
+
+productService.factory("addTrafficScheme", function($http, $rootScope, _, showErrorInfo) {
+  var addTrafficScheme = function(id, json, callBack) {
+    var param = {
+      id: id,
+      json:JSON.stringify(json)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "productplans/productplans/addIndependenttravelProductPlanProject",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addTrafficScheme;
+});
+
+productService.factory("getOrdersByPlanID", function($http, $rootScope, _, showErrorInfo) {
+  var addTrafficScheme = function(id, callBack) {
+    var param = {
+      PlanID: id,
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "Order/OrderIndependenttravel/AllOrderPlan",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addTrafficScheme;
+});
+/**
+ * [获取自驾游产品]
+ * @param  {[type]} "getTeamtourList" [description]
+ * @param  {[type]} function($http,   $rootScope,   _ [description]
+ * @return {[type]}                   [description]
+ */
+productService.factory("getDrivingtourList", function($http, $rootScope, _, showErrorInfo) {
+  var getDrivingtourList = function(param1, callBack) {
+    var param = _.extend({
+      Title: '',
+      EmployeeDepartmentID: '',
+      StartGADDRId: '',
+      ShowStatus: '',
+      AddTime: '',
+      page: 1,
+      limit: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: productUrl + "products/selfdrivingtours/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getDrivingtourList;
+});
+
+productService.factory("getDrivingtourDetail", function($http, $rootScope, _, showErrorInfo) {
+  /**
+   * [获取自驾游详情]
+   * @param  {[type]} id       [产品ID]
+   * @param  {[type]} callBack [description]
+   * @return {[type]}          [description]
+   */
+  var getDrivingtourDetail = function(id, callBack) {
+    var param = {
+      id: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/selfdrivingtours/findOneById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getDrivingtourDetail;
+});
+
+productService.factory("getDrivingtourPackages", function($http, $rootScope, _, showErrorInfo) {
+  /**
+   * [获取自驾游套餐]
+   * @param  {[type]} id       [产品ID]
+   * @param  {[type]} callBack [description]
+   * @return {[type]}          [description]
+   */
+  var getDrivingtourPackages = function(id, callBack) {
+    var param = {
+      productID: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "package/package_selfdrivingtours/get_Packages",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getDrivingtourPackages;
+});
+
+productService.factory("delDrivingtourPackage", function($http, $rootScope, _, showErrorInfo) {
+  /**
+   * [软删除自驾游套餐信息(自驾游)]
+   * @param  {[type]} id       [套餐ID]
+   * @param  {[type]} callBack [description]
+   * @return {[type]}          [description]
+   */
+  var delDrivingtourPackage = function(id, callBack) {
+    var param = {
+      packagesID: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "package/package_selfdrivingtours/del_Packages",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return delDrivingtourPackage;
+});
+
+/**
+ * 软删除保险(自驾游)
+ * @param  {[type]} 'addTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('delDrivingtourtourInsurance', function($http, $rootScope, showErrorInfo) {
+  var delDrivingtourtourInsurance = function(productID, insuranceID, callback) {
+    var param = {
+      "productID": productID,
+      "insuranceID": insuranceID,
+    };
+    HYhttp( $http, {
+      url: productUrl + 'insurance/insurance_selfdrivingtours_detail/del_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return delDrivingtourtourInsurance;
+});
+
+/**
+ * 获取保险(自驾游)
+ * @param  {[type]} 'addTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('getDrivingtourInsurance', function($http, $rootScope, showErrorInfo) {
+  var getDrivingtourInsurance = function(productID, callback) {
+    var param = {
+      "productID": productID,
+    };
+    HYhttp( $http, {
+      url: productUrl + 'insurance/insurance_selfdrivingtours_detail/get_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getDrivingtourInsurance;
+});
+
+/**
+ * [添加保险(自驾游)]
+ * @param  {[type]} 'getInsureClass' [description]
+ * @param  {[type]} function($http,  $rootScope    [description]
+ * @return {[type]}                  [description]
+ */
+productService.factory('addDrivingtourInsurance', function($http, $rootScope, showErrorInfo) {
+  var addDrivingtourInsurance = function(productID, insrance, callback) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(insrance)
+    };
+    HYhttp( $http, {
+      url: productUrl + 'insurance/insurance_selfdrivingtours_detail/add_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addDrivingtourInsurance;
+});
+
+/**
+ * [获取自驾游扩展说明(自驾游)]
+ * @param  {[type]} 'getInsureClass' [description]
+ * @param  {[type]} function($http,  $rootScope    [description]
+ * @return {[type]}                  [description]
+ */
+productService.factory('addDrivingtourExpand', function($http, $rootScope, showErrorInfo) {
+  var addDrivingtourExpand = function(productID, callback) {
+    var param = {
+      productID: productID
+    };
+    HYhttp( $http, {
+      url: productUrl + 'general/General_expand_selfdrivingtourx/get_expand',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addDrivingtourExpand;
+});
+
+/*
+ * 添加自驾游基本信息
+ */
+productService.factory("addBaseDrivingtour", function($http, $rootScope, showErrorInfo) {
+  var addBaseDrivingtour = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp( $http, {
+      url: productUrl + "products/selfdrivingtours/addBaseInfo",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addBaseDrivingtour;
+});
+
+/**
+ * [保存自驾游基本信息]
+ * @param  {[type]} "saveBaseTeamtour" [description]
+ * @param  {[type]} function($http,    $rootScope    [description]
+ * @return {[type]}                    [description]
+ */
+productService.factory("saveBaseDrivingtour", function($http, $rootScope, showErrorInfo) {
+  var saveBaseDrivingtour = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp( $http, {
+      url: productUrl + "products/selfdrivingtours/saveBaseInfo",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return saveBaseDrivingtour;
+});
+
+/**
+ *修改扩展信息
+ */
+productService.factory("editDriningtourExpand", function($http, $rootScope, showErrorInfo) {
+  var editDriningtourExpand = function(id, postData, callBack) {
+    var param = {
+      productID: id,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/General_expand_selfdrivingtourx/edit_expand",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editDriningtourExpand;
+});
+
+productService.factory("editDriningtourPackages", function($http, $rootScope, showErrorInfo) {
+  var editDriningtourExpand = function(id, packageId, postData, callBack) {
+    var param = {
+      productID: id,
+      packagesID: packageId,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "package/package_selfdrivingtours/edit_Packages",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editDriningtourExpand;
+});
+
+productService.factory("addDriningtourPackages", function($http, $rootScope, showErrorInfo) {
+  var editDriningtourExpand = function(id, postData, callBack) {
+    var param = {
+			productID: id,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "package/package_selfdrivingtours/add_Packages",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editDriningtourExpand;
+});
+
+productService.factory("delDriningtourById", function($http, $rootScope, showErrorInfo) {
+  var editDriningtourExpand = function(id, callBack) {
+    var param = {
+			id: id,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/selfdrivingtours/deleteById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editDriningtourExpand;
+});
+
+productService.factory("getCostListProduct", function ($http,$rootScope) {
+    return function (param, callBack) {
+        HYhttp(
+            $http, {
+                url: productUrl + "cost/costs/findList",
+                data: {
+                    json: JSON.stringify(withoutFlaseKey(param))
+                },
+                method: "POST"
+            }).then(
+            function (response) {
+                if (response.data.code >= 700 && response.data.code < 800) {
+                    callBack(response.data.data);
+                } else {
+                    //showErrorInfo(response.data);
+                }
+            },
+            function () {
+            });
+    };
+});
+
+productService.factory('saveDrivingCustomerTrip', function($http, $rootScope, showErrorInfo) {
+  var getFreetourInsurance = function(productID, trip, callback) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify({Reminderiddescription: trip})
+    };
+    HYhttp( $http, {
+      url: productUrl + 'customtravel/custom_travel_drivingx/save_Custom_Travel',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getFreetourInsurance;
+});
+
+productService.factory('getDrivingCustomerTrip', function($http, $rootScope, showErrorInfo) {
+  var getFreetourInsurance = function(productID, callback) {
+    var param = {
+      productID: productID
+    };
+    HYhttp( $http, {
+      url: productUrl + 'customtravel/custom_travel_drivingx/get_Custom_Travel',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getFreetourInsurance;
+});
+/**
+ * [获取定制游产品]
+ * @param  {[type]} "getTeamtourList" [description]
+ * @param  {[type]} function($http,   $rootScope,   _ [description]
+ * @return {[type]}                   [description]
+ */
+productService.factory("getCustomizedtourList", function($http, $rootScope,showErrorInfo, _) {
+  var getCustomizedtourList = function(param1, callBack) {
+    var param = _.extend({
+      Title: '',
+      EmployeeDepartmentID: '',
+      StartGADDRId: '',
+      ShowStatus: '',
+      AddTime: '',
+      page: 1,
+      limit: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: productUrl + "products/customtours/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getCustomizedtourList;
+});
+
+productService.factory("getCustomizedtourDetail", function($http, $rootScope,showErrorInfo, _) {
+  var getCustomizedtourDetail = function(id, callBack) {
+    var param = {
+      id: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/customtours/findOneById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          console.log(response.data);
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getCustomizedtourDetail;
+});
+
+/*
+ * 获取产品扩展信息(定制游)
+ */
+productService.factory("getCustomizedtourExpand", function(showErrorInfo,$http) {
+  var getCustomizedtourExpand = function(id, callBack) {
+    var param = {
+      productID: id
+    };
+    HYhttp( $http, {
+      url: productUrl + "general/General_expand_customtourx/get_expand/",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getCustomizedtourExpand;
+});
+
+/*
+ * 修改扩展信息(自助游)
+ */
+productService.factory("editCustomizedtourExpand", function($http, showErrorInfo,$rootScope) {
+  var editCustomizedtourExpand = function(productID, postData, callBack) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp( $http, {
+      url: productUrl + "general/General_expand_customtourx/edit_expand/",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return editCustomizedtourExpand;
+});
+
+/**
+ * [保存定制游基本信息]
+ * @param  {[type]} "saveBaseTeamtour" [description]
+ * @param  {[type]} function($http,    $rootScope    [description]
+ * @return {[type]}                    [description]
+ */
+productService.factory("saveBaseCustomizedtour", function($http, showErrorInfo,$rootScope) {
+  var saveBaseCustomizedtour = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp( $http, {
+      url: productUrl + "products/customtours/saveBaseInfo",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return saveBaseCustomizedtour;
+});
+
+/*
+ * 添加定制游基本信息
+ */
+productService.factory("addBaseCustomizedtour", function($http, $rootScope,showErrorInfo) {
+  var addBaseCustomizedtour = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    console.log(param);
+    HYhttp( $http, {
+      url: productUrl + "products/customtours/addBaseInfo",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addBaseCustomizedtour;
+});
+
+
+/**
+ * [添加保险(定制游)]
+ * @param  {[type]} 'getInsureClass' [description]
+ * @param  {[type]} function($http,  $rootScope    [description]
+ * @return {[type]}                  [description]
+ */
+productService.factory('addCustomizedtourInsurance', function($http, $rootScope,showErrorInfo) {
+  var addCustomizedtourInsurance = function(productID, insrance, callback) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(insrance)
+    };
+    console.log(param);
+    HYhttp( $http, {
+      url: productUrl + 'insurance/Insurance_customtour_detail/add_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        console.log(response.data);
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addCustomizedtourInsurance;
+});
+
+/**
+ * 软删除保险(定制游)
+ * @param  {[type]} 'addTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('delCustomizedtourInsurance', function($http, $rootScope,showErrorInfo) {
+  var delCustomizedtourInsurance = function(productID, insuranceID, callback) {
+    var param = {
+      "productID": productID,
+      "insuranceID": insuranceID,
+    };
+    HYhttp( $http, {
+      url: productUrl + 'insurance/Insurance_customtour_detail/del_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return delCustomizedtourInsurance;
+});
+
+/**
+ * 获取保险(定制游)
+ * @param  {[type]} 'addTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('getCustomizedtourInsurance', function($http, $rootScope,showErrorInfo) {
+  var getCustomizedtourInsurance = function(productID, callback) {
+    var param = {
+      "productID": productID
+    };
+    HYhttp( $http, {
+      url: productUrl + 'insurance/Insurance_customtour_detail/get_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getCustomizedtourInsurance;
+});
+
+/**
+ * 获取集散地(定制游)
+ * @param  {[type]} 'addTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('getCustomizedtourDistributing', function($http, $rootScope,showErrorInfo) {
+  var getCustomizedtourDistributing = function(productID, callback) {
+    var param = {
+      "productID": productID,
+    };
+    HYhttp( $http, {
+      url: productUrl + 'distributing/distributing_center_customtour/get_distributing',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getCustomizedtourDistributing;
+});
+
+/**
+ *修改定制游集散地
+ */
+productService.factory("editCustomizedtourDistributing", function($http, $rootScope,showErrorInfo) {
+  var editCustomizedtourDistributing = function(id,
+    postData, callBack) {
+    var param = {
+      productID: id,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "distributing/distributing_center_customtour/edit_Distributing",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return editCustomizedtourDistributing;
+});
+
+productService.factory("addCustomizedtourDistributing", function($http, $rootScope,showErrorInfo) {
+  var addCustomizedtourDistributing = function(id,
+    postData, callBack) {
+    var param = {
+      productID: id,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "distributing/distributing_center_customtour/add_Distributing",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return addCustomizedtourDistributing;
+});
+
+productService.factory("delCustomizedtourById", function($http, $rootScope,showErrorInfo) {
+  var delCustomizedtourDistributing = function(id, callBack) {
+    var param = {
+      id: id,
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/customtours/deleteById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return delCustomizedtourDistributing;
+});
+/**
+ * [获取自助游产品]
+ * @param  {[type]} "getTeamtourList" [description]
+ * @param  {[type]} function($http,   $rootScope,   _ [description]
+ * @return {[type]}                   [description]
+ */
+productService.factory("getFreetourList", function($http, $rootScope, _, showErrorInfo) {
+  var getFreetourList = function(param1, callBack) {
+    var param = _.extend({
+      Title: '',
+      EmployeeDepartmentID: '',
+      StartGADDRId: '',
+      ShowStatus: '',
+      AddTime: '',
+      page: 1,
+      limit: pageLimit
+    }, param1);
+    HYhttp(
+      $http, {
+        url: productUrl + "products/independenttravels/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getFreetourList;
+});
+
+productService.factory("getFreetourDetail", function($http, $rootScope, _, showErrorInfo) {
+  var getFreetourDetail = function(id, callBack) {
+    var param = {
+      id: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/independenttravels/findOneById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+  return getFreetourDetail;
+});
+
+/*
+ * 获取自定义行程(自助游)
+ */
+productService.factory("getFreetourTravel", function($http, showErrorInfo) {
+  var getFreetourTravel = function(id, callBack) {
+    var param = {
+      productID: id
+    };
+    HYhttp( $http, {
+      url: productUrl + "customtravel/custom_travel_independenttravelx/get_Custom_Travel",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getFreetourTravel;
+});
+
+
+/*
+ * 获取产品扩展信息(自助游)
+ */
+productService.factory("getFreetourExpand", function($http, showErrorInfo) {
+  var getFreetourExpand = function(id, callBack) {
+    var param = {
+      productID: id
+    };
+    HYhttp( $http, {
+      url: productUrl + "general/general_expand_independenttravelx/get_expand",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getFreetourExpand;
+});
+
+/**
+ * [保存自助游基本信息]
+ * @param  {[type]} "saveBaseTeamtour" [description]
+ * @param  {[type]} function($http,    $rootScope    [description]
+ * @return {[type]}                    [description]
+ */
+productService.factory("saveBaseFreetour", function($http, $rootScope, showErrorInfo) {
+  var saveBaseFreetour = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp( $http, {
+      url: productUrl + "products/independenttravels/saveBaseInfo",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return saveBaseFreetour;
+});
+
+/*
+ * 添加自助游基本信息
+ */
+productService.factory("addBaseFreetour", function($http, $rootScope, showErrorInfo) {
+  var addBaseFreetour = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp( $http, {
+      url: productUrl + "products/independenttravels/addBaseInfo",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addBaseFreetour;
+});
+
+/*
+ * 添加自助游套餐信息
+ */
+productService.factory("addPackages", function($http, $rootScope, showErrorInfo) {
+  var addPackages = function(productID, param1, callBack) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp( $http, {
+      url: productUrl + "package/package_independent_travel/add_Packages",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addPackages;
+});
+
+/*
+ * 添加自助游套餐信息
+ */
+productService.factory("addPackagesMulti", function($http, $rootScope, showErrorInfo) {
+  var addPackages = function(productID, param1, callBack) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(param1)
+    };
+    HYhttp( $http, {
+      url: productUrl + "package/package_independent_travel/save_ALot",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addPackages;
+});
+
+/*
+ * 获取自助游套餐信息
+ */
+productService.factory("getPackages", function($http, $rootScope, showErrorInfo) {
+  var getPackages = function(productID, callBack) {
+    var param = {
+      productID: productID
+    };
+    HYhttp( $http, {
+      url: productUrl + "package/package_independent_travel/get_Packages",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getPackages;
+});
+
+/*
+ * 软删除自助游套餐信息(自助游)
+ */
+productService.factory("delPackages", function($http, $rootScope, showErrorInfo) {
+  var delPackages = function(productID, packagesID, callBack) {
+    var param = {
+      productID: productID,
+      packagesID: packagesID
+    };
+    HYhttp( $http, {
+      url: productUrl + "package/package_independent_travel/del_Packages",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return delPackages;
+});
+
+/*
+ * 修改扩展信息(自助游)
+ */
+productService.factory("editFreetourExpand", function($http, $rootScope, showErrorInfo) {
+  var editFreetourExpand = function(productID, postData, callBack) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp( $http, {
+      url: productUrl + "general/general_expand_independenttravelx/edit_expand",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return editFreetourExpand;
+});
+
+/**
+ * 软删除保险(自助游)
+ * @param  {[type]} 'addTeamtourInsurance' [description]
+ * @param  {[type]} function($http,        $rootScope    [description]
+ * @return {[type]}                        [description]
+ */
+productService.factory('delFreetourInsurance', function($http, $rootScope, showErrorInfo) {
+  var delFreetourInsurance = function(productID, insuranceID, callback) {
+    var param = {
+      "productID": productID,
+      "insuranceID": insuranceID,
+    };
+    HYhttp( $http, {
+      url: productUrl + 'insurance/insurance_independenttravel_detail/del_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return delFreetourInsurance;
+});
+
+/**
+ * [添加保险(自助游)]
+ * @param  {[type]} 'getInsureClass' [description]
+ * @param  {[type]} function($http,  $rootScope    [description]
+ * @return {[type]}                  [description]
+ */
+productService.factory('addFreetourInsurance', function($http, $rootScope, showErrorInfo) {
+  var addFreetourInsurance = function(productID, insrance, callback) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(insrance)
+    };
+    HYhttp( $http, {
+      url: productUrl + 'insurance/insurance_independenttravel_detail/add_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addFreetourInsurance;
+});
+
+/**
+ * [获取保险(自助游)]
+ * @param  {[type]} 'getInsureClass' [description]
+ * @param  {[type]} function($http,  $rootScope    [description]
+ * @return {[type]}                  [description]
+ */
+productService.factory('getFreetourInsurance', function($http, $rootScope, showErrorInfo) {
+  var getFreetourInsurance = function(productID, callback) {
+    var param = {
+      productID: productID
+    };
+    HYhttp( $http, {
+      url: productUrl + 'insurance/insurance_independenttravel_detail/get_Insurance',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getFreetourInsurance;
+});
+
+productService.factory('delFreetourProduct', function($http, $rootScope, showErrorInfo) {
+  var getFreetourInsurance = function(productID, callback) {
+    var param = {
+      id: productID
+    };
+    HYhttp( $http, {
+      url: productUrl + 'products/independenttravels/deleteById',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getFreetourInsurance;
+});
+
+productService.factory('saveFreetourCustomerTrip', function($http, $rootScope, showErrorInfo) {
+  var getFreetourInsurance = function(productID, trip, callback) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify({Reminderiddescription: trip})
+    };
+    HYhttp( $http, {
+      url: productUrl + 'customtravel/custom_travel_independenttravelx/save_Custom_Travel',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getFreetourInsurance;
+});
+
+productService.factory('getFreetourCustomerTrip', function($http, $rootScope, showErrorInfo) {
+  var getFreetourInsurance = function(productID, callback) {
+    var param = {
+      productID: productID
+    };
+    HYhttp( $http, {
+      url: productUrl + 'customtravel/custom_travel_independenttravelx/get_Custom_Travel',
+      method: "POST",
+      data: param
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return getFreetourInsurance;
+});
+productService.factory("getVisaList", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(param1, callBack) {
+    //数据
+    var param = withoutFlaseKey(_.extend({
+      Title: '',
+      VisaGADDRID: '',
+      VisaTypeID: '',
+      page: 1,
+      limit: pageLimit
+    }, param1));
+    HYhttp(
+      $http, {
+        url: productUrl + "products/visas/findList",
+        data: {
+          json: JSON.stringify(withoutFlaseKey(param))
+        },
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getVisaDetail", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(id, callBack) {
+    //数据
+    var param = {
+      id: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/visas/findOneById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("delVisaById", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(id, callBack) {
+    //数据
+    var param = {
+      id: id
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/visas/deleteById",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getAllVisaMaterialTypes", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack) {
+    var param = {
+      page: 1,
+      limit: 9999
+    };
+    HYhttp(
+      $http, {
+        url: dreamFlyUrl + "BasicData/BasicsVisa/BasicsVisaMaterialTypeData",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getAllVisaTypes", function($http, $rootScope, _, showErrorInfo) {
+  return function(callBack) {
+    var param = {
+      page: 1,
+      limit: 9999
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general/getBasicsVisaType",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("delVisaInsurance", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(productID, insuranceID, callBack) {
+    var param = {
+      productID: productID,
+      insuranceID: insuranceID
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "insurance/insurance_visa_detail/del_Insurance",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("addVisaInsurance", function($http, $rootScope, _, showErrorInfo) {
+
+  return function(productID, postData, callBack) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "insurance/insurance_visa_detail/add_Insurance",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("editVisaExpand", function($http, $rootScope, _, showErrorInfo) {
+  return function(productID, postData, callBack) {
+    var param = {
+      productID: productID,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "general/general_expand_visax/edit_expand",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("editVisaMaterials", function($http, $rootScope, _, showErrorInfo) {
+  return function(visaID, postData, callBack) {
+    var param = {
+      visaID: visaID,
+      postData: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "materials/Materials_visa/save_VisaMaterials",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },  function() {});
+  };
+});
+
+productService.factory("addVisaProduct", function($http, $rootScope, _, showErrorInfo) {
+  return function(postData, callBack) {
+    var param = {
+      json: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/visas/addVisa",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("saveVisaProduct", function($http, $rootScope, _, showErrorInfo) {
+  return function(postData, callBack) {
+    var param = {
+      json: JSON.stringify(postData)
+    };
+    HYhttp(
+      $http, {
+        url: productUrl + "products/visas/saveVisa",
+        data: param,
+        method: "POST"
+      }).then(
+      function(response) {
+        if (response.data.code >= 700 && response.data.code < 800) {
+          callBack(response.data);
+        } else {
+          showErrorInfo(response.data);
+        }
+      },
+      function() {});
+  };
+});
+
+productService.factory("getVisaBasicData", function($http, $rootScope, _, getAllVisaMaterialTypes, getAllVisaTypes) {
+  return function(callBack) {
+		var data = {};
+    getAllVisaMaterialTypes(function(response){
+			data.materialTypes = response;
+			getAllVisaTypes(function(nResponse){
+				data.visaTypes = nResponse;
+				callBack(data);
+			});
+		});
+  };
+});
+
+/**
+ *
+ * @param  {[type]} "saveBaseCruise" [description]
+ * @param  {[type]} function($http,    $rootScope    [description]
+ * @return {[type]}                    [description]
+ */
+productService.factory("saveBaseVisa", function($http, $rootScope, showErrorInfo) {
+  var saveBaseVisa = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp($http, {
+      url: productUrl + "products/visas/saveVisa",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return saveBaseVisa;
+});
+
+productService.factory("addBaseVisa", function($http, $rootScope, showErrorInfo) {
+  var addBaseVisa = function(param1, callBack) {
+    var param = {
+      json: JSON.stringify(param1)
+    };
+    HYhttp($http, {
+      url: productUrl + "products/visas/addVisa",
+      data: param,
+      method: "POST"
+    }).then(function(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callBack(response.data);
+      } else {
+        showErrorInfo(response.data);
+      }
+    }, function() {});
+  };
+  return addBaseVisa;
+});

@@ -1,0 +1,99 @@
+/*------------------------------------------------------------
+初始化样式
+------------------------------------------------------------*/
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td { margin: 0; padding: 0; background: transparent; border: 0; outline: 0; font-size: 100%; vertical-align: baseline; }
+a { cursor: pointer; }
+td { word-break: break-all; }
+ol, ul { list-style: none; }
+blockquote, q { quotes: none; }
+:focus { outline: 0; }
+ins { text-decoration: none; }
+del { text-decoration: line-through; }
+table { border-collapse: collapse; border-spacing: 0; }
+a { color: #333; text-decoration: none; }
+a:visited { text-decoration: none; }
+a:hover { color: #428bca; text-decoration: none; }
+a:active { text-decoration: none; }
+a.underline { text-decoration: underline; }
+.floatL { float: left; }
+.floatR { float: right; }
+.algin_right { text-align: right; }
+.ml5 { margin-left: 5px; }
+.right_algin { text-align: right; }
+.mr5 { margin-right: 5px; }
+.mt4 { margin-top: 4px; }
+.mb5 { margin-bottom: 5px; }
+.ml10 { margin-left: 10px; }
+.ml15 { margin-left: 15px; }
+.mt10 { margin-top: 10px; }
+.ml20 { margin-left: 20px; }
+.mb { margin-bottom: 7px; }
+.mb5 { margin-bottom: 5px; }
+.mb10 { margin-bottom: 10px; }
+.mb15 { margin-bottom: 15px; }
+.mb20 { margin-bottom: 20px; }
+.mb25 { margin-bottom: 25px; }
+.mb30 { margin-bottom: 30px; }
+.mb40 { margin-bottom: 40px; }
+.mb45 { margin-bottom: 45px; }
+.mb100 { marign-bottom: 100px; }
+.mr10 { margin-right: 10px; }
+.mr15 { margin-right: 15px; }
+.mr20 { margin-right: 20px; }
+.mr30 { margin-right: 30px; }
+.mt40 { margin-top: 40px; }
+.ml30 { margin-left: 30px; }
+.pt5 { padding-top: 5px; }
+.w720 { width: 720px; }
+.p10 { padding: 10px; }
+.bold { font-weight: bold; }
+.block_line { display: inline-block; vertical-align: middle; }
+.pt10 { padding-top: 10px; }
+.pl15 { padding-left: 15px; }
+.mlr20 { margin-left: 20px; margin-right: 20px; }
+.pt15 { padding-top: 15px; }
+.pt20 { padding-top: 20px; }
+.pt30 { padding-top: 30px; }
+.p15 { padding: 15px; }
+.p20 { padding: 20px; }
+.color3 { color: #333; }
+.color6 { color: #666; }
+.color9 { color: #999; }
+.line30 { line-height: 30px; }
+.yellow_txt, a.yellow_txt { color: #C60; }
+.green_txt, a.green_txt { color: #22ac38; }
+.tra, a.button, .navi li a { transition: all 0.2s ease-in-out; -ms-transition: all 0.2s ease-in-out 0s; -webkit-transition: all 0.2s ease-in-out; -moz-transition: all 0.2s ease-in-out; -o-transition: all 0.2s ease-in-out; }
+.elli { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.opa:hover, a.button:hover, .navi li a:hover { opacity: 0.85; -ms-filter: "alpha(opacity=85)"; filter: alpha(opacity=85); }
+.center { text-align: center; }
+h1, h2, h3, h4 { font-weight: normal; }
+.ft12 { font-size: 12px; }
+.ft14 { font-size: 14px; }
+.ft16 { font-size: 16px; }
+.ft18 { font-size: 18px; }
+.ft20 { font-size: 20px; }
+.ft24 { font-size: 24px; }
+.alginRight { text-align: right; }
+/*-clear fix-*/
+
+.clearFix:after { height: 0; visibility: hidden; content: "."; display: block; clear: both; }
+* html .clearFix { zoom: 100%; }
+*+html .clearFix { zoom: 100%; }
+.clear { clear: both; }
+.block { display: inline-block; }
+a.button { display: inline-block; text-align: center; color: #fff; }
+/*common*/
+
+body { font-size: 12px; line-height: 18px; background: #fff; font-family: 'Microsoft YaHei', '宋体'; color: #333; text-align: left; }
+input, textarea { font-family: 'Microsoft YaHei', '宋体'; color: #333; font-size: 12px; }
+input.err, textarea.err { border-color: red }
+.relative { position: relative; }
+.out_width { width: 2000px; margin-top: -28px; }
+.slide-right { float: left; width: 760px; padding-bottom: 65px; }
+.blockScrollBar { margin-right: -13px; max-height: 260px; overflow: auto; overflow-x: hidden; padding-top: 10px; }
+.tip_noInfo { text-align: center; color: #999; font-size: 20px; padding: 120px 0 0; }
+.noInfo { width: 79px; height: 62px; display: inline-block; vertical-align: middle; background: url(http://gsm.wanmagps.com/images/tip_noInfo.png) no-repeat 0 0; margin-right: 20px; }
+.warn-tip { text-align: center; font-size: 18px; background: #F33; color: #fff; padding: 10px 0; position: fixed; top: 0; left: 0; width: 100%; }
+.ta-hidden-input { display: none; }
+.impressBg { background: url('/public/images/default/bg003.jpg') no-repeat; }

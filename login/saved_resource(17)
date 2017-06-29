@@ -1,0 +1,2931 @@
+/**
+ * Created by chen on 2016/3/16.chen
+ * 订单预付款撤回 service
+ */
+
+//订单预付款撤回列表
+angular.module("financeCenterService").factory("getAdvanceRevokeList", getAdvanceRevokeList);
+function getAdvanceRevokeList($http, $rootScope, $filter) {
+    return callbackWithList;
+    function callbackWithList(params, callback) {
+        //callback({list: null});
+        var API = dreamFlyUrl + "Finance/FinanceAdvance/GetFinanceAdvanceRetractList";
+        var pageParam = {
+            iPageIndex: 1,
+            iPageSize: 20,
+            FinanceType: 28
+        };
+        if (params.iPageIndex) {
+            pageParam.iPageIndex = params.iPageIndex;
+            pageParam.iPageSize = params.iPageSize;
+        }
+        /*FinanceType:28(订单预付款撤回列表,Advance)，29(订单暂借款撤回列表,Temporary)，34(导游预领撤回列表,GridePreCollar) */
+        if(params.RType=='GridePreCollar'){
+            API = dreamFlyUrl + "/Finance/FinanceAdvance/GuidePreCollarRetractList";
+            pageParam.FinanceType=34
+        }else {
+            API = dreamFlyUrl + "/Finance/FinanceAdvance/GetFinanceAdvanceRetractList";
+            console.log("那个：" + params.RType);
+            pageParam.FinanceType=params.RType=="Temporary"?29:28;
+        }
+        var data = _.extend(pageParam, params);
+        console.log("data:"+JSON.stringify(data));
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: data
+        }).then(success, fail);
+        function success(response) {
+            activate();
+            function activate(){
+                constructData();
+                function constructData(){
+                    var data = [];
+                    var rdata=response.data.data.list;
+                    //console.log(JSON.stringify(rdata));
+                    var pageSize=response.data.data.limit;
+                    var allPageCount = Math.ceil(response.data.data.count /pageSize);
+                    callback({list:rdata,page:response.data.data.page,pageCount:allPageCount});
+                }
+            }
+        }
+        function fail(response){
+            console.log(response);
+        }
+    }
+}
+
+//订单撤回详细信息
+angular.module("financeCenterService").factory("getAdvanceRevokeDetail", getAdvanceRevokeDetail);
+function getAdvanceRevokeDetail($http) {
+    return callbackWithData;
+    function callbackWithData(param, callback) {
+        var API=dreamFlyUrl + "Finance/FinanceAdvance/GetFinanceAdvanceRetractInfo";
+         console.log(JSON.stringify(param));
+         HYhttp($http,{
+         url:API,
+         data:param,
+         method:"POST"
+         }).then(success,fail);
+         function success(response){
+             console.log(JSON.stringify(response.data.data));
+             callback(response.data.data);
+         }
+         function fail(response){
+             return false;
+         }
+    }
+}
+
+/*导游预领撤回详情*/
+angular.module("financeCenterService").factory("getPreCollarRevokeDetail",getPreCollarRevokeDetail);
+function getPreCollarRevokeDetail($http){
+    return callbackWithData;
+    function callbackWithData(param, callback) {
+        console.log(JSON.stringify(param));
+        var API=dreamFlyUrl + "/Finance/FinanceAdvance/GetGuidePreCollarRetractInfo";
+        //callback({list: []});
+        HYhttp($http,{
+            url:API,
+            data:param,
+            method:"POST"
+        }).then(success,fail);
+        function success(response){
+            callback(response.data.data);
+        }
+        function fail(response){
+            return false;
+        }
+    }
+}
+
+/*退回撤回*/
+angular.module("financeCenterService").factory("setReturnRevoke",setReturnRevoke);
+function setReturnRevoke($http){
+    return callbackWithData;
+    function callbackWithData(param, callback) {
+        var API="";
+        if(param.RType=='GridePreCollar'){//导游预领撤回退回
+            API = dreamFlyUrl + "Finance/FinanceAdvance/GuidePreCollarRetractBack";
+        }else {//订单暂借款、订单预付款撤回退回
+            API = dreamFlyUrl + "Finance/FinanceAdvance/FinanceAdvanceRetractBack";
+        }
+        var data={"id": param.id}
+        HYhttp($http,{
+            url:API,
+            data:param,
+            method:"POST"
+        }).then(success,fail);
+        function success(response){
+            callback(response.data);
+        }
+        function fail(response){
+            return false;
+        }
+    }
+}﻿angular.module("financeCenterService").factory("getRemittanceOrderList", getRemittanceOrderList);
+angular.module("financeCenterService").factory("getRemittanceOrderDetail", getRemittanceOrderDetail);
+function getRemittanceOrderList($http, showErrorInfo) {//列表
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/GetRemittanceOrderList";
+        var pageParam = {
+            SearchInfo: "",
+        };
+        var data = _.extend(pageParam, params);
+        HYhttp($http, {
+            url: API,
+            method: "POST",
+            data: data
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                var rdata = response.data.data.list;
+                if (rdata) {
+                    rdata.forEach(function (item) {
+                        item.detailUrl = "financeCenter/RemittanceOrder/Detail?ID=" + item._id;
+                    });
+                }
+                var RemittanceOrderList = {};
+                RemittanceOrderList.RemittanceOrderList = {
+                    listData: {
+                        search: data,
+                        list: rdata
+                    }
+                };
+                callback(RemittanceOrder);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function getRemittanceOrderDetail($http, showErrorInfo) {//获取详情
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var data = {};
+        data.id = params._id;
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/ViewFinanceRemittance";
+        HYhttp($http, {
+            url: API,
+            data: data,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}﻿
+angular.module("financeCenterService").factory("getRemittanceList", getRemittanceList);
+angular.module("financeCenterService").factory("getRemittanceDetail", getRemittanceDetail);
+angular.module("financeCenterService").factory("delRemittanceInfo", delRemittanceInfo);
+angular.module("financeCenterService").factory("getRemittanceOrderList", getRemittanceOrderList);
+angular.module("financeCenterService").factory("getRemittanceGroundList", getRemittanceGroundList);
+angular.module("financeCenterService").factory("saveRemittanceOrder", saveRemittanceOrder);
+angular.module("financeCenterService").factory("saveRemittanceGround", saveRemittanceOrder);
+angular.module("financeCenterService").factory("saveAddRemittance", saveAddRemittance);
+
+function getRemittanceList($http, showErrorInfo) { //列表
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/GetFinanceRemittanceList";
+        var pageParam = {
+            iPageIndex: 1,
+            iPageSize: 20,
+            RemitType: "",
+            ClaimState: "1",
+            SearchInfo: "",
+        };
+        var data = _.extend(pageParam, params);
+        HYhttp($http, {
+            url: API,
+            method: "POST",
+            data: data
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                var rdata = response.data.data.list;
+                if (rdata) {
+                    rdata.forEach(function(item) {
+                        item.detailUrl = "financeCenter/Remittance/Detail?ID=" + item._id;
+                    });
+                }
+                var RemittanceList = {};
+                RemittanceList.RemittanceList = {
+                    listData: {
+                        search: data,
+                        list: rdata
+                    }
+                };
+                callback(RemittanceList);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function getRemittanceDetail($http, showErrorInfo) { //获取详情
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var data = {};
+        data.id = params.ID;
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/ViewFinanceRemittance";
+        HYhttp($http, {
+            url: API,
+            data: data,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function delRemittanceInfo($http, showErrorInfo) { //删除汇款认领
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var data = {};
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/DeleteFinanceRemittance";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function getRemittanceOrderList($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var data = {};
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/GetRemittanceOrderList";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function saveRemittanceOrder($http, showErrorInfo) { //汇款认领 订单认领
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var data = {};
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/FinanceRemittanceOrderClaim";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function saveRemittanceGround($http, showErrorInfo) { //汇款认领 地接款认领
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var data = {};
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/FinanceRemittanceGroundClaim";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function saveAddRemittance($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/AddEditFinanceRemittance";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function getRemittanceGroundList($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var data = {};
+        var API = dreamFlyUrl + "Finance/FinanceRemittance/GetRemittanceGroundList";
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+//financeCenterService.factory("saveAddRemittance", function ($http, showErrorInfo) {
+//    return function (param, callBack) {
+//        HYhttp(
+//			$http, {
+//			    url: dreamFlyUrl + "Finance/FinanceRemittance/AddEditFinanceRemittance",
+//			    data: param,
+//			    method: "POST"
+//			}).then(
+//			function (response) {
+//			    if (response.data.code >= 700 && response.data.code < 800) {
+//			        callBack(response.data.data);
+//			    } else {
+//			        showErrorInfo(response.data.position);
+//			    }
+//			},
+//			function (response) {
+//			    showErrorInfo(response);
+//			});
+//    };
+//});
+
+
+//"{"RemitType":{"ID":"0"},"RemitterType":"1","Time":"2016-05-19T16:00:00.000Z","isRemittanceAdd":true,"RemitMoney":11,"Remitter":"李亚军","BankId":"000000000000000000000001","Remittances":"134654","Remark":"测试"}"
+﻿ //订单预付款,暂借款列表
+angular.module("financeCenterService").factory("getFinanceOrderAdvanceList", getFinanceOrderAdvanceList);
+
+function getFinanceOrderAdvanceList($http, $rootScope, $filter,showErrorInfo) {
+	return callbackWithList;
+
+	function callbackWithList(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceAdvance/GetFinanceAdvanceList";
+		var pageParam = {
+			iPageIndex: 1,
+			iPageSize: 20
+		};
+		if (params.iPageIndex) {
+			pageParam.iPageIndex = params.iPageIndex;
+			pageParam.iPageSize = params.iPageSize;
+		}
+		var data = _.extend(pageParam, params);
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: data
+		}).then(success, fail);
+
+		function success(response) {
+			activate();
+
+			function activate() {
+				constructData();
+				function constructData() {
+					if (response.data.code >= 700 && response.data.code < 800) {
+						var data = [];
+						var rdata = response.data.data.list;
+						var pageSize = response.data.data.limit;
+						var allPageCount = Math.ceil(response.data.data.count / pageSize);
+						callback({
+							list: rdata,
+							page: response.data.data.page,
+							pageCount: allPageCount,
+							count:response.data.data.count
+						});
+					}else {
+						showErrorInfo(response.data.message);
+					}
+				}
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+//订单预付款,暂借款详情
+angular.module("financeCenterService").factory("getFinanceOrderAdvanceInfo", getFinanceOrderAdvanceInfo);
+
+function getFinanceOrderAdvanceInfo($http,showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(param, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceAdvance/GetFinanceAdvanceInfo";
+		HYhttp($http, {
+			url: API,
+			data: param,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        console.log(JSON.stringify(response.data.data));
+        response.data.data.targetID = param.targetID;
+        response.data.data.subType = param.subType;
+        response.data.data.itemID = param.itemID;
+        response.data.data.OPtype = param.OPtype;
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response);
+      }
+		}
+
+		function fail(response) {
+			return false;
+		}
+	}
+}
+
+//三清单列表
+angular.module("financeCenterService").factory("getFOrderThreeSingleList", getFOrderThreeSingleList);
+
+function getFOrderThreeSingleList($http) {
+	return callbackWithList;
+
+	function callbackWithList(param, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusList";
+		HYhttp($http, {
+			url: API,
+			data: param,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			console.log(JSON.stringify(response.data.data));
+			callback(response.data.data);
+		}
+
+		function fail(response) {
+			return false;
+		}
+	}
+}
+
+/*添加订单预付款，订单暂借款*/
+angular.module("financeCenterService").factory("financeAdvanceAdd", financeAdvanceAdd);
+
+function financeAdvanceAdd($http, showErrorInfo) {
+	return callbackWithAdd;
+
+	function callbackWithAdd(param, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceAdvance/FinanceAdvanceSave";
+		HYhttp($http, {
+			url: API,
+			data: param,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			return false;
+		}
+	}
+}
+
+/*删除订单预付款，订单暂借款*/
+angular.module("financeCenterService").factory("deleteFOrderAdvance", deleteFOrderAdvance);
+
+function deleteFOrderAdvance($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(param, callback) {
+		var data = {
+			id: param
+		};
+		var API = dreamFlyUrl + "Finance/FinanceAdvance/FinanceDelete";
+		HYhttp($http, {
+			url: API,
+			data: data,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			return false;
+		}
+	}
+}
+
+/*获取本部门的人员信息*/
+angular.module("financeCenterService").factory("getManagerPersonnel", getManagerPersonnel);
+
+function getManagerPersonnel($http) {
+	return callbackWithList;
+
+	function callbackWithList(callback) {
+		var data = {
+			localDepartment: true,
+			limit: 9999
+		};
+		var API = baseUrl + "common/user/getPersonnel";
+		HYhttp($http, {
+			url: API,
+			data: data,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			callback(response.data.data);
+		}
+
+		function fail(response) {
+			return false;
+		}
+	}
+}
+
+//订单暂借款，订单预付款撤回
+angular.module("financeCenterService").factory("financeAdvanceRetract", financeAdvanceRetract);
+
+function financeAdvanceRetract($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(param, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceAdvance/FinanceAdvanceRetract";
+		HYhttp($http, {
+			url: API,
+			data: param,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			return false;
+		}
+	}
+}
+
+
+//订单暂借款，订单预付款撤回
+angular.module("financeCenterService").factory("auditFinance", auditFinance);
+
+function auditFinance($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(param, callback) {
+		var API = dreamFlyUrl + "Audit/FinanceAudit/PassCheck";
+		HYhttp($http, {
+			url: API,
+			data: param,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			return false;
+		}
+	}
+}
+
+//订单暂借款，订单预付款撤回
+angular.module("financeCenterService").factory("backAuditFinance", backAuditFinance);
+
+function backAuditFinance($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(param, callback) {
+		var API = dreamFlyUrl + "Audit/FinanceAudit/ReturnCheckWhenever";
+		HYhttp($http, {
+			url: API,
+			data: param,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			return false;
+		}
+	}
+}
+/**
+ * Created by a on 2016/4/7.
+ * 导游预领
+ */
+angular.module("financeCenterService").factory("getFinanceGuidePreCollarList", getFinanceGuidePreCollarList);
+
+function getFinanceGuidePreCollarList($http, $rootScope, $filter) {
+	return callbackWithList;
+
+	function callbackWithList(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuidePreCollar/GetPreCollarList";
+		var pageParam = {
+			PageIndex: 1,
+			PageSize: 20
+		};
+		if (params.PageIndex) {
+			pageParam.PageIndex = params.PageIndex;
+			pageParam.PageSize = params.PageSize;
+		}
+		var data = _.extend(pageParam, params);
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: data
+		}).then(success, fail);
+
+		function success(response) {
+			activate();
+
+			function activate() {
+				constructData();
+
+				function constructData() {
+					var data = [];
+					var rdata = response.data.data.list;
+					var pageSize = response.data.data.limit;
+					var allPageCount = Math.ceil(response.data.data.count / pageSize);
+					callback({
+						list: rdata,
+						page: response.data.data.page,
+						pageCount: allPageCount
+					});
+				}
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+//获取导游预领记录详情
+angular.module("financeCenterService").factory("getFinanceGuidePreCollarInfo", getFinanceGuidePreCollarInfo);
+
+function getFinanceGuidePreCollarInfo($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuidePreCollar/GetPreCollarByFinanceID";
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: params
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				response.data.data.targetID = params.targetID;
+				response.data.data.subType = params.subType;
+				response.data.data.itemID = params.itemID;
+				response.data.data.OPtype = params.OPtype;
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+angular.module("financeCenterService").factory("getTeamList", getTeamList);
+
+function getTeamList($http, showErrorInfo) {
+	return callbackWithList;
+
+	function callbackWithList(params, callback) {
+		var API = dreamFlyUrl + "Team/Team/GetTeamList";
+		var pageParam = {
+			SearchInfo: "",
+			StartTime: "",
+			EndTime: "",
+			TeamType: "",
+			TeamStatus: 0,
+			DeployID: "",
+			DeptID: "",
+			iPageIndex: 1,
+			iPageSize: 20
+		};
+		var data = _.extend(pageParam, params);
+
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: data
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				var rdata = response.data.data.list;
+				var allCount = response.data.data.count;
+				callback({
+					list: rdata,
+					count: allCount
+				});
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+//获取导游预领记录详情
+angular.module("financeCenterService").factory("getPreCollarByTeamID", getPreCollarByTeamID);
+
+function getPreCollarByTeamID($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuidePreCollar/GetPreCollarByTeamID";
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: params
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*添加编辑导游预领*/
+angular.module("financeCenterService").factory("GuidePreCollarUpdate", GuidePreCollarUpdate);
+
+function GuidePreCollarUpdate($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuidePreCollar/GuidePreCollarUpdate";
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: params
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*根据财务id，获取导游预领主信息，同时包含团队信息*/
+angular.module("financeCenterService").factory("GetPreCollarByFinanceID", GetPreCollarByFinanceID);
+
+function GetPreCollarByFinanceID($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuidePreCollar/GetPreCollarByFinanceID";
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: params
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*删除导游预领*/
+angular.module("financeCenterService").factory("deleteGuidePreCollar", deleteGuidePreCollar);
+
+function deleteGuidePreCollar($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuidePreCollar/RemoveGuidePreCollarPrice";
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: {
+				"FinanceID": params
+			}
+		}).then(success, fail);
+
+		function success(response) {
+			callback(response.data);
+			/*if(response.data.code>=700&&response.data.code<800){
+			    callback(response.data.data);
+			}else {
+			    showErrorInfo(response.data.message);
+			}*/
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*导游预领退回*/
+angular.module("financeCenterService").factory("RevokeGuidePreCollarPrice", RevokeGuidePreCollarPrice);
+
+function RevokeGuidePreCollarPrice($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(param, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuidePreCollar/RevokeGuidePreCollarPrice";
+		HYhttp($http, {
+			url: API,
+			data: param,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			return false;
+		}
+	}
+}
+﻿//订单开票列表
+angular.module("financeCenterService").factory("getBillingOrderList", getBillingOrderList);
+function getBillingOrderList($http, $rootScope, $filter) {
+    return callbackWithList;
+
+    function callbackWithList(params, callback) {
+        //callback({list: null});
+        var API = dreamFlyUrl + "Finance/FinanceOrderBilling/GetBillingOrderList";
+        var pageParam = {
+            iPageIndex: 1,
+            iPageSize: 20,
+        };
+        if (params.iPageIndex) {
+            pageParam.iPageIndex = params.iPageIndex;
+            pageParam.iPageSize = params.iPageSize;
+        }
+
+        var data = _.extend(pageParam, params);
+        //console.log("data:" + JSON.stringify(data));
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: data
+        }).then(success, fail);
+
+        function success(response) {
+            //console.log("开票数据："+response);
+            var rdata = response.data.data.list;
+            //console.log(JSON.stringify(rdata));
+            var pageSize = response.data.data.limit;
+            var allPageCount = Math.ceil(response.data.data.count / pageSize);
+            callback({
+                list: rdata,
+                page: response.data.data.page,
+                pageCount: allPageCount
+            });
+        }
+
+        function fail(response) {
+            //console.log(response);
+        }
+    }
+}
+
+//订单开票详情
+angular.module("financeCenterService").factory("getBillingOrderdetail", getBillingOrderdetail);
+function getBillingOrderdetail($http) {
+    return callbackWithData;
+
+    function callbackWithData(param, callback) {
+        var API = dreamFlyUrl + "Finance/FinanceOrderBilling/GetBillingOrderListByOrderID";
+        console.log(JSON.stringify(param));
+        HYhttp($http, {
+            url: API,
+            data: param,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            console.log(JSON.stringify(response.data.data));
+            callback(response.data.data);
+        }
+
+        function fail(response) {
+            return false;
+        }
+    }
+}
+
+//新增开票
+angular.module("financeCenterService").factory("SaveBillingOrder", SaveBillingOrder);
+function SaveBillingOrder($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        console.log(JSON.stringify(params));
+        var API = dreamFlyUrl + "Finance/FinanceOrderBilling/SaveBillingOrder";
+      
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+                callback(response.data.data);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+//删除开票记录
+
+
+
+angular.module("financeCenterService").factory("delOrderBilling", delOrderBilling);
+function delOrderBilling($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        console.log(JSON.stringify(params));
+        var API = dreamFlyUrl + "Finance/FinanceOrderBilling/DelBillingOrder";
+
+        HYhttp($http, {
+            url: API,
+            data: params,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+                callback(response.data.data);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}/**
+ * Created by a on 2016/5/3.
+ * 三清单成本结算
+ */
+//三清单成本结算列表
+angular.module("financeCenterService").factory("getPurchaseBillList",getPurchaseBillList);
+function getPurchaseBillList($http){
+    return callbackWithList;
+    function callbackWithList(params,callback){
+        var API=dreamFlyUrl + "Finance/FinancePurchase/GetPurchaseBillList";
+        var pageParam={
+            iPageIndex:1,
+            iPageSize:20
+        };
+        if (params.iPageIndex) {
+            pageParam.iPageIndex = params.iPageIndex;
+            pageParam.iPageSize = params.iPageSize;
+        }
+        var data=_.extend(pageParam, params);
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: data
+        }).then(success, fail);
+        function success(response) {
+            activate();
+            function activate() {
+                var data = [];
+                var rdata = response.data.data.list;
+                var pageSize = response.data.data.limit;
+                var allPageCount = Math.ceil(response.data.data.count / pageSize);
+                callback({list: rdata, page: response.data.data.page, pageCount: allPageCount});
+            }
+        }
+        function fail(response) {
+            console.log(response);
+        }
+    }
+}
+
+//获取三清单成本结算详情GetPurchaseBillData
+angular.module("financeCenterService").factory("GetPurchaseBillDetailInfo",GetPurchaseBillDetailInfo);
+function GetPurchaseBillDetailInfo($http,showErrorInfo){
+    return callbackWithList;
+    function callbackWithList(params,callback){
+        var API=dreamFlyUrl + "Finance/FinancePurchase/GetPurchaseBillData";
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: params
+        }).then(success, fail);
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+              response.data.data.targetID = params.targetID;
+              response.data.data.subType = params.subType;
+              response.data.data.itemID = params.itemID;
+              response.data.data.OPtype = params.OPtype;
+                  console.log(response);
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        }
+
+        function fail(response) {
+            console.log(response);
+        }
+    }
+}
+
+/*获取三清单成本列表*/
+angular.module("financeCenterService").factory("GetPurchaseList",GetPurchaseList);
+function GetPurchaseList($http,showErrorInfo){
+    return callbackWithList;
+    function callbackWithList(params,callback){
+        var API=dreamFlyUrl + "Finance/FinancePurchase/GetPurchaseList";
+        var pageParam={
+            iPageIndex:1,
+            iPageSize:20
+        };
+        console.log("CANSHU"+JSON.stringify(params));
+        if (params.iPageIndex) {
+            pageParam.iPageIndex = params.iPageIndex;
+            pageParam.iPageSize = params.iPageSize;
+        }
+        var data=_.extend(pageParam, params);
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: data
+        }).then(success, fail);
+        function success(response) {
+            activate();
+            function activate() {
+                var data = [];
+                var rdata = response.data.data.list;
+                var pageSize = response.data.data.limit;
+                var allPageCount = Math.ceil(response.data.data.count / pageSize);
+                callback({list: rdata, page: response.data.data.page, pageCount: allPageCount,count:response.data.data.count});
+            }
+        }
+        function fail(response) {
+            console.log(response);
+        }
+    }
+}
+
+/*添加三清单成本结算*/
+angular.module("financeCenterService").factory("SavePurchaseBillData",SavePurchaseBillData);
+function SavePurchaseBillData($http,showErrorInfo){
+    return callbackWithList;
+    function callbackWithList(params,callback){
+        var API=dreamFlyUrl + "Finance/FinancePurchase/SavePurchaseBillData";
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: params
+        }).then(success, fail);
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+        }
+        function fail(response) {
+            console.log(response);
+        }
+    }
+}
+
+/*删除三清单成本结算*/
+angular.module("financeCenterService").factory("DelPurchaseBillData",DelPurchaseBillData);
+function DelPurchaseBillData($http,showErrorInfo){
+    return callbackWithList;
+    function callbackWithList(params,callback){
+        var API=dreamFlyUrl + "Finance/FinancePurchase/DelPurchaseBillData";
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: {PurchaseID:params}
+        }).then(success, fail);
+        function success(response) {
+            callback(response.data);
+        }
+        function fail(response) {
+            console.log(response);
+        }
+    }
+}
+
+/*三期单成本核销*/
+angular.module("financeCenterService").factory("SavePurchaseVerification",SavePurchaseVerification);
+function SavePurchaseVerification($http,showErrorInfo){
+    return callbackWithList;
+    function callbackWithList(params,callback){
+        var API=dreamFlyUrl + "Finance/FinancePurchase/SavePurchaseVerification";
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: params
+        }).then(success, fail);
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response.data.message);
+            }
+            //callback(response.data);
+        }
+        function fail(response) {
+            console.log(response);
+        }
+    }
+}
+﻿angular.module("financeCenterService").factory("getGuideSubsidyList", getGuideSubsidyList);
+angular.module("financeCenterService").factory("getGuideSubsidyDetail", getGuideSubsidyDetail);
+angular.module("financeCenterService").factory("getGuideSubsidyDetailList", getGuideSubsidyDetailList);
+
+function getGuideSubsidyList($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var API = dreamFlyUrl + "Finance/FinanceGuideSubsidy/GetFinanceGuideSubsidyList";
+        var pageParam = {
+            iPageIndex: 1,
+            iPageSize: 20,
+            PayStatus: "-1",
+            Dept: "-1",
+            SearchInfo: "",
+            StartTime: "",
+            EndTime: "",
+        };
+        var data = _.extend(pageParam, params);
+        HYhttp($http, {
+            url: API,
+            method: "POST",
+            data: data
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                var rdata = response.data.data.list;
+                if (rdata) {
+                    rdata.forEach(function (item) {
+                        item.detailUrl = "financeCenter/GuideSubsidy/Detail?_id=" + item._id;
+                    });
+                }
+                var GuideSubsidyList = {};
+                GuideSubsidyList.GuideSubsidyList = {
+                    listData: {
+                        search: data,
+                        list: rdata
+                    }
+                };
+                callback(GuideSubsidyList);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function getGuideSubsidyDetail($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var data = {};
+        var API = dreamFlyUrl + "Finance/FinanceGuideSubsidy/GetFinanceGuideSubsidyInfo";
+        data._id = params._id;
+        HYhttp($http, {
+            url: API,
+            data: data,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}
+
+function getGuideSubsidyDetailList($http, showErrorInfo) {
+    return callbackWithData;
+
+    function callbackWithData(params, callback) {
+        var data = {};
+        var API = dreamFlyUrl + "Finance/FinanceGuideSubsidy/GetFinanceGuideSubsidyInfo";
+        var Param = {
+            PayStatus: "-1",
+            StartTime: "",
+            EndTime: "",
+            _id:"",
+        };
+        var data = _.extend(Param, params);
+        HYhttp($http, {
+            url: API,
+            data: data,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            if (response.data.code >= 700 && response.data.code < 800) {
+                callback(response.data.data);
+            } else {
+                showErrorInfo(response);
+            }
+        }
+
+        function fail(response) {
+            showErrorInfo(response);
+        }
+    }
+}angular.module("financeCenterService").factory("getCensusPurchaseVerificationList", getCensusPurchaseVerificationList);
+angular.module("financeCenterService").factory("getCensusPurchaseData", getCensusPurchaseData);
+angular.module("financeCenterService").factory("saveCensusPurchase", saveCensusPurchase);
+angular.module("financeCenterService").factory("delCensusPurchase", delCensusPurchase);
+
+
+/**
+ * 三清单添加成本暂借款预付款列表详情
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusPurchaseVerificationList($http, showErrorInfo) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+
+    var API = dreamFlyUrl + "Finance/FinanceAdvance/GetFinanceAdvanceList";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response);
+      }
+    }
+
+    function fail(response) {
+      showErrorInfo(response);
+    }
+  }
+}
+
+
+/**
+ * 获取三清单成本
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusPurchaseData($http, showErrorInfo) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+
+    var API = dreamFlyUrl + "Finance/FinancePurchase/GetPurchaseData";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response);
+      }
+    }
+
+    function fail(response) {
+      showErrorInfo(response);
+    }
+  }
+}
+
+/**
+ * 保存三清单成本
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function saveCensusPurchase($http, showErrorInfo) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+
+    var API = dreamFlyUrl + "Finance/FinancePurchase/SavePurchaseData";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response);
+      }
+    }
+
+    function fail(response) {
+      showErrorInfo(response);
+    }
+  }
+}
+
+
+/**
+ * 删除三清单成本
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function delCensusPurchase($http, showErrorInfo) {
+  return callbackWithData;
+
+  function callbackWithData(params, callback) {
+
+    var API = dreamFlyUrl + "Finance/FinancePurchase/DelPurchaseData";
+    HYhttp($http, {
+      url: API,
+      data: params,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      if (response.data.code >= 700 && response.data.code < 800) {
+        callback(response.data.data);
+      } else {
+        showErrorInfo(response);
+      }
+    }
+
+    function fail(response) {
+      showErrorInfo(response);
+    }
+  }
+}
+﻿
+/**
+ * 收入结算
+ */
+angular.module("financeCenterService").factory("getIncomeSettlementlist", getIncomeSettlementlist);
+/**
+ * 获取收入结算(其他收入)
+ */
+//function getIncomeSettlementlist($http) {
+//    return callbackWithData;
+
+//    function callbackWithData(params, callback) {
+//        callback();
+//    }
+//}
+
+//订单预付款撤回列表
+
+function getIncomeSettlementlist($http, $rootScope, $filter) {
+  return callbackWithList;
+
+  function callbackWithList(params, callback) {
+    //callback({list: null});
+    var API = dreamFlyUrl + "Finance/FinanceAdvance/GetFinanceAdvanceRetractList";
+    var pageParam = {
+      iPageIndex: 1,
+      iPageSize: 20,
+      FinanceType: 28
+    };
+    if (params.iPageIndex) {
+      pageParam.iPageIndex = params.iPageIndex;
+      pageParam.iPageSize = params.iPageSize;
+    }
+    /*FinanceType:28(订单预付款撤回列表,Advance)，29(订单暂借款撤回列表,Temporary)，34(导游预领撤回列表,GridePreCollar) */
+    if (params.RType == 'GridePreCollar') {
+      API = dreamFlyUrl + "Finance/FinanceAdvance/GuidePreCollarRetractList";
+      pageParam.FinanceType = 34;
+    } else {
+      API = dreamFlyUrl + "Finance/FinanceAdvance/GetFinanceAdvanceRetractList";
+      pageParam.FinanceType = params.RType == "Temporary" ? 29 : 28;
+    }
+    //params.RType = 100;
+    var data = _.extend(pageParam, params);
+    console.log("data:" + JSON.stringify(data));
+    HYhttp($http, {
+      url: API,
+      method: 'POST',
+      data: data
+    }).then(success, fail);
+
+    function success(response) {
+      activate();
+
+      function activate() {
+        constructData();
+
+        function constructData() {
+          var data = [];
+          var rdata = response.data.data.list;
+          console.log("订单预付款"+JSON.stringify(rdata));
+          var pageSize = response.data.data.limit;
+          var allPageCount = Math.ceil(response.data.data.count / pageSize);
+          callback({
+            list: rdata,
+            page: response.data.data.page,
+            pageCount: allPageCount
+          });
+        }
+      }
+    }
+
+    function fail(response) {
+      console.log(response);
+    }
+  }
+}
+
+
+//其他收入列表
+angular.module("financeCenterService").factory("getotherSRlist", getotherSRlist);
+
+function getotherSRlist($http, $rootScope, $filter) {
+  return callbackWithList;
+
+  function callbackWithList(params, callback) {
+    //callback({list: null});
+      var API = dreamFlyUrl + "Finance/FinanceOtherExpenses/OtherExpensesData";
+    var pageParam = {
+      PageIndex: 1,
+      PageSize: 20,
+        FinanceTypeID:27
+    };
+    if (params.iPageIndex) {
+      pageParam.PageIndex = params.iPageIndex;
+      pageParam.PageSize = params.iPageSize;
+      pageParam.FinanceTypeID = params.FinanceTypeID;
+    }
+
+    var data = _.extend(pageParam, params);
+    console.log("data:" + JSON.stringify(data));
+    HYhttp($http, {
+      url: API,
+      method: 'POST',
+      data: data
+    }).then(success, fail);
+
+    function success(response) {
+      console.log(response);
+      var rdata = response.data.data.list;
+      //console.log(JSON.stringify(rdata));
+      var pageSize = response.data.data.limit;
+      var allPageCount = Math.ceil(response.data.data.count / pageSize);
+      callback({
+        list: rdata,
+        page: response.data.data.page,
+        pageCount: allPageCount
+      });
+    }
+
+    function fail(response) {
+      console.log(response);
+    }
+  }
+}
+
+//会员卡退款列表
+angular.module("financeCenterService").factory("getCardRefundlist", getCardRefundlist);
+
+function getCardRefundlist($http, $rootScope, $filter) {
+    return callbackWithList;
+
+    function callbackWithList(params, callback) {
+        //callback({list: null});
+        var API = dreamFlyUrl + "Finance/FinanceCard/GetFinanceCardRecordBackList";
+        var pageParam = {
+            iPageIndex: 1,
+            iPageSize: 20,
+        };
+        if (params.iPageIndex) {
+            pageParam.iPageIndex = params.iPageIndex;
+            pageParam.iPageSize = params.iPageSize;
+        }
+
+        var data = _.extend(pageParam, params);
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: data
+        }).then(success, fail);
+
+        function success(response) {
+            var rdata = response.data.data.list;
+            //console.log(JSON.stringify(rdata));
+            var pageSize = response.data.data.limit;
+            var allPageCount = Math.ceil(response.data.data.count / pageSize);
+            callback({
+                list: rdata,
+                page: response.data.data.page,
+                pageCount: allPageCount
+            });
+        }
+
+        function fail(response) {
+            console.log(response);
+        }
+    }
+}
+
+//其他收入详情
+angular.module("financeCenterService").factory("getotherSRdetail", getotherSRdetail);
+function getotherSRdetail($http) {
+    return callbackWithData;
+
+    function callbackWithData(param, callback) {
+        var API = dreamFlyUrl + "Finance/FinanceOtherExpenses/OtherExpensesDataDetail";
+        console.log(JSON.stringify(param));
+        HYhttp($http, {
+            url: API,
+            data: param,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            console.log(JSON.stringify(response.data.data));
+            callback(response.data.data);
+        }
+
+        function fail(response) {
+            return false;
+        }
+    }
+}
+
+//会员卡退款详情
+angular.module("financeCenterService").factory("getCardRefunddetail", getCardRefunddetail);
+function getCardRefunddetail($http) {
+    return callbackWithData;
+
+    function callbackWithData(param, callback) {
+        var API = dreamFlyUrl + "Finance/FinanceOtherExpenses/OtherExpensesDataDetail";
+        console.log(JSON.stringify(param));
+        HYhttp($http, {
+            url: API,
+            data: param,
+            method: "POST"
+        }).then(success, fail);
+
+        function success(response) {
+            console.log(JSON.stringify(response.data.data));
+            callback(response.data.data);
+        }
+
+        function fail(response) {
+            return false;
+        }
+    }
+}
+
+//获取结算类型
+angular.module("financeCenterService").factory("getFinanceDeptInOutTypeAllSRlist", getFinanceDeptInOutTypeAllSRlist);
+function getFinanceDeptInOutTypeAllSRlist($http, $rootScope, $filter) {
+    return callbackWithList;
+
+    function callbackWithList(params, callback) {
+        //callback({list: null});
+        var API = dreamFlyUrl + "BasicData/ClosingNnit/FinanceDeptInOutTypeAll";
+        var pageParam = {
+            iPageIndex: 1,
+            iPageSize: 20,
+        };
+        if (params.iPageIndex) {
+            pageParam.iPageIndex = params.iPageIndex;
+            pageParam.iPageSize = params.iPageSize;
+        }
+
+        var data = _.extend(pageParam, params);
+        console.log("data:" + JSON.stringify(data));
+        HYhttp($http, {
+            url: API,
+            method: 'POST',
+            data: data
+        }).then(success, fail);
+
+        function success(response) {
+            console.log(response);
+            var rdata = response.data.data.data.list;
+            //console.log(JSON.stringify(rdata));
+            var pageSize = response.data.data.data.limit;
+            var allPageCount = Math.ceil(response.data.data.data.count / pageSize);
+            callback({
+                list: rdata,
+                page: response.data.data.data.page,
+                pageCount: allPageCount
+            });
+        }
+
+        function fail(response) {
+            console.log(response);
+        }
+    }
+}
+
+//订单撤回详细信息
+angular.module("financeCenterService").factory("getAdvanceRevokeDetail", getAdvanceRevokeDetail);
+
+function getAdvanceRevokeDetail($http) {
+  return callbackWithData;
+
+  function callbackWithData(param, callback) {
+    var API = dreamFlyUrl + "Finance/FinanceAdvance/GetFinanceAdvanceRetractInfo";
+    console.log(JSON.stringify(param));
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      console.log(JSON.stringify(response.data.data));
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}
+
+/*导游预领撤回详情*/
+angular.module("financeCenterService").factory("getPreCollarRevokeDetail", getPreCollarRevokeDetail);
+
+function getPreCollarRevokeDetail($http) {
+  return callbackWithData;
+
+  function callbackWithData(param, callback) {
+    console.log(JSON.stringify(param));
+    var API = dreamFlyUrl + "/Finance/FinanceAdvance/GetGuidePreCollarRetractInfo";
+    //callback({list: []});
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}
+
+/*退回撤回*/
+angular.module("financeCenterService").factory("setReturnRevoke", setReturnRevoke);
+
+function setReturnRevoke($http) {
+  return callbackWithData;
+
+  function callbackWithData(param, callback) {
+    var API = "";
+    if (param.RType == 'GridePreCollar') { //导游预领撤回退回
+      API = dreamFlyUrl + "Finance/FinanceAdvance/GuidePreCollarRetractBack";
+    } else { //订单暂借款、订单预付款撤回退回
+      API = dreamFlyUrl + "Finance/FinanceAdvance/FinanceAdvanceRetractBack";
+    }
+    var data = {
+      "id": param.id
+    };
+    HYhttp($http, {
+      url: API,
+      data: param,
+      method: "POST"
+    }).then(success, fail);
+
+    function success(response) {
+      callback(response.data);
+    }
+
+    function fail(response) {
+      return false;
+    }
+  }
+}
+/**
+ * Created by a on 2016/4/15.
+ * 导游报账列表
+ */
+angular.module("financeCenterService").factory("getFinanceGuideReimList", getFinanceGuideReimList);
+
+function getFinanceGuideReimList($http) {
+	return callbackWithList;
+
+	function callbackWithList(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuideReim/GetGuideReimList";
+		var pageParam = {
+			iPageIndex: 1,
+			iPageSize: 20
+		};
+		if (params.iPageIndex) {
+			pageParam.iPageIndex = params.iPageIndex;
+			pageParam.iPageSize = params.iPageSize;
+		}
+		var data = _.extend(pageParam, params);
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: data
+		}).then(success, fail);
+
+		function success(response) {
+			activate();
+
+			function activate() {
+				constructData();
+
+				function constructData() {
+					var data = [];
+					var rdata = response.data.data.list;
+					var pageSize = response.data.data.limit;
+					var allPageCount = Math.ceil(response.data.data.count / pageSize);
+					callback({
+						list: rdata,
+						page: response.data.data.page,
+						pageCount: allPageCount
+					});
+				}
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*获取团队*/
+angular.module("financeCenterService").factory("getReimTeamList", getReimTeamList);
+
+function getReimTeamList($http) {
+	return callbackWithList;
+
+	function callbackWithList(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuideReim/GetGuideReimTeamList";
+		var pageParam = {
+			iPageIndex: 1,
+			iPageIndex: 20
+		};
+		if (params.PageIndex) {
+			pageParam.iPageIndex = params.iPageIndex;
+			pageParam.iPageSize = params.iPageSize;
+		}
+		var data = _.extend(pageParam, params);
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: data
+		}).then(success, fail);
+
+		function success(response) {
+			activate();
+
+			function activate() {
+				constructData();
+
+				function constructData() {
+					var data = [];
+					var rdata = response.data.data.list;
+					/*var pageSize = response.data.data.limit;
+					var allPageCount = Math.ceil(response.data.data.count / pageSize);*/
+					callback({
+						list: rdata,
+						page: response.data.data.page,
+						count: response.data.data.count
+					});
+				}
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*根据团队获取导游预领列表信息*/
+angular.module("financeCenterService").factory("GetTeamPreMoneyInfo", GetTeamPreMoneyInfo);
+
+function GetTeamPreMoneyInfo($http, showErrorInfo) {
+	return callbackWithList;
+
+	function callbackWithList(params, callback) {
+		var API = dreamFlyUrl + "Team/Team/GetTeamPreMoneyInfo";
+
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: params
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*根据团队id，获取订单已签或暂留且未付款的订单*/
+angular.module("financeCenterService").factory("GetGuideReimOrderList", GetGuideReimOrderList);
+
+function GetGuideReimOrderList($http, showErrorInfo) {
+	return callbackWithList;
+
+	function callbackWithList(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuideReim/GetGuideReimOrderList";
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: {
+				"TeamID": params
+			}
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*添加修改导游报账*/
+angular.module("financeCenterService").factory("SaveGuideReimData", SaveGuideReimData);
+
+function SaveGuideReimData($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(param, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuideReim/SaveGuideReimData";
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: param
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.message);
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*查看导游报账信息*/
+angular.module("financeCenterService").factory("GetGuideReimTeamInfo", GetGuideReimTeamInfo);
+
+function GetGuideReimTeamInfo($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(param, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuideReim/GetGuideReimTeamInfo";
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: param
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				response.data.data.targetID = param.targetID;
+				response.data.data.subType = param.subType;
+				response.data.data.itemID = param.itemID;
+				response.data.data.OPtype = param.OPtype;
+		
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response.data.position);
+			}
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+
+/*删除导游报账*/
+angular.module("financeCenterService").factory("deleteGuideReim", deleteGuideReim);
+
+function deleteGuideReim($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceGuideReim/DelGuideReim";
+		HYhttp($http, {
+			url: API,
+			method: 'POST',
+			data: {
+				"FinanceID": params
+			}
+		}).then(success, fail);
+
+		function success(response) {
+			callback(response.data);
+		}
+
+		function fail(response) {
+			console.log(response);
+		}
+	}
+}
+//三清单其他成本保存
+financeCenterService.factory("saveCensusOhterCost", function($http, showErrorInfo) {
+	return function(param, callBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceOtherCost/SaveOtherCostData",
+				data: param,
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callBack(response.data.data);
+				} else {
+					showErrorInfo(response.data.position);
+				}
+			},
+			function(response) {
+				showErrorInfo(response);
+			});
+	};
+});
+
+
+//三清单其他成本删除
+financeCenterService.factory("delCensusOtherCost", function($http, showErrorInfo) {
+	return function(param, callBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceOtherCost/DelOtherCostData",
+				data: param,
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callBack(response.data.data);
+				} else {
+					showErrorInfo(response.data.position);
+				}
+			},
+			function(response) {
+				showErrorInfo(response);
+			});
+	};
+});
+/**
+ * 三清单
+ */
+angular.module("financeCenterService").factory("getGeneratelist", getGeneratelist);
+angular.module("financeCenterService").factory("getGeneratePlanInfo", getGeneratePlanInfo);
+angular.module("financeCenterService").factory("getGenerateOrderInfo", getGenerateOrderInfo);
+angular.module("financeCenterService").factory("saveGenerateCensus", saveGenerateCensus);
+angular.module("financeCenterService").factory("getCensusList", getCensusList);
+angular.module("financeCenterService").factory("getCensusDetail", getCensusDetail);
+angular.module("financeCenterService").factory("getCensusPlanDetail", getCensusPlanDetail);
+angular.module("financeCenterService").factory("getCensusOrderList", getCensusOrderList);
+angular.module("financeCenterService").factory("getCensusPurchaseList", getCensusPurchaseList);
+angular.module("financeCenterService").factory("getCensusGuideList", getCensusGuideList);
+angular.module("financeCenterService").factory("getCensusSaleCommissionList", getCensusSaleCommissionList);
+angular.module("financeCenterService").factory("getCensusOtherCostList", getCensusOtherCostList);
+angular.module("financeCenterService").factory("getCensusOrderInsureList", getCensusOrderInsureList);
+angular.module("financeCenterService").factory("getCensusOrderPaymentList", getCensusOrderPaymentList);
+angular.module("financeCenterService").factory("getCensusOrderGiftList", getCensusOrderGiftList);
+angular.module("financeCenterService").factory("submitCensusInfo", submitCensusInfo);
+angular.module("financeCenterService").factory("transferCensus", transferCensus);
+angular.module("financeCenterService").factory("delCensusInfo", delCensusInfo);
+angular.module("financeCenterService").factory("saveCensusNotReceivableReason", saveCensusNotReceivableReason);
+angular.module("financeCenterService").factory("auditCensusInfo", auditCensusInfo);
+angular.module("financeCenterService").factory("backCensusInfo", backCensusInfo);
+
+/**
+ * 获取三清单生成清单
+ */
+function getGeneratelist($http) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		callback();
+	}
+}
+
+/**
+ * 三清单详情
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusDetail($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		data.CensusID = params.ID;
+		var API = dreamFlyUrl + "Finance/FinanceCensus/CensusDetailInfo";
+
+		HYhttp($http, {
+			url: API,
+			data: data,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				response.data.data.targetID = params.targetID;
+				response.data.data.subType = params.subType;
+				response.data.data.itemID = params.itemID;
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+/**
+ * 获取三清单列表
+ */
+function getCensusList($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusList";
+		var pageParam = {
+			iPageIndex: 1,
+			iPageSize: 20,
+			GenderStatus: "1",
+			CensusStatus: "",
+			CensusType: "",
+			SearchInfo: "",
+			StartTime: "",
+			EndTime: "",
+		};
+		var data = _.extend(pageParam, params);
+		HYhttp($http, {
+			url: API,
+			method: "GET",
+			data: data
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				var rdata = response.data.data.list;
+				var maxCount = response.data.data.count;
+				if (rdata) {
+					rdata.forEach(function(item) {
+						item.detailUrl = "financeCenter/Census/Detail?ID=" + item.ID;
+					});
+				}
+				var CensusList = {};
+				CensusList.CensusList = {
+					listData: {
+						search: data,
+						list: rdata,
+						maxCount: maxCount
+					}
+				};
+				callback(CensusList);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+/**
+ * 获取三清单生成计划信息
+ */
+function getGeneratePlanInfo($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		data.PlanID = params.ID;
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetPlanInfo";
+		HYhttp($http, {
+			url: API,
+			data: data,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+
+/**
+ * 获取三清单生成订单信息
+ */
+function getGenerateOrderInfo($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		data.OrderID = params.ID;
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetOrderInfo";
+		HYhttp($http, {
+			url: API,
+			data: data,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+/**
+ * 三清单详情计划信息
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusPlanDetail($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusPlanInfo";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+
+/**
+ * 三清单详情订单清单
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusOrderList($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusOrderInfo";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+
+/**
+ * 三清单详情采购成本清单
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusPurchaseList($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusPurchaseInfo";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+
+/**
+ * 三清单详情导游成本清单
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusGuideList($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusGuideInfo";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+
+/**
+ * 三清单详情业务员信息清单
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusSaleCommissionList($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusSaleCommissionInfo";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+
+/**
+ * 三清单详情包含的其他（损失）成本信息
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusOtherCostList($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusOtherCostInfo";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+function saveGenerateCensus($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = "";
+		if (params.curView == "PlanInfo") {
+			API = dreamFlyUrl + "Finance/FinanceCensus/BuildCensusPlan";
+		} else if (params.curView == "OrderInfo") {
+			API = dreamFlyUrl + "Finance/FinanceCensus/BuildCensusOrder";
+		}
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+				callback(response.data.data);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+/**
+ * 三清单订单保险列表
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusOrderInsureList($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusOrderInsureData";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+
+/**
+ * 三清单订单缴款成本列表
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusOrderPaymentList($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/GetCensusOrderPaymentCostData";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+/**
+ * 三清单订单赠品成本列表
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function getCensusOrderGiftList($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Order/OrderTravelGood/GetOrderTravelGoodByOrder";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+
+/**
+ * 三清单订单赠品成本列表
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function submitCensusInfo($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/SubmitCensus";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+/**
+ * 三清单转让
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function transferCensus($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/CensusTransfer";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+/**
+ * 三清单删除
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function delCensusInfo($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var data = {};
+		var API = dreamFlyUrl + "Finance/FinanceCensus/DelCensus";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+/**
+ * 三清单审核
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function auditCensusInfo($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Audit/CensusAudit/PassCheck";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+/**
+ * 三清单审核退回
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function backCensusInfo($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Audit/CensusAudit/ReturnCheckWhenever";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+
+
+/**
+ * 三清单删除
+ * @param  {[type]} $http         [description]
+ * @param  {[type]} showErrorInfo [description]
+ * @return {[type]}               [description]
+ */
+function saveCensusNotReceivableReason($http, showErrorInfo) {
+	return callbackWithData;
+
+	function callbackWithData(params, callback) {
+		var API = dreamFlyUrl + "Finance/FinanceCensus/SaveOrderNotReceivableReason";
+		HYhttp($http, {
+			url: API,
+			data: params,
+			method: "POST"
+		}).then(success, fail);
+
+		function success(response) {
+			if (response.data.code >= 700 && response.data.code < 800) {
+				callback(response.data.data);
+			} else {
+				showErrorInfo(response);
+			}
+		}
+
+		function fail(response) {
+			showErrorInfo(response);
+		}
+	}
+}
+angular.module("financeCenterService").factory("GetTemporaryLoanList",function($http, $rootScope){
+	return function(param, callBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceCollectInAdvance/GetCollectInAdvanceList",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+					callBack(result);
+				} else {
+					showErrorInfo(response.message);
+				}
+			},
+			function() {});
+	};
+});
+
+angular.module("financeCenterService").factory("GetTemporaryLoanDetail",function($http){
+	return function(param, callBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceCollectInAdvance/GetCollectInAdvanceByFinanceID",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var hotelDetail = response.data.data;
+					callBack(hotelDetail);
+				} else {
+					showErrorInfo(response.data);
+				}
+			},
+			function() {});
+	};
+});

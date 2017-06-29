@@ -1,0 +1,195 @@
+//业务员提成列表
+financeCenterService.factory("GetSalesCommissionList",function($http, showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceSalesCommission/GetSalesCommissionList",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var result = response.data.data;
+					callBack(result);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});
+
+//业务员提成明细
+financeCenterService.factory("GetSalesCommissionByEmployeeIDAndDepartmentID",function($http,showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceSalesCommission/GetSalesCommissionByEmployeeIDAndDepartmentID",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var hotelDetail = response.data.data;
+					callBack(hotelDetail);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});
+
+//业务员提成记录清单
+financeCenterService.factory("GetSalesCommissionFinancesList",function($http,showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceSalesCommission/GetSalesCommissionFinancesList",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var hotelDetail = response.data.data;
+					callBack(hotelDetail);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});
+
+//业务员提成订单清单
+financeCenterService.factory("GetSalesCommissionOrderList",function($http,showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceSalesCommission/GetSalesCommissionOrderList",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var hotelDetail = response.data.data;
+					callBack(hotelDetail);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});
+
+//业务员取提成申请
+financeCenterService.factory("SalesCommissionApply",function($http,showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceSalesCommission/SalesCommissionApply",
+				data: withoutFlaseKey(param),
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					var hotelDetail = response.data.data;
+					callBack(hotelDetail);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});
+
+
+//业务员扣除优惠
+financeCenterService.factory("saveCensusDeductionDiscount",function($http,showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceSalesCommission/SetDiscountDeduct",
+				data: param,
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callBack(response.data.data);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});
+
+
+//业务员提成比例
+financeCenterService.factory("saveCensusPercentage",function($http,showErrorInfo){
+	return function(param, callBack,failCallBack) {
+		HYhttp(
+			$http, {
+				url: dreamFlyUrl + "Finance/FinanceSalesCommission/SetPercentage",
+				data: param,
+				method: "POST"
+			}).then(
+			function(response) {
+				if (response.data.code >= 700 && response.data.code < 800) {
+					callBack(response.data.data);
+				} else {
+					showErrorInfo(response.data.message);
+					if (failCallBack !== null && failCallBack !== undefined) {
+            failCallBack();
+          }
+				}
+			},
+			function() {
+				if (failCallBack !== null && failCallBack !== undefined) {
+					failCallBack();
+				}
+			});
+	};
+});

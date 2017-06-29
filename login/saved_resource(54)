@@ -1,0 +1,773 @@
+app.controller("staffPermissionController", function($scope, $rootScope, savePersonPermission, addRefreshPageByID) {
+
+  $scope.selectAll = {};
+
+  $scope.showEditSubList = function(item) {
+    if ($rootScope[position[2]].activeSubMenuID == item.menuID) {
+      $rootScope[position[2]].activeSubMenuID = '';
+    } else {
+      $rootScope[position[2]].activeSubMenuID = item.menuID;
+    }
+    if (item.list.length > 0) {
+      $rootScope[position[2]].activeSubListMenuID = item.list[0].menuID;
+    } else {
+      $rootScope[position[2]].activeSubListMenuID = item.menuID;
+    }
+  };
+
+  $scope.changeSubList = function(item){
+    $rootScope[position[2]].activeSubListMenuID = item.menuID;
+  };
+
+
+  $scope.menuSelectAll = function() {
+    $rootScope[position[2]].menus.task[$rootScope[position[2]].activeSubListMenuID].forEach(function(item) {
+      item.unSelect = $scope.selectAll[$rootScope[position[2]].activeSubListMenuID];
+    });
+  };
+
+  $scope.savePermission = function() {
+    var param = {};
+    param.externalTaskID = [];
+    param.ID = $rootScope[position[2]].id;
+    angular.forEach($rootScope[position[2]].menus.task, function(tasks, menuID) {
+      tasks.forEach(function(task) {
+        if (task.unSelect) {
+          param.externalTaskID.push(task.taskID);
+        }
+      });
+    });
+    savePersonPermission(param, function() {
+      $scope.hideSubHead();
+      addRefreshPageByID($rootScope[switchType[2]].id);
+      addRefreshPageByID('administration-staff-detail-id-' + $rootScope[position[2]].id);
+      $scope.fetch('administration/staff/detail?id=' + $rootScope[position[2]].id);
+    });
+  };
+
+  $scope.$watch('detailData.menus.task', function(value) {
+    if (value !== undefined) {
+      var selectMenu = {};
+      angular.forEach($rootScope[position[2]].menus.task, function(tasks, menuID) {
+        var hasOneSelect = false;
+        tasks.forEach(function(task) {
+          if (!task.unSelect) {
+            hasOneSelect = true;
+          }
+        });
+        selectMenu[menuID] = hasOneSelect;
+      });
+      angular.forEach($rootScope[position[2]].menus.subMenu, function(subMenuList, menuID) {
+        subMenuList.forEach(function(subMenu) {
+          var hasSelect = false;
+          if (subMenu.list.length > 0) {
+            subMenu.list.forEach(function(lastSubMenu) {
+              if (selectMenu[lastSubMenu.menuID]) {
+                hasSelect = true;
+              }
+            });
+          } else {
+            if (selectMenu[subMenu.menuID]) {
+              hasSelect = true;
+            }
+          }
+          subMenu.isSelected = hasSelect;
+        });
+        $rootScope[position[2]].menus.subMenu[menuID] = subMenuList;
+      });
+    }
+  }, true);
+
+});
+app.controller("administrationGoodsExportController", function($rootScope, $scope, goodsExport, travelGoodEntryOutInOP,
+  travelGoodEntryBack, addRefreshPageByID,$filter) {
+
+  $scope.loadDepartmentListData = function() {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.iPageIndex += 1;
+    goodsExport.departmentList(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.loadOrderListData = function() {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.iPageIndex += 1;
+    goodsExport.orderList(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.loadListData = function() {
+    if ($rootScope[position[1]].nav == 'department') {
+      $scope.loadDepartmentListData();
+    } else {
+      $scope.loadOrderListData();
+    }
+  };
+
+  $scope.searchDepartmentList = function() {
+    $rootScope[position[1]].search.iPageIndex = 1;
+    $rootScope[position[1]].search.iPageSize = $rootScope.pageLimit;
+    $rootScope[position[1]].search.SearchInfo = $rootScope[position[1]].search.SearchInfo;
+    $rootScope[position[1]].search.StartTime = $filter('date')($rootScope[position[1]].search.StartTimeDate,'yyyy-MM-dd');
+    $rootScope[position[1]].search.EndTime = $filter('date')($rootScope[position[1]].search.EndTimeDate,'yyyy-MM-dd');
+    $rootScope[position[1]].search.ApplyStatus = $rootScope[position[1]].search.ApplyStatus;
+    goodsExport.departmentList(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.searchOrderList = function() {
+    $rootScope[position[1]].search.iPageIndex = 1;
+    $rootScope[position[1]].search.iPageSize = $rootScope.pageLimit;
+    $rootScope[position[1]].search.SearchInfo = $rootScope[position[1]].search.SearchInfo;
+    $rootScope[position[1]].search.StartTime = $filter('date')($rootScope[position[1]].search.StartTimeDate,'yyyy-MM-dd');
+    $rootScope[position[1]].search.EndTime = $filter('date')($rootScope[position[1]].search.EndTimeDate,'yyyy-MM-dd');
+    $rootScope[position[1]].search.ApplyStatus = $rootScope[position[1]].search.ApplyStatus;
+    goodsExport.orderList(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.searchExport = function() {
+    if ($rootScope[position[1]].nav == 'department') {
+      $scope.searchDepartmentList();
+    } else {
+      $scope.searchOrderList();
+    }
+  };
+
+  $scope.out = function(obj) {
+    travelGoodEntryOutInOP(obj.TravelGoodEntryID, function() {
+      addRefreshPageByID($rootScope[current[2]]);
+      if ($rootScope[position[1]].nav == 'department') {
+        $rootScope.fetch('administration/goodsExport/departmentDetail?id=' + $rootScope[position[2]].ApplyID);
+      } else {
+        $rootScope.fetch('administration/goodsExport/orderDetail?id=' + $rootScope[position[2]].ApplyID);
+      }
+    });
+  };
+
+  $scope.selectAllOutGoods = function() {
+    if ($rootScope[position[2]].isSelectAll) {
+      $rootScope[position[2]].Detail.forEach(function(item) {
+        if (item.InOutStatus != '已出入库') {
+          item.isSelect = true;
+        }
+      });
+    } else {
+      $rootScope[position[2]].Detail.forEach(function(item) {
+        if (item.InOutStatus != '已出入库') {
+          item.isSelect = false;
+        }
+      });
+    }
+  };
+
+  $scope.selectAllOrderGoods = function() {
+    if ($rootScope[position[2]].isSelectAll) {
+      $rootScope[position[2]].Entry.forEach(function(item) {
+        if (item.InOutStatus != '已出入库') {
+          item.isSelect = true;
+        }
+      });
+    } else {
+      $rootScope[position[2]].Entry.forEach(function(item) {
+        if (item.InOutStatus != '已出入库') {
+          item.isSelect = false;
+        }
+      });
+    }
+  };
+
+  $scope.batchOrderOut = function() {
+    $rootScope[position[2]].Entry.forEach(function(item) {
+      if (item.isSelect) {
+        $scope.out(item);
+        item.isSelect = false;
+      }
+    });
+  };
+
+  $scope.batchOut = function() {
+    $rootScope[position[2]].Detail.forEach(function(item) {
+      if (item.isSelect) {
+        $scope.out(item);
+        item.isSelect = false;
+      }
+    });
+  };
+
+  $scope.returnBack = function(obj) {
+    travelGoodEntryBack(obj.TravelGoodEntryID, function() {
+      addRefreshPageByID($rootScope[current[2]]);
+      if ($rootScope[position[1]].nav == 'department') {
+        $rootScope.fetch('administration/goodsExport/departmentDetail?id=' + $rootScope[position[2]].ApplyID);
+      } else {
+        $rootScope.fetch('administration/goodsExport/orderDetail?id=' + $rootScope[position[2]].ApplyID);
+      }
+    });
+  };
+
+  $scope.status = {
+    StartTime: false,
+    EndTime: false
+  };
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+  //拒绝申请
+  $scope.denyApply = function(){
+
+  };
+
+  //同意申请
+  $scope.agreeApply = function(){
+
+  };
+
+});
+app.controller("administrationGoodsApplyController", function($rootScope, $scope, getBasicData, Pagination,
+  addTravelGoodApply, goodsApply,$filter) {
+
+  $scope.searchApply = function() {
+    $rootScope[position[1]].search.iPageIndex = 1;
+    $rootScope[position[1]].search.iPageSize = $rootScope.pageLimit;
+    $rootScope[position[1]].search.SearchInfo = $rootScope[position[1]].search.SearchInfo;
+    $rootScope[position[1]].search.StartTime = $filter('date')($rootScope[position[1]].search.StartTimeDate,'yyyy-MM-dd');
+    $rootScope[position[1]].search.EndTime = $filter('date')($rootScope[position[1]].search.EndTimeDate,'yyyy-MM-dd');
+    $rootScope[position[1]].search.ApplyStatus = $rootScope[position[1]].search.ApplyStatus;
+    goodsApply.list(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.loadApplyListData = function() {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.iPageIndex += 1;
+    goodsApply.list(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.selectAllRenturnGoods = function() {
+    if ($rootScope[position[2]].isSelectAll) {
+      $rootScope[position[2]].Detail.forEach(function(item) {
+        if (item.InOutStatus == '已出入库') {
+          item.isSelect = true;
+        }
+      });
+    } else {
+      $rootScope[position[2]].Detail.forEach(function(item) {
+        if (item.InOutStatus == '已出入库') {
+          item.isSelect = false;
+        }
+      });
+    }
+  };
+
+  $scope.selectGoods = function(page) {
+    if (!$rootScope[position[2]].searchGoods) {
+      $rootScope[position[2]].searchGoods = {};
+    }
+    if (!page) {
+      page = 1;
+    }
+    var param = {
+      iPageSize: 5,
+      SearchInfo: $rootScope[position[2]].searchGoods.SearchInfo,
+      TravelGoodStatus: 1,
+      iPageIndex: page,
+      GoodsTypeID: $rootScope[position[2]].searchGoods.goodsType ? $rootScope[position[2]].searchGoods.goodsType.ID : ''
+    };
+    if (!$scope.select.goods) {
+      $scope.select.goods = {};
+    }
+    getBasicData.travelGoodsList(function(response) {
+      $scope.select.goods.List = response.data.list;
+      var goodsPage = new Pagination(parseInt(response.data.count), page);
+      if (!$scope.Pagination) {
+        $scope.Pagination = {};
+      }
+      $scope.Pagination.goods = goodsPage;
+    }, param);
+  };
+
+  $scope.selectAllGoods = function() {
+    if ($rootScope[position[2]].isSelectAllGoods) {
+      $scope.select.goods.List.forEach(function(item) {
+        item.isSelect = true;
+      });
+    } else {
+      $scope.select.goods.List.forEach(function(item) {
+        item.isSelect = false;
+      });
+    }
+  };
+
+  $scope.saveGoodsType = function() {
+    if (!$rootScope[position[2]].add.Detail) {
+      $rootScope[position[2]].add.Detail = [];
+    }
+    $scope.select.goods.List.forEach(function(item) {
+      if (item.isSelect) {
+        var index = _.findIndex($rootScope[position[2]].add.Detail, {
+          ID: item.ID
+        });
+        if (index < 0) {
+          $rootScope[position[2]].add.Detail.push(item);
+        }
+      }
+    });
+    $rootScope[position[2]].isShowSelectGoods = false;
+    $rootScope[position[2]].isSelectAllGoods = false;
+  };
+
+  $scope.cancelSaveGoodsType = function() {
+    $rootScope[position[2]].isShowSelectGoods = false;
+    $rootScope[position[2]].isSelectAllGoods = false;
+  };
+
+  $scope.unChooseGoods = function(item) {
+    $rootScope[position[2]].add.Detail = _.without($rootScope[position[2]].add.Detail, item);
+  };
+
+  $scope.toggleSelectGoods = function() {
+    $rootScope[position[2]].isShowSelectGoods = !$rootScope[position[2]].isShowSelectGoods;
+  };
+
+  $scope.$watch("detailData.add.Detail", function() {
+    $scope.totalCost = 0;
+    if ($rootScope[position[2]].add && $rootScope[position[2]].add.Detail !== undefined) {
+      $rootScope[position[2]].add.Detail.forEach(function(item) {
+        var count = item.ApplyCount ? item.ApplyCount : 0;
+        $scope.totalCost += item.CostPrice * count;
+      });
+    }
+  }, true);
+
+  $scope.saveApply = function() {
+    var param = {};
+    param.Notes = $rootScope[position[2]].add.Notes;
+    param.Detail = [];
+    if ($rootScope[position[2]].add.Detail && $rootScope[position[2]].add.Detail.length > 0) {
+      $rootScope[position[2]].add.Detail.forEach(function(item) {
+        if (item.ApplyCount && item.ApplyCount <= item.StockCount) {
+          var goodsItem = {
+            TravelGoodID: item.ID,
+            ApplyCount: item.ApplyCount
+          };
+          param.Detail.push(goodsItem);
+        } else {
+          $rootScope[position[2]].info = '请填写正确的物品数量';
+          return;
+        }
+      });
+    } else {
+      $rootScope[position[2]].info = '请选择申请的物品';
+      return;
+    }
+    addTravelGoodApply(param, function(response) {
+      $scope.searchApply();
+      $rootScope.fetch('administration/goodsApply/detail?id=' + response.Apply._id);
+    });
+  };
+
+  $scope.status = {
+    StartTime: false,
+    EndTime: false
+  };
+
+  $scope.openDatePicker = function($event, type) {
+    $scope.status[type] = true;
+  };
+
+});
+app.controller("administrationDepartmentController", function($scope, $rootScope, _, addRefreshPageByID, addNewDepartment,
+  editDepartmentByID, showWarningBox, closeSubView, delDepartmentByID) {
+
+  $scope.delTopDepartment = function(){
+    showWarningBox("确定要删除该部门吗", function(){
+      delDepartmentByID($rootScope[position[2]]._id.$id, function(response){
+        var target = _.find($rootScope[position[1]].list, function(item){
+          return item._id.$id == $rootScope[position[2]]._id.$id;
+        });
+        if(null !== target){
+          $rootScope[position[1]].list = _.without($rootScope[position[1]].list, target);
+          closeSubView();
+        }
+      });
+    });
+  };
+
+  $scope.delDepartment = function(dept, parent){
+    showWarningBox("确定要删除该" + dept.Name + "吗", function(){
+      delDepartmentByID(dept._id.$id, function(response){
+        parent.subDept = _.without(parent.subDept, dept);
+        if(parent.Parent.$id === "000000000000000000000000"){
+          var target = _.find($rootScope[position[1]].list, function(item){
+            return item._id.$id == parent._id.$id;
+          });
+          if(null !== target){
+            var subTarget = _.find(target.subDept, function(subDept){
+              return subDept._id.$id === dept._id.$id;
+            });
+            if(null !== subTarget){
+              target.subDept = _.without(target.subDept, subTarget);
+            }
+          }
+        }
+      });
+    });
+  };
+
+  $scope.editSubDepartment = function(dept, parent, changeList){
+    var postData = {
+      DepartmentName: dept.editSubDeptName
+    };
+    if(dept._id){
+      postData.DepartmentID = dept._id.$id;
+      editDepartmentByID(postData, function(response){
+        dept.Name = dept.editSubDeptName;
+        dept.editSubDeptName = "";
+        dept.isEditMode = false;
+        dept.isNewDept = false;
+        $rootScope[position[2]].isEditSubDept = false;
+        if(changeList){
+          var headTarget = _.find($rootScope[position[1]].list, function(item){
+            return item._id.$id == parent._id.$id;
+          });
+          var target = _.find(headTarget.subDept, function(item){
+            return item._id.$id == dept._id.$id;
+          });
+          if(null !== target){
+            target.Name = dept.Name;
+          }
+        }
+      });
+    }else{
+      postData.ParentDepartmentID = parent._id.$id;
+      addNewDepartment(postData, function(response){
+        dept._id = {$id: response._id.$id};
+        dept.Name = dept.editSubDeptName;
+        dept.editSubDeptName = "";
+        dept.isEditMode = false;
+        dept.isNewDept = false;
+        $rootScope[position[2]].isEditSubDept = false;
+        if(changeList){
+          var target = _.find($rootScope[position[1]].list, function(item){
+            return item._id.$id == parent._id.$id;
+          });
+          if(null !== target){
+            target.subDept.push(dept);
+          }
+        }
+      });
+    }
+  };
+
+  $scope.addSubDepartment = function(dept){
+    if($rootScope[position[2]].isEditSubDept && dept.subDept.length > 0){
+      $rootScope[position[2]].info = "请先完成其他部门的编辑";
+      return;
+    }else{
+      $rootScope[position[2]].isEditSubDept = true;
+    }
+    dept.showDetail = true;
+    if(!dept.subDept){
+      dept.subDept = [];
+    }
+    var data = {
+      isEditMode: true
+    };
+    dept.subDept.push(data);
+  };
+
+  $scope.saveTopDepartment = function(){
+    if(undefined === $rootScope[position[2]].Name || null === $rootScope[position[2]].Name || $rootScope[position[2]].Name === ""){
+      $rootScope[position[2]].info = "请填写部门名称";
+      return;
+    }
+    var postData = {
+      DepartmentName: $rootScope[position[2]].Name
+    };
+    if($rootScope[position[2]].isEditMode){
+      postData.DepartmentID = $rootScope[position[2]]._id.$id;
+      editDepartmentByID(postData, function(response){
+        var target = _.find($rootScope[position[1]].list, function(item){
+          return item._id.$id == $rootScope[position[2]]._id.$id;
+        });
+        if(null !== target){
+          target.Name = $rootScope[position[2]].Name;
+        }
+        $scope.showDetail(data);
+      });
+    }else{
+      addNewDepartment(postData, function(response){
+        var data = {
+          Name: $rootScope[position[2]].Name,
+          subDept: []
+        };
+        data._id = {$id: response._id.$id};
+        data.showUrl = "administration/adminDepartment/detail?id=" + response._id.$id;
+        $scope.showDetail(data);
+        $rootScope[position[1]].list.unshift(data);
+      });
+    }
+  };
+
+  $scope.showDetail = function(data){
+    $scope.fetch(data.showUrl, '');
+    $scope.hideSubHead();
+    $scope.openItem();
+    $scope.clearAddData();
+  };
+
+  $scope.clearAddData = function() {
+		if (!$rootScope[position[2]].isEditMode) {
+			addRefreshPageByID('administration-adminDepartment-add-id-administrationDeptAdd');
+		}
+	};
+
+  $scope.addNewSubDepartment = function(){
+    var data = {
+      isEditMode: true,
+      isNewDept: true
+    };
+    if(!$rootScope[position[2]].subDept){
+      $rootScope[position[2]].subDept = [];
+    }
+    $rootScope[position[2]].subDept.push(data);
+  };
+
+  $scope.removeSubDepartment = function(dept, parent){
+    dept.isEditMode = false;
+    $rootScope[position[2]].isEditSubDept = false;
+    if(dept.isNewDept){
+      parent.subDept = _.without(parent.subDept, dept);
+    }
+  };
+
+  $scope.cancelSaveDepartment = function(){
+    if($rootScope[position[2]].isEditMode){
+      $scope.fetch($rootScope[position[2]].showUrl, '');
+      $scope.hideSubHead();
+    }else{
+      closeSubView();
+    }
+  };
+
+  $scope.editSubDepartmentName = function(dept){
+    if($rootScope[position[2]].isEditSubDept){
+      $rootScope[position[2]].info = "请先完成其他部门的编辑";
+      return;
+    }else{
+      $rootScope[position[2]].isEditSubDept = true;
+    }
+    dept.isEditMode = true;
+    dept.editSubDeptName = dept.Name;
+  };
+
+});
+app.controller("administrationStaffController", function($scope, $rootScope, staff, findInnerObjIndex, lockPerson,
+  unlockPerson, showWarningBox, setUserPassword, ngDialog, createStaff, updateStaff, addRefreshPageByID,
+  checkAccountName, setAccountAndPassword, showErrorInfo) {
+
+  $scope.searchStaff = function() {
+    $rootScope[position[1]].search = {
+      page: 1,
+      limit: $rootScope.pageLimit,
+      query: $rootScope[position[1]].search.query,
+      department: $rootScope[position[1]].search.department,
+      lock: $rootScope[position[1]].search.lock
+    };
+    staff.list(function(response) {
+      $rootScope[position[1]].list = response.list;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.loadStaffListData = function() {
+    if (!$rootScope[position[1]].search) {
+      $rootScope[position[1]].search = {};
+    }
+    $rootScope[position[1]].search.page += 1;
+    staff.list(function(data) {
+      $rootScope[position[1]].list = _.union($rootScope[position[1]].list, data.list);
+      $rootScope.isloadList = false;
+      $rootScope.showProcessBar = false;
+    }, $rootScope[position[1]].search);
+  };
+
+  $scope.changeLockStatus = function() {
+    if ($rootScope[position[2]].Lock == 1) {
+      unlockPerson($rootScope[position[2]]._id.$id, function(response) {
+        $rootScope[position[2]].Lock = 0;
+      });
+    } else {
+      lockPerson($rootScope[position[2]]._id.$id, function(response) {
+        $rootScope[position[2]].Lock = 1;
+      });
+    }
+  };
+
+  $scope.resetPassword = function() {
+    showWarningBox("是否将该用户的密码设置成123456", function() {
+      setUserPassword($rootScope[position[2]]._id.$id, "123456", function() {
+        $rootScope[position[2]].info = '密码设置成功';
+      });
+    });
+  };
+
+  $scope.PositionFormatter = function(data) {
+    return data.Name;
+  };
+
+  $scope.RoleFormatter = function(data) {
+    return data.name;
+  };
+
+  $scope.LabelFormatter = function(data) {
+    return data.Label.name;
+  };
+
+  $scope.DepartmentFormatter = function(data){
+    return data.Name;
+  };
+
+  $scope.switchPosition = function(data) {
+    console.log(data);
+  };
+
+  $scope.openDialog = function(item) {
+    var new_dialog = ngDialog
+      .open({
+        id: 'fromAService',
+        template: '/public/angularView/common/components/crop.html',
+        controller: 'crop',
+        data: {
+          imgRatio: 33 / 56,
+          resImgWidth: 560,
+          resImgHight: 330,
+          uploadPicCallBack: function(data) {
+            $rootScope[position[2]].LargePhoto = data.url;
+            console.log(data);
+          }
+        }
+      });
+  };
+
+  $scope.saveStaff = function() {
+    var param = {};
+    if(!$rootScope[position[2]].FullName || $rootScope[position[2]].FullName === ""){
+      $rootScope[position[2]].info = '请填写员工姓名';
+      return;
+    }
+    if(!$rootScope[position[2]].Num || $rootScope[position[2]].Num === ""){
+      $rootScope[position[2]].info = '请填写员工工号';
+      return;
+    }
+    if(!$rootScope[position[2]].Department.ID.$id || $rootScope[position[2]].Department.ID.$id === ""){
+      $rootScope[position[2]].info = '请选择员工部门';
+      return;
+    }
+    if(!$rootScope[position[2]].myPosition || $rootScope[position[2]].myPosition.length <= 0){
+      $rootScope[position[2]].info = '请选择员工岗位';
+      return;
+    }
+    if(!$rootScope[position[2]].permission || $rootScope[position[2]].permission.role.length <= 0){
+      $rootScope[position[2]].info = '请选择员工角色';
+      return;
+    }
+    if(!$rootScope[position[2]].myLabel || $rootScope[position[2]].myLabel.length <= 0){
+      $rootScope[position[2]].info = '请选择员工标签';
+      return;
+    }
+    if(!$rootScope[position[2]].plLevel || !$rootScope[position[2]].plLevel._id){
+      $rootScope[position[2]].info = '请选择员工级别';
+      return;
+    }
+    param.FullName = $rootScope[position[2]].FullName;
+    param.Num = $rootScope[position[2]].Num;
+    param.DepartmentID = $rootScope[position[2]].Department.ID.$id;
+    param.PositionID = [];
+    $rootScope[position[2]].myPosition.forEach(function(item) {
+      param.PositionID.push(item._id.$id);
+    });
+    param.plLevel = $rootScope[position[2]].plLevel._id.$id;
+    param.OfficeTel = $rootScope[position[2]].OfficeTel;
+    param.Sex = $rootScope[position[2]].Sex;
+    param.OfficeTelShort = $rootScope[position[2]].OfficeTelShort;
+    param.TelPhone = $rootScope[position[2]].TelPhone;
+    param.TelNum = $rootScope[position[2]].TelNum;
+    param.Education = $rootScope[position[2]].Education;
+    param.MaritalStatus = $rootScope[position[2]].MaritalStatus;
+    param.QQ = $rootScope[position[2]].QQ;
+    param.Email = $rootScope[position[2]].Email;
+    param.HomeAddress = $rootScope[position[2]].HomeAddress;
+    param.LargePhoto = $rootScope[position[2]].LargePhoto;
+    param.profile = $rootScope[position[2]].profile;
+    param.IDCard = $rootScope[position[2]].IDCard;
+    param.BirthTime = Date.parse($rootScope[position[2]].birthDay) / 1000;
+    param.roles = [];
+    param.InDepartment = [];
+    $rootScope[position[2]].permission.role.forEach(function(item) {
+      param.roles.push(item._id.$id);
+    });
+    param.labels = [];
+    $rootScope[position[2]].myLabel.forEach(function(item) {
+      param.labels.push(item.Label.NO);
+    });
+    if($rootScope[position[2]].myInDepartment && $rootScope[position[2]].myInDepartment.length > 0){
+      $rootScope[position[2]].myInDepartment.forEach(function(item){
+        param.InDepartment.push(item._id.$id);
+      });
+    }
+
+    if ($rootScope[position[2]]._id) {
+      param.ID = $rootScope[position[2]]._id.$id;
+      updateStaff(param, function() {
+        $scope.hideSubHead();
+        addRefreshPageByID($rootScope[switchType[2]].id);
+        addRefreshPageByID('administration-staff-detail-id-' + $rootScope[position[2]]._id.$id);
+        $scope.fetch('administration/staff/detail?id=' + $rootScope[position[2]]._id.$id);
+      });
+    } else {
+      createStaff(param, function(data) {
+        addRefreshPageByID($rootScope[switchType[2]].id);
+        $scope.fetch('administration/staff/detail?id=' + data._id.$id);
+      });
+    }
+  };
+
+  $scope.editAccount = function() {
+    $rootScope[position[2]].AccountNameTemp = $rootScope[position[2]].AccountName;
+  };
+
+  $scope.saveAccount = function() {
+    $scope.isSubmit = true;
+    setAccountAndPassword($rootScope[position[2]]._id.$id, $rootScope[position[2]].AccountNameTemp, $rootScope[position[2]].passwordTemp, function(result) {
+      $rootScope[position[2]].AccountName = $rootScope[position[2]].AccountNameTemp;
+      $scope.isSubmit = false;
+      $rootScope[position[2]].changeAccountPop = false;
+      showErrorInfo('更改账号成功');
+    }, function(result) {
+      $scope.isSubmit = false;
+    });
+  };
+
+});

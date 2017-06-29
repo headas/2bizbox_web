@@ -1,0 +1,1080 @@
+orderManagementRoute.service('OMOneTeam', function(getOneTeamOrderList, getOneTeamOrderByOrderID,
+  getCertificatesTypes, getSameProductPlanByOrderID, getCustomerDetail,Pagination,$q,getEnumeration) {
+  var OMOneTeam = {};
+  OMOneTeam.list = list;
+  OMOneTeam.detail = detail;
+  OMOneTeam.edit = edit;
+  return OMOneTeam;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TypeId: "000000000000000000000023",
+      TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10
+    };
+    getOneTeamOrderList(data.search, function(response) {
+      data.list = response.list;
+      data.list.forEach(function(item) {
+        item.showUrl = 'orderManagement/OMOneTeam/detail?id=' + item._id;
+      });
+
+      callback(data);
+    });
+
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getOneTeamOrderByOrderID(param.id, function(detail) {
+      data = detail;
+      data.status = {};
+      data.orderSeatInfo = {
+        orderSeatShow: false
+      };
+      data.scopeInfo = {
+        roomTmp: {},
+        Pagination:{},
+        roomArrangeInfo: {isEditing: false}
+      };
+      data.financePopData = {
+        ProductTitle: data.ProductTitle,
+        CustomerName: data.CustomerName,
+        CustomerMobile: data.CustomerMobile,
+        TotalFinalPrice: data.TotalFinalPrice,
+        TotalPaidPrice: data.TotalPaidPrice,
+        TotalUnpayPrice: data.TotalUnpayPrice,
+        AfterTimePrice: data.TotalAfterTimePrice,
+        BeforeTimePrice: data.TotalBeforeTimePrice,
+        contractID: data.OrderNo
+      };
+      data.OrderType="000000000000000000000023";
+
+     data.scopeInfo.orderMemberInfo = data.OrderTourists.slice(0, 10);
+      data.scopeInfo.Pagination.orderMemberPage = new Pagination(data.OrderTourists.length, 1, 10);
+
+      data.scopeInfo.touristInsuranceInfo = data.TouristInsurances.slice(0, 10);
+      data.scopeInfo.Pagination.touristInsurancesPage = new Pagination(data.TouristInsurances.length, 1, 10);
+   
+   
+      var promises = {
+
+        TouristSingleRoomTypes: $q(function(res){
+          getEnumeration('ETouristSingleRoomTypes', function(response) {
+            res(response);
+          });
+        }),
+        memberDetail: $q(function(res){
+          getCustomerDetail(data.CustomerID, function(response){
+            res(response);
+          });
+        })
+      };
+        $q.all(promises).then(function(value){
+        data.TouristSingleRoomTypes = value.TouristSingleRoomTypes;
+        data.memberDetail = value.memberDetail;
+    
+        callback(data);
+      }, function(error){
+        console.log('接口出现问题，请联系管理员', error);
+      });
+    });
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    callback(data);
+  }
+
+});
+orderManagementRoute.service('OMPickUp', function(getPickUpOrderList, getPickUpOrderDetail,$q,getEnumeration,Pagination,
+  getCustomerDetail, getEnumeration, getProductInsurancesByProductIDWithNone, getCertificatesTypes, getCustomerDetail) {
+  var pickUp = {};
+  pickUp.list = list;
+  pickUp.detail = detail;
+  pickUp.add = add;
+  return pickUp;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TypeId: "000000000000000000000009",
+      TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10
+    };
+    getPickUpOrderList(data.search, function(response) {
+      data.list = response.list;
+      response.list.forEach(function(item) {
+        item.detailUrl = 'orderManagement/OMPickUp/detail?id=' + item._id;
+      });
+      callback(data);
+    });
+
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getPickUpOrderDetail(param.id, function(response) {
+      data = response;
+      data.financePopData = {
+        ProductTitle: data.OrderInfos.ProductTitle,
+        CustomerName: data.OrderInfos.CustomerEnlarge.CustomerName,
+        CustomerMobile: data.OrderInfos.CustomerEnlarge.CustomerMobile,
+        TotalFinalPrice: data.OrderInfos.TotalFinalPrice,
+        TotalUnpayPrice: data.OrderInfos.FinancesEnlarge.TotalUnPayPrice,
+        AfterTimePrice: data.OrderInfos.FinancesEnlarge.AfterTimePrice,
+        BeforeTimePrice: data.OrderInfos.FinancesEnlarge.BeforeTimePrice,
+        contractID: data.OrderInfos.OrderNo,
+        CustomerID: data.OrderInfos.CustomerEnlarge.ForeignKeyID
+      };
+      data.scopeInfo = {};
+
+      data.scopeInfo.Pagination = {};
+
+      data.scopeInfo.orderMemberInfo = data.OrderTourists.slice(0, 10);
+      data.scopeInfo.Pagination.orderMemberPage = new Pagination(data.OrderTourists.length, 1, 10);
+      data.scopeInfo.touristInsuranceInfo = data.TouristInsurances.slice(0, 10);
+      data.scopeInfo.Pagination.touristInsurancesPage = new Pagination(data.TouristInsurances.length, 1, 10);
+       var promises = {
+        TouristTypes: $q(function(res){
+          getEnumeration('ETouristTypes', function(response) {
+            res(response);
+          });
+        })
+      };
+
+      $q.all(promises).then(function(value){
+        data.TouristTypes = value.TouristTypes;
+        callback(data);
+      }, function(error){
+        console.log('接口出现问题，请联系管理员', error);
+      });
+    });
+  }
+
+  function add(callback, param) {
+    var data = {};
+    data.Salesman = {};
+    data.peopleCount = {
+      AdultCount: 0,
+      ChildCount: 0,
+      BabyCount: 0
+    };
+    data.FinanceCompany = {};
+    data.type = 3;
+    data.OrderTourists = [];
+    data.customer = {};
+    getEnumeration('EFlightTypes', function(FlightTypes) {
+      data.FlightTypes = FlightTypes;
+      getProductInsurancesByProductIDWithNone({
+        ProductTypeID: "000000000000000000000009",
+        ProductID: "000000000000000000000000"
+      }, function(insurance) {
+        data.insurance = insurance;
+        callback(data);
+      });
+    });
+  }
+});
+orderManagementRoute.service('OMteamtour', function(getTeamtourOrderList, getTeamtourOrderDetail, Pagination, $filter, getSameProductPlanByPlanId, getCustomerDetail,getTouristRelationTypes, $q, getEnumeration, getTeamProductPriceByPlanID) {
+  var teamtour = {};
+  teamtour.list = list;
+  teamtour.detail = detail;
+  teamtour.edit = edit;
+  return teamtour;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TypeId: "000000000000000000000001",
+      TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10
+    };
+    getTeamtourOrderList(data.search, function(response) {
+      data.list = response.list;
+      response.list.forEach(function(item) {
+        item.detailUrl = 'orderManagement/OMteamtour/detail?id=' + item._id;
+      });
+      callback(data);
+    });
+
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getTeamtourOrderDetail(param.id, function(response) {
+      data = response;
+      data.scopeInfo = {
+        showMoreFunc: false,
+        isShowPlanPriceDetail: false,
+        memberCheckAll: false,
+        isSaleManEditMode: false,
+        isOrderNoteEditMode: false,
+        isContractEditMode: false,
+        isHandleFee: {},
+        feeCensus: 0,
+        listFee: 0
+      };
+
+      data.OrderTourists.forEach(function(item){
+        data.scopeInfo.listFee += item.PriceEnlarge.TouristPrice + item.PriceEnlarge.TouristVisaPrice;
+      });
+
+      data.financePopData = {
+        ProductTitle: data.OrderInfos.ProductTitle,
+        CustomerName: data.OrderInfos.CustomerEnlarge.CustomerName,
+        CustomerMobile: data.OrderInfos.CustomerEnlarge.CustomerMobile,
+        TotalFinalPrice: data.OrderInfos.TotalFinalPrice,
+        TotalUnpayPrice: data.OrderInfos.FinancesEnlarge.TotalUnPayPrice,
+        AfterTimePrice: data.OrderInfos.FinancesEnlarge.AfterTimePrice,
+        BeforeTimePrice: data.OrderInfos.FinancesEnlarge.BeforeTimePrice,
+        contractID: data.OrderInfos.OrderNo,
+        CustomerID: data.OrderInfos.CustomerEnlarge.ForeignKeyID
+      };
+      data.scopeInfo.saleMan = {
+        FullName: data.OrderInfos.SalesmanName,
+        _id: {
+          $id: data.OrderInfos.SalesmanID
+        }
+      };
+      data.orderSeatInfo = {
+        orderSeatShow: false
+      };
+      data.scopeInfo.customerInfo = data.OrderInfos.CustomerEnlarge;
+      data.scopeInfo.delayTime = {
+        time: $filter('limitTo')(data.OrderInfos.OrderExpireTime, 19).replace('T', ' ')
+      };
+      data.OrderInfos.CustomerEnlarge.TouristRelationTypes.forEach(function(item){
+        if(data.OrderInfos.TouristRelation){
+          data.OrderInfos.TouristRelation = item.TouristRelationTypeName+" "+data.OrderInfos.TouristRelation;
+        }else{
+          data.OrderInfos.TouristRelation = item.TouristRelationTypeName;
+        }
+
+      });
+      data.scopeInfo.orderNoteTmp = {};
+      data.scopeInfo.roomTmp = {};
+      data.scopeInfo.Pagination = {};
+      data.scopeInfo.feeInfo = {};
+      data.scopeInfo.roomArrangeInfo = {
+        isEditing: false
+      };
+      data.scopeInfo.signInfo = {
+        isEmailEditMode: false
+      };
+
+      data.scopeInfo.orderMemberInfo = data.OrderTourists.slice(0, 10);
+      data.scopeInfo.Pagination.orderMemberPage = new Pagination(data.OrderTourists.length, 1, 10);
+      data.scopeInfo.touristInsuranceInfo = data.TouristInsurances.slice(0, 10);
+      data.scopeInfo.Pagination.touristInsurancesPage = new Pagination(data.TouristInsurances.length, 1, 10);
+
+      data.scopeInfo.fee = {
+        insuranceType: []
+      };
+      data.TouristInsurances.forEach(function(insurance) {
+        var ins = _.find(data.scopeInfo.fee.insuranceType, function(ins) {
+          return insurance.InsurancesName == ins.name;
+        });
+        if (ins === undefined) {
+          data.scopeInfo.fee.insuranceType.push({
+            count: 1,
+            name: insurance.InsurancesName
+          });
+        } else {
+          ins.count++;
+        }
+      });
+      data.OrderInfos.PriceRecord.forEach(function(fee) {
+        fee.AdjustmentType ? (data.scopeInfo.feeCensus += fee.Price) : (data.scopeInfo.feeCensus -= fee.Price);
+      });
+
+      var  str = data.OrderInfos.OrderExpireTime.replace(/-/g,"/").replace("T"," ");
+      data.OrderExpireTime = new Date(str).getTime()+data.ProductPlanInfo.ReserveTime*3600*1000;
+      data.scopeInfo.saleManTmp = {};
+      data.scopeInfo.customerInfoTmp = {};
+
+      var promises = {
+        planPriceTypes: $q(function(res){
+          getTeamProductPriceByPlanID({
+            ProducePlanID: data.OrderInfos.ProductPlanID
+          }, function(response) {
+            res(response);
+          });
+        }),
+        memberDetail: $q(function(res){
+          getCustomerDetail(data.OrderInfos.CustomerEnlarge.ForeignKeyID, function(response){
+            res(response);
+          });
+        }),
+        TouristRelationTypesList: $q(function(res){
+          getTouristRelationTypes(function(obj) {
+            res(obj.data);
+          });
+        })
+      };
+
+      $q.all(promises).then(function(value){
+        data.planPriceTypes = value.planPriceTypes;
+        data.memberDetail = value.memberDetail;
+        data.TouristRelationTypesList = value.TouristRelationTypesList;
+
+        callback(data);
+      }, function(error){
+        console.log('接口出现问题，请联系管理员', error);
+      });
+    });
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    callback(data);
+  }
+});
+orderManagementRoute.service('OMCustomTour', function(getCustomTourOrderList, getCustomTourOrderDetail,Pagination,
+  getEnumeration, getCustomerDetail) {
+  var customTour = {};
+  customTour.list = list;
+  customTour.detail = detail;
+  customTour.edit = edit;
+  return customTour;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TypeId: "000000000000000000000017",
+     TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10 
+    };
+    getCustomTourOrderList(data.search, function(response) {
+      data.list = response.list;
+      response.list.forEach(function(item) {
+        item.detailUrl = 'orderManagement/OMCustomTour/detail?ID=' + item._id;
+      });
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getCustomTourOrderDetail(param.ID, function(response) {
+      data = response;
+      data.financePopData = {
+        ProductTitle: data.OrderInfos.ProductTitle,
+        CustomerName: data.OrderInfos.CustomerEnlarge.CustomerName,
+        CustomerMobile: data.OrderInfos.CustomerEnlarge.CustomerMobile,
+        TotalFinalPrice: data.OrderInfos.TotalFinalPrice,
+        TotalUnpayPrice: data.OrderInfos.FinancesEnlarge.TotalUnPayPrice,
+        AfterTimePrice: data.OrderInfos.FinancesEnlarge.AfterTimePrice,
+        BeforeTimePrice: data.OrderInfos.FinancesEnlarge.BeforeTimePrice,
+        contractID: data.OrderInfos.OrderNo
+      };
+      data.scopeInfo = {};
+      data.scopeInfo.Pagination = {};
+
+      data.scopeInfo.orderMemberInfo = data.OrderTourists.slice(0, 10);
+      data.scopeInfo.Pagination.orderMemberPage = new Pagination(data.OrderTourists.length, 1, 10);
+      data.scopeInfo.touristInsuranceInfo = data.TouristInsurances.slice(0, 10);
+      data.scopeInfo.Pagination.touristInsurancesPage = new Pagination(data.TouristInsurances.length, 1, 10);
+      if(Array.isArray(data.TrafficProject.Traffics)){
+        data.TrafficProject.Traffics.forEach(function(item){
+          item.RideCount = item.BookingNumber || 0;
+        });
+      }
+      getEnumeration("EInnerEntrustTypes", function(Entrust) {
+        data.Additionals = Entrust;
+        getCustomerDetail(data.OrderInfos.CustomerEnlarge.ForeignKeyID, function(response){
+          data.memberDetail = response;
+          callback(data);
+        });
+      });
+    });
+  }
+
+
+  function edit(callback, param) {
+    var data = {};
+    callback(data);
+  }
+
+});
+
+orderManagementRoute.service('OMVisa', function(getVisaOrderList, getVisaOrderDetail, getCustomerDetail,getCertificatesTypes,$q,Pagination) {
+  var visa = {};
+  visa.list = list;
+  visa.detail = detail;
+  visa.edit = edit;
+  return visa;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TypeId: "00000000000000000000002",
+     TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10
+    };
+    getVisaOrderList(data.search, function(response) {
+      data.list = response.list;
+      response.list.forEach(function(item) {
+        item.detailUrl = 'orderManagement/OMVisa/detail?id=' + item._id;
+      });
+      callback(data);
+    });
+
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getVisaOrderDetail(param.id, function(response) {
+      data = response;
+      data.financePopData = {
+        ProductTitle: data.OrderInfos.ProductTitle,
+        CustomerName: data.OrderInfos.CustomerEnlarge.CustomerName,
+        CustomerMobile: data.OrderInfos.CustomerEnlarge.CustomerMobile,
+        TotalFinalPrice: data.OrderInfos.TotalFinalPrice,
+        TotalUnpayPrice: data.OrderInfos.FinancesEnlarge.TotalUnPayPrice,
+        AfterTimePrice: data.OrderInfos.FinancesEnlarge.AfterTimePrice,
+        BeforeTimePrice: data.OrderInfos.FinancesEnlarge.BeforeTimePrice,
+        contractID: data.OrderInfos.OrderNo
+      };
+      data.scopeInfo = {};
+      data.scopeInfo.Pagination = {};
+
+      data.scopeInfo.orderMemberInfo = data.OrderTourists.slice(0, 10);
+      data.scopeInfo.Pagination.orderMemberPage = new Pagination(data.OrderTourists.length, 1, 10);
+      data.scopeInfo.touristInsuranceInfo = data.TouristInsurances.slice(0, 10);
+      data.scopeInfo.Pagination.touristInsurancesPage = new Pagination(data.TouristInsurances.length, 1, 10);
+
+      var promises = {
+        memberDetail: $q(function(res){
+          getCustomerDetail(data.OrderInfos.CustomerEnlarge.ForeignKeyID, function(response){
+            res(response);
+          });
+        })
+      };
+
+       $q.all(promises).then(function(value){
+        data.memberDetail = value.memberDetail;
+        callback(data);
+      }, function(error){
+        console.log('接口出现问题，请联系管理员', error);
+      });
+    });
+  }
+
+
+  function edit(callback, param) {
+    var data = {};
+    callback(data);
+  }
+
+});
+orderManagementRoute.service('OMPlaneTicket', function(getAirTicketOrderList, getInfoForBookingTeamOrder,
+  getCertificatesTypes, getCustomerDetail, getEnumeration, getAirTicketOrderByOrderID) {
+  var OMPlaneTicket = {};
+  OMPlaneTicket.list = list;
+  OMPlaneTicket.detail = detail;
+  OMPlaneTicket.add = add;
+  return OMPlaneTicket;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      SearchKey: param.SearchKey,
+      StartTime: param.StartTime,
+      EndTime: param.EndTime,
+      OrderStatus: param.OrderStatus || 3,
+      PayStatus: param.PayStatus,
+      PageIndex: param.PageIndex ? param.PageIndex : 1,
+      PageSize: 10,
+    };
+    getAirTicketOrderList(data.search, function(response) {
+      data.list = response || [];
+      data.list.forEach(function(item) {
+        item.showUrl = 'orderManagement/OMPlaneTicket/detail?OrderID=' + item.OrderID;
+      });
+      getEnumeration("EOrderPayStatus", function(payStatus) {
+        data.payStatus = payStatus;
+        getEnumeration('EOrderStatus', function(OrderStatus) {
+          data.OrderStatus = OrderStatus;
+          callback(data);
+        });
+      });
+    });
+  }
+
+  function add(callback, param) {
+    var data = {};
+    data.Salesman = {};
+    data.OrderTourists = [];
+    data.AirTicketFlight = [{
+      FlightTypeID: 1
+    }];
+    data.peopleCount = {
+      AdultCount: 0,
+      ChildCount: 0,
+      BabyCount: 0
+    };
+    data.type = 3;
+    getCertificatesTypes(function(Certificates) {
+      data.Certificates = Certificates;
+
+      getEnumeration('EFlightTypes', function(FlightTypes) {
+        data.FlightTypes = FlightTypes;
+        callback(data);
+      });
+
+      /*
+      getCustomerDetail(param.customerID, function(customer) {
+        data.cusomer = customer;
+      });
+      */
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getAirTicketOrderByOrderID(param.OrderID, function(response) {
+      data = response;
+      data.financePopData = {
+        ProductTitle: data.ProductTitle,
+        CustomerName: data.CustomerName,
+        CustomerMobile: data.CustomerMobile,
+        TotalFinalPrice: data.TotalFinalPrice,
+        TotalUnpayPrice: data.TotalUnpayPrice,
+        AfterTimePrice: data.TotalAfterTimePrice,
+        BeforeTimePrice: data.TotalBeforeTimePrice,
+        contractID: data.OrderNo
+      };
+      data.status = {};
+        callback(data);
+    
+    });
+  }
+
+
+});
+orderManagementRoute.service('OMDriveTour', function(getDriveTourOrderList, getSelfdrivingtourOrderDetail, getCustomerDetail, $q,Pagination) {
+  var driveTour = {};
+  driveTour.list = list;
+  driveTour.detail = detail;
+  driveTour.edit = edit;
+  return driveTour;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TypeId: "000000000000000000000013",
+      TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10
+    };
+    getDriveTourOrderList(data.search, function(response) {
+      data.list = response.list;
+      response.list.forEach(function(item) {
+        item.detailUrl = 'orderManagement/OMDriveTour/detail?id=' + item._id;
+      });
+      callback(data);
+    });
+
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getSelfdrivingtourOrderDetail(param.id, function(response) {
+      data = response;
+      data.financePopData = {
+        ProductTitle: data.OrderInfos.ProductTitle,
+        CustomerName: data.OrderInfos.CustomerEnlarge.CustomerName,
+        CustomerMobile: data.OrderInfos.CustomerEnlarge.CustomerMobile,
+        TotalFinalPrice: data.OrderInfos.TotalFinalPrice,
+        TotalUnpayPrice: data.OrderInfos.FinancesEnlarge.TotalUnPayPrice,
+        contractID: data.OrderInfos.OrderNo
+      };
+      data.scopeInfo = {};
+      data.scopeInfo.Pagination = {};
+
+      data.scopeInfo.orderMemberInfo = data.OrderTourists.slice(0, 10);
+      data.scopeInfo.Pagination.orderMemberPage = new Pagination(data.OrderTourists.length, 1, 10);
+      data.scopeInfo.touristInsuranceInfo = data.TouristInsurances.slice(0, 10);
+      data.scopeInfo.Pagination.touristInsurancesPage = new Pagination(data.TouristInsurances.length, 1, 10);
+
+      $q.all({
+        memberDetail: $q(function(res){
+          getCustomerDetail(data.OrderInfos.CustomerEnlarge.ForeignKeyID, function(response){
+            res(response);
+          });
+        })
+      }).then(function(value){
+        data.memberDetail = value.memberDetail;
+        callback(data);
+      });
+
+    });
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    callback(data);
+  }
+});
+orderManagementRoute.service('OMFreeTour', function(getFreeTourOrderList, getFreeTourOrderDetail, getTeamtourPlanDetail, getFreetourDetail, getCustomerDetail, $q, Pagination) {
+  var freetour = {};
+  freetour.list = list;
+  freetour.detail = detail;
+  freetour.edit = edit;
+  return freetour;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TypeId: "000000000000000000000012",
+      TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10
+    };
+    getFreeTourOrderList(data.search, function(response) {
+      data.list = response.list;
+      response.list.forEach(function(item) {
+        item.detailUrl = 'orderManagement/OMFreeTour/detail?id=' + item._id;
+      });
+      callback(data);
+    });
+  }
+
+  function detail(callback, param) {
+    var data = {};
+
+    getFreeTourOrderDetail(param.id, function(response) {
+      data = response;
+      data.financePopData = {
+        ProductTitle: data.OrderInfos.ProductTitle,
+        CustomerName: data.OrderInfos.CustomerEnlarge.CustomerName,
+        CustomerMobile: data.OrderInfos.CustomerEnlarge.CustomerMobile,
+        TotalFinalPrice: data.OrderInfos.TotalFinalPrice,
+        TotalUnpayPrice: data.OrderInfos.FinancesEnlarge.TotalUnPayPrice,
+        AfterTimePrice: data.OrderInfos.FinancesEnlarge.AfterTimePrice,
+        BeforeTimePrice: data.OrderInfos.FinancesEnlarge.BeforeTimePrice,
+        contractID: data.OrderInfos.OrderNo
+      };
+
+      data.Pagination = {};
+      data.scopeInfo = {
+        orderMemberInfo: [],
+        touristInsuranceInfo: []
+      };
+
+      data.scopeInfo.orderMemberInfo = data.OrderTourists.slice(0, 6);
+      data.Pagination.orderMemberPage = new Pagination(data.OrderTourists.length, 1, 6);
+      data.scopeInfo.touristInsuranceInfo = data.TouristInsurances.slice(0, 6);
+      data.Pagination.touristInsurancesPage = new Pagination(data.TouristInsurances.length, 1, 6);
+
+      var promises = {
+        ProductPlanInfo: $q(function(res){
+          getTeamtourPlanDetail(data.OrderInfos.ProductPlanID, function(response){
+            res(response);
+          });
+        }),
+        Additionals: $q(function(res){
+          getFreetourDetail(data.OrderInfos.ProductID, function(response){
+            res(response.Additionals); 
+          });
+        }),
+        memberDetail: $q(function(res){
+          getCustomerDetail(data.OrderInfos.CustomerEnlarge.ForeignKeyID, function(response) {
+            res(response);
+          });
+        })
+      };
+
+      $q.all(promises).then(function(value){
+        data.ProductPlanInfo = value.ProductPlanInfo;
+        data.Additionals = value.Additionals;
+        data.memberDetail = value.memberDetail;
+
+        data.trafficProject = [];
+        data.hotelProject = [];
+        data.ProductPlanInfo.PlanProject.forEach(function(item){
+          if(item.ProductType.ForeignKeyID.$id == '000000000000000000000004' && item.DelStatus === 0){
+            item.Traffics.forEach(function(traffic) {
+              if(!traffic.IsSingleSold)
+                traffic.isSelected = true;
+            });
+            data.trafficProject.push(item);
+          }
+          else if(item.ProductType.ForeignKeyID.$id == "000000000000000000000007" && item.DelStatus === 0){
+            item.Hotels.forEach(function(hotel) {
+              if(!hotel.IsSingleSold)
+                hotel.HotelRooms.forEach(function(room) {
+                  if (room.IsDefaultChecked) room.isSelected = true;
+                });
+            });
+            data.hotelProject.push(item);
+          }
+        });
+
+        callback(data);
+      });
+    });
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    callback(data);
+  }
+});
+orderManagementRoute.service('OMAllOrder',function(getTeamtourOrderList){
+  var OMAllOrder = {
+    list:list
+  };
+
+  function list(callback,param){
+    var data = {};
+    data.search = {
+      TypeId: param.TypeId,
+      TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10
+    };
+    getTeamtourOrderList(data.search, function(response) {
+      data.list = response.list;
+      callback(data);
+    });
+  }
+
+  return OMAllOrder;
+});
+orderManagementRoute.service('OMCruise', function(getCruiseOrderList, getCruiseOrderDetail, getCertificatesTypes, getCustomerDetail, getEnumeration, getSameProductPlanByPlanId, $filter, Pagination, getShipRoomTypes, getCruiseDetail, $q, showErrorInfo) {
+  var cruise = {};
+  cruise.list = list;
+  cruise.add = add;
+  cruise.detail = detail;
+  cruise.edit = edit;
+  return cruise;
+//列表页
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TypeId: "000000000000000000000018",
+      TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10
+    };
+    getCruiseOrderList(data.search, function(response) {
+      data.list = response.list;
+      response.list.forEach(function(item) {
+        item.detailUrl = 'orderManagement/OMCruise/detail?id=' + item._id;
+      });
+      callback(data);
+    });
+
+  }
+//详情页
+  function detail(callback, param) {
+    var data = {};
+    //详情
+    getCruiseOrderDetail(param.id, function(response) {
+      data = response;
+      data.scopeInfo = {
+        showMoreFunc: false,
+        isShowPlanPriceDetail: false,
+        memberCheckAll: false,
+        isSelectAllPackage: false,
+        isSaleManEditMode: false,
+        isCruiseRoomsEditMode: false,
+        isOrderNoteEditMode: false,
+        isContractEditMode: false,
+        isOrderConventionEditMode: false,
+        isShoreSightseeingEditMode: false,
+        isHandleFee: {},
+        feeCensus: 0
+      };
+        //销售人员
+      data.scopeInfo.saleMan = {
+        FullName: data.OrderInfos.SalesmanName,
+        _id: {
+          $id: data.OrderInfos.SalesmanID
+        }
+      };
+      //联系人信息
+      data.scopeInfo.customerInfo = data.OrderInfos.CustomerEnlarge;
+      //延期
+      data.scopeInfo.delayTime = {
+        time: $filter('limitTo')(data.OrderInfos.OrderExpireTime, 19).replace('T', ' ')
+      };
+
+      data.scopeInfo.signInfo = {
+        isEmailEditMode: false
+      };
+      data.scopeInfo.roomArrangeInfo = {
+        isEditing: false
+      };
+      //财务指令
+      data.financePopData = {
+        ProductTitle: data.OrderInfos.ProductTitle,
+        CustomerName: data.OrderInfos.CustomerEnlarge.CustomerName,
+        CustomerMobile: data.OrderInfos.CustomerEnlarge.CustomerMobile,
+        TotalFinalPrice: data.OrderInfos.TotalFinalPrice,
+        TotalUnpayPrice: data.OrderInfos.FinancesEnlarge.TotalUnPayPrice,
+        AfterTimePrice: data.OrderInfos.FinancesEnlarge.AfterTimePrice,
+        BeforeTimePrice: data.OrderInfos.FinancesEnlarge.BeforeTimePrice,
+        contractID: data.OrderInfos.OrderNo
+      };
+      var  str = data.OrderInfos.OrderExpireTime.replace(/-/g,"/").replace("T"," ");
+      data.OrderExpireTime = new Date(str).getTime()+data.ProductPlanInfo.ReserveTime*3600*1000;
+      //订单备注
+      data.scopeInfo.orderNoteTmp = {};
+      //列表页数
+      data.scopeInfo.Pagination = {};
+      //游客列表
+      data.scopeInfo.orderMemberInfo = data.OrderTourists.slice(0, 10);
+      //游客列表页数相关
+      data.scopeInfo.Pagination.orderMemberPage = new Pagination(data.OrderTourists.length, 1, 10);
+       //游客投保相关
+      data.scopeInfo.touristInsuranceInfo = data.TouristInsurances.slice(0, 10);
+       //游客投保页数相关
+      data.scopeInfo.Pagination.touristInsurancesPage = new Pagination(data.TouristInsurances.length, 1, 10);
+
+      /*
+      //费用清单
+      data.scopeInfo.fee = {
+        insuranceType: []
+      };
+      //循环游客投保
+      data.TouristInsurances.forEach(function(insurance) {
+        var ins = _.find(data.scopeInfo.fee.insuranceType, function(ins) {
+          return insurance.InsurancesName == ins.name;
+        });
+        if (ins === undefined) {
+          data.scopeInfo.fee.insuranceType.push({
+            count: 1,
+            name: insurance.InsurancesName
+          });
+        } else {
+          ins.count++;
+        }
+      });
+      */
+      
+      //舱房选择
+      data.CruiseRoomList.forEach(function(room) {
+        room.allRoomNumber = room.OrderRoomTotalNumber + room.moreThanNumber;
+        room.singleRoomPrice = room.RoomsPrice / room.OrderRoomTotalNumber;
+      });
+
+      //费用清单
+      data.OrderInfos.PriceRecord.forEach(function(fee) {
+        fee.AdjustmentType ? (data.scopeInfo.feeCensus += fee.Price) : (data.scopeInfo.feeCensus -= fee.Price);
+      });
+      data.scopeInfo.saleManTmp = {};
+      data.scopeInfo.customerInfoTmp = {};
+
+      var promises = {
+        Packages: $q(function(res){
+          getCruiseDetail(data.OrderInfos.ProductID, function(response) {
+            res(response.Packages);
+          });
+        }),
+        memberDetail: $q(function(res){
+          getCustomerDetail(data.OrderInfos.CustomerEnlarge.ForeignKeyID, function(response){
+            res(response);
+          });
+        })
+      };
+
+      $q.all(promises).then(function(value){
+        data.Packages = value.Packages;
+        data.memberDetail = value.memberDetail;
+
+        callback(data);
+      }, function(error){
+        showErrorInfo(error);
+      });
+    });
+  }
+
+  //添加
+  function add(callback, param) {
+    var data = {};
+    data.Salesman = {};
+    data.OrderTourists = [];
+    data.AirTicketFlight = [{
+      FlightTypeID: 1
+    }];
+    data.peopleCount = {
+      AdultCount: 0,
+      ChildCount: 0,
+      BabyCount: 0
+    };
+    data.type = 3;
+    getCertificatesTypes(function(Certificates) {
+      data.Certificates = Certificates;
+      getCustomerDetail(param.customerID, function(customer) {
+        data.cusomer = customer;
+        getEnumeration('EFlightTypes', function(FlightTypes) {
+          data.FlightTypes = FlightTypes;
+          callback(data);
+        });
+      });
+    });
+  }
+
+  function edit(callback, param) {
+    var data = {};
+    getShipRoomTypes(function(ShipRoom) {
+      data.ShipRoom = ShipRoom;
+      callback(data);
+    });
+  }
+
+});
+orderManagementRoute.service('OMAttractionTicket', function(getAttractionTicketOrderList, getScenicOrderInfo, getCustomerDetail,Pagination) {
+  var attractionTicket = {};
+  attractionTicket.list = list;
+  attractionTicket.detail = detail;
+  return attractionTicket;
+
+  function list(callback, param) {
+    var data = {};
+    data.search = {
+      TypeId: "000000000000000000000003",
+      TimeType: param.TimeType || 2,
+      SearchInfo: param.SearchInfo,
+      iPageIndex: param.iPageIndex ? param.iPageIndex : 1,
+      StationId: param.StationId,
+      STime: param.STime,
+      ETime: param.ETime,
+      SourceId: param.SourceId,
+      OrderPayStatus: param.OrderPayStatus,
+      InsureStatus: param.InsureStatus,
+      OrderStatus: param.OrderStatus || 3,
+      CensusStatus: param.CensusStatus,
+      iPageSize: 10
+    };
+    getAttractionTicketOrderList(data.search, function(response) {
+      data.list = response.list;
+      response.list.forEach(function(item) {
+        item.detailUrl = 'orderManagement/OMAttractionTicket/detail?id=' + item._id;
+      });
+      callback(data);
+    });
+
+  }
+
+  function detail(callback, param) {
+    var data = {};
+    getScenicOrderInfo(param.id, function(response) {
+      data = response;
+      data.financePopData = {
+        ProductTitle: data.OrderInfos.ProductTitle,
+        CustomerName: data.OrderInfos.CustomerEnlarge.CustomerName,
+        CustomerMobile: data.OrderInfos.CustomerEnlarge.CustomerMobile,
+        TotalFinalPrice: data.OrderInfos.TotalFinalPrice,
+        AfterTimePrice: data.OrderInfos.FinancesEnlarge.AfterTimePrice,
+        BeforeTimePrice: data.OrderInfos.FinancesEnlarge.BeforeTimePrice,
+        TotalUnpayPrice: data.OrderInfos.FinancesEnlarge.TotalUnPayPrice,
+        contractID: data.OrderInfos.OrderNo
+      };
+      data.scopeInfo = {};
+      data.scopeInfo.Pagination = {};
+
+      data.scopeInfo.orderMemberInfo = data.OrderTourists.slice(0, 10);
+      data.scopeInfo.Pagination.orderMemberPage = new Pagination(data.OrderTourists.length, 1, 10);
+      data.scopeInfo.touristInsuranceInfo = data.TouristInsurances.slice(0, 10);
+      data.scopeInfo.Pagination.touristInsurancesPage = new Pagination(data.TouristInsurances.length, 1, 10);
+
+      getCustomerDetail(data.OrderInfos.CustomerEnlarge.ForeignKeyID, function(response){
+        data.memberDetail = response;
+        callback(data);
+      });
+    });
+  }
+
+
+
+});
