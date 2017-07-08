@@ -186,7 +186,7 @@ $totalRows_Recordset21 = mysql_num_rows($Recordset21);
 $query_Recordset22 = sprintf("SELECT SUM(qty_ship) FROM sois WHERE date_shipped > from_unixtime(%s) AND date_shipped < from_unixtime(%s) AND pn = '2011500001'", GetSQLValueString($start_Recordset2, "date"),GetSQLValueString($end_Recordset2, "date"));
 $Recordset22 = mysql_query($query_Recordset22, $c32_19aq_com) or die(mysql_error());
 $row_Recordset22 = mysql_fetch_assoc($Recordset22);
-$totalRows_Recordset2 = mysql_num_rows($Recordset2);
+$totalRows_Recordset2 = mysql_num_rows($Recordset22);
 
 $query_Recordset23 = sprintf("SELECT SUM(qty_ship) FROM sois WHERE date_shipped > from_unixtime(%s) AND date_shipped < from_unixtime(%s) AND pn = '2011600001'", GetSQLValueString($start_Recordset2, "date"),GetSQLValueString($end_Recordset2, "date"));
 $Recordset23 = mysql_query($query_Recordset23, $c32_19aq_com) or die(mysql_error());
@@ -209,12 +209,12 @@ $row_Recordset26 = mysql_fetch_assoc($Recordset26);
 $totalRows_Recordset26 = mysql_num_rows($Recordset26);
 
 $query_Recordset27 = sprintf("SELECT SUM(qty_ship) FROM sois WHERE date_shipped > from_unixtime(%s) AND date_shipped < from_unixtime(%s) AND pn = '2010200001'", GetSQLValueString($start_Recordset2, "date"),GetSQLValueString($end_Recordset2, "date"));
-$Recordset27 = mysql_query($query_Recordset7, $c32_19aq_com) or die(mysql_error());
+$Recordset27 = mysql_query($query_Recordset27, $c32_19aq_com) or die(mysql_error());
 $row_Recordset27 = mysql_fetch_assoc($Recordset27);
 $totalRows_Recordset27 = mysql_num_rows($Recordset27);
 
 $query_Recordset28 = sprintf("SELECT SUM(qty_ship) FROM sois WHERE date_shipped > from_unixtime(%s) AND date_shipped < from_unixtime(%s) AND pn = '2011400001'", GetSQLValueString($start_Recordset2, "date"),GetSQLValueString($end_Recordset2, "date"));
-$Recordset28 = mysql_query($query_Recordset8, $c32_19aq_com) or die(mysql_error());
+$Recordset28 = mysql_query($query_Recordset28, $c32_19aq_com) or die(mysql_error());
 $row_Recordset28 = mysql_fetch_assoc($Recordset28);
 $totalRows_Recordset28 = mysql_num_rows($Recordset28);
 
