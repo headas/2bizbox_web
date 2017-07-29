@@ -1,0 +1,1 @@
+C:\PHP\php.exe D:\wwwroot\so\mail\test.php

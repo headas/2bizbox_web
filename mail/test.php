@@ -1,6 +1,6 @@
 ﻿<?php
-$fahuo = "http://192.168.1.10/so/shuju/Every_day.php";
-$kucun = "http://192.168.1.10/kc_desktop.php";
+$fahuo = "http://192.168.1.10/so/shuju/mail_Every_day.php";
+$kucun = "http://192.168.1.10/so/shuju/mail_kc_desktop.php";
 $time=date("Y-m-d H-i-s");
 $shijian=date("Y-m-d");
 $info = file_get_contents ( $fahuo );
@@ -24,14 +24,17 @@ try {
 	$mail->Port       = 465;                    
 	$mail->Host       = "smtp.exmail.qq.com"; 
 	$mail->Username   = "chenquan@headas.com";    
-	$mail->Password   = "123456";            
+	$mail->Password   = "cC3253220";            
 	//$mail->IsSendmail(); //如果没有sendmail组件就注释掉，否则出现“Could  not execute: /var/qmail/bin/sendmail ”的错误提示
 	$mail->AddReplyTo("chenquan@headas.com","mckee");//回复地址
 	$mail->From       = "chenquan@headas.com";
 	$mail->FromName   = "www.headas.com";
-	$mail->AddAddress("911196413@qq.com");
 	$mail->AddAddress("chenquan@headas.com");
 	$mail->AddAddress("fengfeicui@headas.com");
+	$mail->AddAddress("dengjingui@headas.com");
+	$mail->AddAddress("jiangtao@headas.com");
+	$mail->AddAddress("duanlei@headas.com");
+	$mail->AddAddress("wuhuayi@headas.com");
 	$mail->Subject  = "华创视际-发货数据概览 $shijian";
 	$mail->Body = $info_sum;
 	$mail->AltBody    = "To view the message, please use an HTML compatible email viewer!"; //当邮件不支持html时备用显示，可以省略
